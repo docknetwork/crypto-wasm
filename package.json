@@ -24,7 +24,7 @@
   "scripts": {
     "install": "./scripts/install-dependencies.sh",
     "uninstall": "rm -rf node_modules && yarn clean",
-    "clean": "rm -rf target && rm -rf dist",
+    "clean": "rm -rf target && rm -rf lib",
     "build": "./scripts/build-package.sh DEBUG",
     "build:release": "./scripts/build-package.sh RELEASE",
     "test": "yarn test:browser && yarn test:node && yarn test:wasm",
@@ -58,22 +58,6 @@
     "ts-jest": "24.0.2",
     "ts-node": "8.4.1",
     "typescript": "3.7.5"
-  },
-  "husky": {
-    "hooks": {
-      "commit-msg": "[[ -n $HUSKY_BYPASS ]] || commitlint -E HUSKY_GIT_PARAMS",
-      "pre-commit": "[[ -n $HUSKY_BYPASS ]] || pretty-quick --staged"
-    }
-  },
-  "commitlint": {
-    "extends": [
-      "@commitlint/config-conventional"
-    ]
-  },
-  "config": {
-    "commitizen": {
-      "path": "cz-conventional-changelog"
-    }
   },
   "optionalDependencies": {
     "@mattrglobal/node-bbs-signatures": "0.12.0"

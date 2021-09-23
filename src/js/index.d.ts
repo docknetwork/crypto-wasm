@@ -22,6 +22,11 @@ import {
   BlsBbsVerifyRequest,
   BbsCreateProofRequest,
   BbsVerifyProofRequest,
+  BbsSigParams,
+  BbsKeypair,
+  BbsSig,
+  BbsPoKSigProtocol,
+  BbsPoKSigProof
 } from "./types";
 
 export * from "./types";
@@ -71,3 +76,156 @@ export function blsCreateProof(
 export function blsVerifyProof(
   request: BbsVerifyProofRequest
 ): Promise<BbsVerifyResult>;
+
+export function generateRandomFieldElement(
+  seed?: Uint8Array
+): Promise<Uint8Array>;
+
+export function generateBBSSigningKey(seed?: Uint8Array): Promise<Uint8Array>;
+
+export function generateSignatureParamsG1(
+  messageCount: number,
+  label?: Uint8Array
+): Promise<Required<BbsSigParams>>;
+
+export function isSignatureParamsG1Valid(
+    params: BbsSigParams
+): Promise<boolean>;
+
+export function bbsSignatureParamsG1MaxSupportedMsgs(
+    params: BbsSigParams
+): Promise<number>;
+
+export function generateSignatureParamsG2(
+  messageCount: number,
+  label?: Uint8Array
+): Promise<Required<BbsSigParams>>;
+
+export function isSignatureParamsG2Valid(
+    params: BbsSigParams
+): Promise<boolean>;
+
+export function bbsSignatureParamsG2MaxSupportedMsgs(
+    params: BbsSigParams
+): Promise<number>;
+
+export function generateBBSPublicKeyG1(
+  secretKey: Uint8Array,
+  params: BbsSigParams
+): Promise<Uint8Array>;
+
+export function isBBSPublicKeyG1Valid(
+    publicKey: Uint8Array
+): Promise<Uint8Array>;
+
+export function generateBBSPublicKeyG2(
+  secretKey: Uint8Array,
+  params: BbsSigParams
+): Promise<Uint8Array>;
+
+export function isBBSPublicKeyG2Valid(
+    publicKey: Uint8Array
+): Promise<Uint8Array>;
+
+export function generateBBSKeyPairG1(
+  params: BbsSigParams,
+  seed?: Uint8Array
+): Promise<Required<BbsKeypair>>;
+
+export function generateBBSKeyPairG2(
+  params: BbsSigParams,
+  seed?: Uint8Array
+): Promise<Required<BbsKeypair>>;
+
+export function bbsSignG1(
+  messages: Uint8Array[],
+  secretKey: Uint8Array,
+  params: BbsSigParams,
+  encodeMessages: Boolean
+): Promise<Required<BbsSig>>;
+
+export function bbsSignG2(
+  messages: Uint8Array[],
+  secretKey: Uint8Array,
+  params: BbsSigParams,
+  encodeMessages: Boolean
+): Promise<Required<BbsSig>>;
+
+export function bbsVerfiyG1(
+    messages: Uint8Array[],
+    signature: BbsSig,
+    publicKey: Uint8Array,
+    params: BbsSigParams,
+    encodeMessages: Boolean
+): Promise<Required<BbsVerifyResult>>;
+
+export function bbsVerfiyG2(
+    messages: Uint8Array[],
+    signature: BbsSig,
+    publicKey: Uint8Array,
+    params: BbsSigParams,
+    encodeMessages: Boolean
+): Promise<Required<BbsVerifyResult>>;
+
+export function bbsCommitMsgsInG1(
+    messages: Map<number, Uint8Array>,
+    blinding: Uint8Array,
+    params: BbsSigParams,
+    encodeMessages: Boolean
+): Promise<Uint8Array>;
+
+export function bbsCommitMsgsInG2(
+    messages: Map<number, Uint8Array>,
+    blinding: Uint8Array,
+    params: BbsSigParams,
+    encodeMessages: Boolean
+): Promise<Uint8Array>;
+
+export function bbsBlindSignG1(
+    commitment: Uint8Array,
+    uncommittedMessages: Map<number, Uint8Array>,
+    secretKey: Uint8Array,
+    params: BbsSigParams,
+    encodeMessages: Boolean
+): Promise<BbsSig>;
+
+export function bbsBlindSignG2(
+    commitment: Uint8Array,
+    uncommittedMessages: Map<number, Uint8Array>,
+    secretKey: Uint8Array,
+    params: BbsSigParams,
+    encodeMessages: Boolean
+): Promise<BbsSig>;
+
+export function bbsUnblindSigG1(
+    signature: BbsSig,
+    blinding: Uint8Array,
+): Promise<BbsSig>;
+
+export function bbsUnblindSigG2(
+    signature: BbsSig,
+    blinding: Uint8Array,
+): Promise<BbsSig>;
+
+export function bbsInitializeProofOfKnowledgeOfSignature(
+    signature: BbsSig,
+    params: BbsSigParams,
+    messages: Uint8Array[],
+    blindings: Map<number, Uint8Array>,
+    revealedIndices: Set<number>,
+    encodeMessages: Boolean
+): Promise<BbsPoKSigProtocol>;
+
+export function bbsGenProofOfKnowledgeOfSignature(
+    protocol: BbsPoKSigProtocol,
+    challenge: Uint8Array
+): Promise<BbsPoKSigProof>;
+
+export function bbsVerifyProofOfKnowledgeOfSignature(
+    proof: BbsPoKSigProof,
+    revealedMessages: Map<number, Uint8Array>,
+    challenge: Uint8Array,
+    publicKey: Uint8Array,
+    params: BbsSigParams,
+    encodeMessages: Boolean
+): Promise<Required<BbsVerifyResult>>;

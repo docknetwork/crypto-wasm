@@ -7,5 +7,6 @@ Run the following and navigate to developer tools in browser to observe the outp
 ```
 yarn install --frozen-lockfile
 yarn demo
-open http://localhost:8080
 ```
+
+Open http://localhost:8080

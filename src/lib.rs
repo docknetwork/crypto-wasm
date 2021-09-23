@@ -20,6 +20,8 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 #[macro_use]
 extern crate arrayref;
 
+use ark_bls12_381::Bls12_381;
+use ark_ec::PairingEngine;
 use bbs::prelude::*;
 use serde::{
     de::{Error as DError, Visitor},
@@ -30,9 +32,17 @@ use wasm_bindgen::prelude::*;
 
 #[macro_use]
 mod macros;
+pub mod accumulator;
 pub mod bbs_plus;
 pub mod bls12381;
+pub mod common;
+pub mod dock_bbs_plus;
+
 mod utils;
+
+pub(crate) type Fr = <Bls12_381 as PairingEngine>::Fr;
+pub(crate) type G1Affine = <Bls12_381 as PairingEngine>::G1Affine;
+pub(crate) type G2Affine = <Bls12_381 as PairingEngine>::G2Affine;
 
 wasm_impl!(BbsVerifyResponse, verified: bool, error: Option<String>);
 

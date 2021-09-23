@@ -20,8 +20,18 @@ export { BbsSignRequest } from "./BbsSignRequest";
 export { BbsVerifyBlindSignContextRequest } from "./BbsVerifyBlindSignContextRequest";
 export { BbsVerifyProofRequest } from "./BbsVerifyProofRequest";
 export { BbsVerifyRequest } from "./BbsVerifyRequest";
-export { BlsKeyPair, DEFAULT_BLS12381_PRIVATE_KEY_LENGTH, DEFAULT_BLS12381_PUBLIC_KEY_LENGTH } from "./BlsKeyPair";
+export {
+  BlsKeyPair,
+  DEFAULT_BLS12381_PRIVATE_KEY_LENGTH,
+  DEFAULT_BLS12381_PUBLIC_KEY_LENGTH,
+} from "./BlsKeyPair";
 export { Bls12381ToBbsRequest } from "./Bls12381ToBbsRequest";
 export { BlsBbsSignRequest } from "./BlsBbsSignRequest";
 export { BlsBbsVerifyRequest } from "./BlsBbsVerifyRequest";
 export { BbsVerifyResult } from "./BbsVerifyResult";
+export { BbsSigParams } from "./BbsSigParams";
+export { BbsSig } from "./BbsSig";
+export { BbsPoKSigProtocol } from "./BbsPoKSigProtocol";
+export { BbsPoKSigProof } from "./BbsPoKSigProof";
+// @ts-ignore
+export { BbsKeypair } from "./BbsKeypair";
