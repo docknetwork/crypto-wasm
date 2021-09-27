@@ -23,7 +23,32 @@ const {
   generateBBSBls12381G1KeyPair,
   bbsSignG1, bbsVerfiyG1, bbsCommitMsgsInG1, bbsBlindSignG1, bbsUnblindSigG1, bbsInitializeProofOfKnowledgeOfSignature,
   bbsVerifyProofOfKnowledgeOfSignature, isSignatureParamsG1Valid, bbsSignatureParamsG1MaxSupportedMsgs,
-  isBBSPublicKeyG1Valid,
+  isBBSPublicKeyG1Valid, generateAccumulatorSecretKey, generateAccumulatorParams, isAccumulatorParamsValid,
+  generateAccumulatorPublicKey, isAccumulatorPublicKeyValid, generateAccumulatorKeyPair, positiveAccumulatorInitialize,
+  positiveAccumulatorGetAccumulated, positiveAccumulatorAdd, positiveAccumulatorRemove,
+  positiveAccumulatorMembershipWitness, positiveAccumulatorVerifyMembership, generateFieldElementFromNumber,
+  accumulatorGetElementFromBytes, positiveAccumulatorAddBatch, positiveAccumulatorRemoveBatch,
+  positiveAccumulatorBatchUpdates, positiveAccumulatorMembershipWitnessesForBatch, universalAccumulatorComputeInitialFv,
+  universalAccumulatorCombineMultipleInitialFv, universalAccumulatorInitialiseGivenFv,
+  universalAccumulatorGetAccumulated, universalAccumulatorAdd, universalAccumulatorRemove,
+  universalAccumulatorMembershipWitness, universalAccumulatorVerifyMembership, universalAccumulatorComputeD,
+  universalAccumulatorCombineMultipleD, universalAccumulatorNonMembershipWitness,
+  universalAccumulatorVerifyNonMembership, universalAccumulatorAddBatch, universalAccumulatorRemoveBatch,
+  universalAccumulatorBatchUpdates, universalAccumulatorCombineMultipleDForBatch, universalAccumulatorComputeDForBatch,
+  universalAccumulatorNonMembershipWitnessesForBatch, universalAccumulatorMembershipWitnessesForBatch,
+  updateMembershipWitnessPostAdd, updateMembershipWitnessPostRemove, updateNonMembershipWitnessPostAdd,
+  updateNonMembershipWitnessPostRemove, publicInfoForWitnessUpdate,
+  updateMembershipWitnessUsingPublicInfoAfterBatchUpdate, updateNonMembershipWitnessUsingPublicInfoAfterBatchUpdate,
+  updateMembershipWitnessUsingPublicInfoAfterMultipleBatchUpdates,
+  updateNonMembershipWitnessUsingPublicInfoAfterMultipleBatchUpdates, generateMembershipProvingKey,
+  accumulatorInitializeMembershipProof, accumulatorGenMembershipProof, accumulatorVerifyMembershipProof,
+  generateChallengeFromBytes, bbsChallengeContributionFromProof, accumulatorChallengeContributionFromMembershipProtocol,
+  accumulatorChallengeContributionFromNonMembershipProtocol, accumulatorChallengeContributionFromNonMembershipProof,
+  accumulatorDeriveMembershipProvingKeyFromNonMembershipKey, bbsEncodeMessageForSigning, generateFieldElementFromBytes,
+  fieldElementAsBytes, generatePoKBBSSignatureStatement, generateAccumulatorMembershipStatement,
+  generateAccumulatorNonMembershipStatement, generatePedersenCommitmentStatement, generateWitnessEqualityMetaStatement,
+  generatePoKBBSSignatureWitness, generateAccumulatorMembershipWitness, generateAccumulatorNonMembershipWitness,
+  generatePedersenCommitmentWitness, generateProofSpec, generateProof, verifyProof, bbsGetBasesForCommitmentG1,
 } = require("./index");
 
 // TODO should be able to remove this duplicate definition syntax by using ESM over index.web.js
@@ -125,10 +150,10 @@ module.exports.blsCreateProof = async (request) => {
   );
 };
 
-module.exports.verifyProof = async (request) => {
+/*module.exports.verifyProof = async (request) => {
   await initialize();
   return await throwErrorOnRejectedPromise(wasm.verifyProof(request));
-};
+};*/
 
 module.exports.blsVerifyProof = async (request) => {
   await initialize();
@@ -139,6 +164,20 @@ module.exports.generateRandomFieldElement = async (seed) => {
   await initialize();
   return await throwErrorOnRejectedPromise(
     wasm.generateRandomFieldElement(seed)
+  );
+};
+
+module.exports.generateFieldElementFromBytes = async (bytes) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.generateFieldElementFromBytes(bytes)
+  );
+};
+
+module.exports.fieldElementAsBytes = async (element) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.fieldElementAsBytes(element)
   );
 };
 
@@ -228,6 +267,34 @@ module.exports.generateBBSKeyPairG2 = async (params, seed) => {
   await initialize();
   return await throwErrorOnRejectedPromise(
     wasm.generateBBSKeyPairG2(params, seed)
+  );
+};
+
+module.exports.bbsEncodeMessageForSigning = async (message) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.bbsEncodeMessageForSigning(message)
+  );
+};
+
+module.exports.bbsEncodeMessagesForSigning = async (messages) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.bbsEncodeMessagesForSigning(messages)
+  );
+};
+
+module.exports.bbsGetBasesForCommitmentG1 = async (params, indicesToCommit) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.bbsGetBasesForCommitmentG1(params, indicesToCommit)
+  );
+};
+
+module.exports.bbsGetBasesForCommitmentG2 = async (params, indicesToCommit) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.bbsGetBasesForCommitmentG2(params, indicesToCommit)
   );
 };
 
@@ -376,5 +443,536 @@ module.exports.bbsVerifyProofOfKnowledgeOfSignature = async (
   await initialize();
   return await throwErrorOnRejectedPromise(
       wasm.bbsVerifyProofOfKnowledgeOfSignature(proof, revealedMessages, challenge, publicKey, params, encodeMessages)
+  );
+};
+
+module.exports.bbsChallengeContributionFromProtocol = async (
+    protocol,
+    revealedMessages,
+    params,
+    encodeMessages
+) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.bbsChallengeContributionFromProtocol(protocol, revealedMessages, params, encodeMessages)
+  );
+};
+
+module.exports.bbsChallengeContributionFromProof = async (
+    proof,
+    revealedMessages,
+    params,
+    encodeMessages
+) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.bbsChallengeContributionFromProof(proof, revealedMessages, params, encodeMessages)
+  );
+};
+
+module.exports.generateChallengeFromBytes = async (bytes) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(wasm.generateChallengeFromBytes(bytes));
+};
+
+module.exports.generateAccumulatorSecretKey = async (seed) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(wasm.generateAccumulatorSecretKey(seed));
+};
+
+module.exports.generateAccumulatorParams = async (label) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.generateAccumulatorParams(label)
+  );
+};
+
+module.exports.isAccumulatorParamsValid = async (params) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.isAccumulatorParamsValid(params)
+  );
+};
+
+module.exports.generateAccumulatorPublicKey = async (secretKey, params) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.generateAccumulatorPublicKey(secretKey, params)
+  );
+};
+
+module.exports.isAccumulatorPublicKeyValid = async (publicKey) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.isAccumulatorPublicKeyValid(publicKey)
+  );
+};
+
+module.exports.generateAccumulatorKeyPair = async (params, seed) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.generateAccumulatorKeyPair(params, seed)
+  );
+};
+
+module.exports.generateFieldElementFromNumber = async (num) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.generateFieldElementFromNumber(num)
+  );
+};
+
+module.exports.accumulatorGetElementFromBytes = async (bytes) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.accumulatorGetElementFromBytes(bytes)
+  );
+};
+
+module.exports.positiveAccumulatorInitialize = async (params) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.positiveAccumulatorInitialize(params)
+  );
+};
+
+module.exports.positiveAccumulatorGetAccumulated = async (accumulator) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.positiveAccumulatorGetAccumulated(accumulator)
+  );
+};
+
+module.exports.positiveAccumulatorAdd = async (accumulator, element, secretKey) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.positiveAccumulatorAdd(accumulator, element, secretKey)
+  );
+};
+
+module.exports.positiveAccumulatorRemove = async (accumulator, element, secretKey) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.positiveAccumulatorRemove(accumulator, element, secretKey)
+  );
+};
+
+module.exports.positiveAccumulatorMembershipWitness = async (accumulator, element, secretKey) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.positiveAccumulatorMembershipWitness(accumulator, element, secretKey)
+  );
+};
+
+module.exports.positiveAccumulatorVerifyMembership = async (accumulator, element, witness, publicKey, params) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.positiveAccumulatorVerifyMembership(accumulator, element, witness, publicKey, params)
+  );
+};
+
+module.exports.positiveAccumulatorAddBatch = async (accumulator, elements, secretKey) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.positiveAccumulatorAddBatch(accumulator, elements, secretKey)
+  );
+};
+
+module.exports.positiveAccumulatorRemoveBatch = async (accumulator, elements, secretKey) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.positiveAccumulatorRemoveBatch(accumulator, elements, secretKey)
+  );
+};
+
+module.exports.positiveAccumulatorBatchUpdates = async (accumulator, additions, removals, secretKey) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.positiveAccumulatorBatchUpdates(accumulator, additions, removals, secretKey)
+  );
+};
+
+module.exports.positiveAccumulatorMembershipWitnessesForBatch = async (accumulator, elements, secretKey) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.positiveAccumulatorMembershipWitnessesForBatch(accumulator, elements, secretKey)
+  );
+};
+
+module.exports.universalAccumulatorComputeInitialFv = async (initialElements, secretKey) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.universalAccumulatorComputeInitialFv(initialElements, secretKey)
+  );
+};
+
+module.exports.universalAccumulatorCombineMultipleInitialFv = async (initialFVs) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.universalAccumulatorCombineMultipleInitialFv(initialFVs)
+  );
+};
+
+module.exports.universalAccumulatorInitialiseGivenFv = async (fV, params, maxSize) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.universalAccumulatorInitialiseGivenFv(fV, params, maxSize)
+  );
+};
+
+module.exports.universalAccumulatorGetAccumulated = async (accumulator) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.universalAccumulatorGetAccumulated(accumulator)
+  );
+};
+
+module.exports.universalAccumulatorAdd = async (accumulator, element, secretKey) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.universalAccumulatorAdd(accumulator, element, secretKey)
+  );
+};
+
+module.exports.universalAccumulatorRemove = async (accumulator, element, secretKey) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.universalAccumulatorRemove(accumulator, element, secretKey)
+  );
+};
+
+module.exports.universalAccumulatorMembershipWitness = async (accumulator, element, secretKey) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.universalAccumulatorMembershipWitness(accumulator, element, secretKey)
+  );
+};
+
+module.exports.universalAccumulatorVerifyMembership = async (accumulator, element, witness, publicKey, params) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.universalAccumulatorVerifyMembership(accumulator, element, witness, publicKey, params)
+  );
+};
+
+module.exports.universalAccumulatorComputeD = async (nonMember, members) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.universalAccumulatorComputeD(nonMember, members)
+  );
+};
+
+module.exports.universalAccumulatorCombineMultipleD = async (d) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.universalAccumulatorCombineMultipleD(d)
+  );
+};
+
+module.exports.universalAccumulatorNonMembershipWitness = async (accumulator, d, nonMember, secretKey, params) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.universalAccumulatorNonMembershipWitness(accumulator, d, nonMember, secretKey, params)
+  );
+};
+
+module.exports.universalAccumulatorVerifyNonMembership = async (accumulator, element, witness, publicKey, params) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.universalAccumulatorVerifyNonMembership(accumulator, element, witness, publicKey, params)
+  );
+};
+
+module.exports.universalAccumulatorAddBatch = async (accumulator, elements, secretKey) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.universalAccumulatorAddBatch(accumulator, elements, secretKey)
+  );
+};
+
+module.exports.universalAccumulatorRemoveBatch = async (accumulator, elements, secretKey) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.universalAccumulatorRemoveBatch(accumulator, elements, secretKey)
+  );
+};
+
+module.exports.universalAccumulatorBatchUpdates = async (accumulator, additions, removals, secretKey) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.universalAccumulatorBatchUpdates(accumulator, additions, removals, secretKey)
+  );
+};
+
+module.exports.universalAccumulatorMembershipWitnessesForBatch = async (accumulator, elements, secretKey) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.universalAccumulatorMembershipWitnessesForBatch(accumulator, elements, secretKey)
+  );
+};
+
+module.exports.universalAccumulatorComputeDForBatch = async (nonMembers, members) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.universalAccumulatorComputeDForBatch(nonMembers, members)
+  );
+};
+
+module.exports.universalAccumulatorCombineMultipleDForBatch = async (d) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.universalAccumulatorCombineMultipleDForBatch(d)
+  );
+};
+
+module.exports.universalAccumulatorNonMembershipWitnessesForBatch = async (accumulator, d, nonMembers, secretKey, params) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.universalAccumulatorNonMembershipWitnessesForBatch(accumulator, d, nonMembers, secretKey, params)
+  );
+};
+
+module.exports.updateMembershipWitnessPostAdd = async (witness, member, addition, oldAccumulated) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.updateMembershipWitnessPostAdd(witness, member, addition, oldAccumulated)
+  );
+};
+
+module.exports.updateMembershipWitnessPostRemove = async (witness, member, removal, oldAccumulated) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.updateMembershipWitnessPostRemove(witness, member, removal, oldAccumulated)
+  );
+};
+
+module.exports.updateNonMembershipWitnessPostAdd = async (witness, member, addition, oldAccumulated) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.updateNonMembershipWitnessPostAdd(witness, member, addition, oldAccumulated)
+  );
+};
+
+module.exports.updateNonMembershipWitnessPostRemove = async (witness, member, removal, oldAccumulated) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.updateNonMembershipWitnessPostRemove(witness, member, removal, oldAccumulated)
+  );
+};
+
+module.exports.publicInfoForWitnessUpdate = async (oldAccumulated, additions, removals, secretKey) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.publicInfoForWitnessUpdate(oldAccumulated, additions, removals, secretKey)
+  );
+};
+
+module.exports.updateMembershipWitnessUsingPublicInfoAfterBatchUpdate = async (witness, member, additions, removals, publicInfo) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.updateMembershipWitnessUsingPublicInfoAfterBatchUpdate(witness, member, additions, removals, publicInfo)
+  );
+};
+
+module.exports.updateNonMembershipWitnessUsingPublicInfoAfterBatchUpdate = async (witness, nonMember, additions, removals, publicInfo) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.updateNonMembershipWitnessUsingPublicInfoAfterBatchUpdate(witness, nonMember, additions, removals, publicInfo)
+  );
+};
+
+module.exports.updateMembershipWitnessUsingPublicInfoAfterMultipleBatchUpdates = async (witness, member, additions, removals, publicInfo) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.updateMembershipWitnessUsingPublicInfoAfterMultipleBatchUpdates(witness, member, additions, removals, publicInfo)
+  );
+};
+
+module.exports.updateNonMembershipWitnessUsingPublicInfoAfterMultipleBatchUpdates = async (witness, nonMember, additions, removals, publicInfo) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.updateNonMembershipWitnessUsingPublicInfoAfterMultipleBatchUpdates(witness, nonMember, additions, removals, publicInfo)
+  );
+};
+
+module.exports.generateMembershipProvingKey = async (label) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.generateMembershipProvingKey(label)
+  );
+};
+
+module.exports.generateNonMembershipProvingKey = async (label) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.generateNonMembershipProvingKey(label)
+  );
+};
+
+module.exports.accumulatorDeriveMembershipProvingKeyFromNonMembershipKey = async (key) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.accumulatorDeriveMembershipProvingKeyFromNonMembershipKey(key)
+  );
+};
+
+module.exports.accumulatorInitializeMembershipProof = async (member, blinding, witness, publicKey, params, provingKey) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.accumulatorInitializeMembershipProof(member, blinding, witness, publicKey, params, provingKey)
+  );
+};
+
+module.exports.accumulatorGenMembershipProof = async (protocol, challenge) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.accumulatorGenMembershipProof(protocol, challenge)
+  );
+};
+
+module.exports.accumulatorVerifyMembershipProof = async (proof, accumulated, challenge, publicKey, params, provingKey) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.accumulatorVerifyMembershipProof(proof, accumulated, challenge, publicKey, params, provingKey)
+  );
+};
+
+module.exports.accumulatorInitializeNonMembershipProof = async (nonMember, blinding, witness, publicKey, params, provingKey) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.accumulatorInitializeNonMembershipProof(nonMember, blinding, witness, publicKey, params, provingKey)
+  );
+};
+
+module.exports.accumulatorGenNonMembershipProof = async (protocol, challenge) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.accumulatorGenNonMembershipProof(protocol, challenge)
+  );
+};
+
+module.exports.accumulatorVerifyNonMembershipProof = async (proof, accumulated, challenge, publicKey, params, provingKey) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.accumulatorVerifyNonMembershipProof(proof, accumulated, challenge, publicKey, params, provingKey)
+  );
+};
+
+module.exports.accumulatorChallengeContributionFromMembershipProtocol = async (protocol, accumulated, publicKey, params, provingKey) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.accumulatorChallengeContributionFromMembershipProtocol(protocol, accumulated, publicKey, params, provingKey)
+  );
+};
+
+module.exports.accumulatorChallengeContributionFromMembershipProof = async (proof, accumulated, publicKey, params, provingKey) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.accumulatorChallengeContributionFromMembershipProof(proof, accumulated, publicKey, params, provingKey)
+  );
+};
+
+module.exports.accumulatorChallengeContributionFromNonMembershipProtocol = async (protocol, accumulated, publicKey, params, provingKey) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.accumulatorChallengeContributionFromNonMembershipProtocol(protocol, accumulated, publicKey, params, provingKey)
+  );
+};
+
+module.exports.accumulatorChallengeContributionFromNonMembershipProof = async (proof, accumulated, publicKey, params, provingKey) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.accumulatorChallengeContributionFromNonMembershipProof(proof, accumulated, publicKey, params, provingKey)
+  );
+};
+
+module.exports.generatePoKBBSSignatureStatement = async (params, publicKey, revealedMessages, encodeMessages) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.generatePoKBBSSignatureStatement(params, publicKey, revealedMessages, encodeMessages)
+  );
+};
+
+module.exports.generateAccumulatorMembershipStatement = async (params, publicKey, provingKey, accumulated) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.generateAccumulatorMembershipStatement(params, publicKey, provingKey, accumulated)
+  );
+};
+
+module.exports.generateAccumulatorNonMembershipStatement = async (params, publicKey, provingKey, accumulated) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.generateAccumulatorNonMembershipStatement(params, publicKey, provingKey, accumulated)
+  );
+};
+
+module.exports.generatePedersenCommitmentG1Statement = async (bases, commitment) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.generatePedersenCommitmentG1Statement(bases, commitment)
+  );
+};
+
+module.exports.generatePedersenCommitmentG2Statement = async (bases, commitment) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.generatePedersenCommitmentG2Statement(bases, commitment)
+  );
+};
+
+module.exports.generateWitnessEqualityMetaStatement = async (equalities) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.generateWitnessEqualityMetaStatement(equalities)
+  );
+};
+
+module.exports.generatePoKBBSSignatureWitness = async (signature, unrevealedMessages, encodeMessages) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.generatePoKBBSSignatureWitness(signature, unrevealedMessages, encodeMessages)
+  );
+};
+
+module.exports.generateAccumulatorMembershipWitness = async (element, witness) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.generatePoKBBSSignatureWitness(element, witness)
+  );
+};
+
+module.exports.generateAccumulatorNonMembershipWitness = async (element, witness) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.generateAccumulatorNonMembershipWitness(element, witness)
+  );
+};
+
+module.exports.generatePedersenCommitmentWitness = async (elements) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.generatePedersenCommitmentWitness(elements)
+  );
+};
+
+module.exports.generateProofSpec = async (statements, metaStatements) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.generateProofSpec(statements, metaStatements)
+  );
+};
+
+module.exports.generateProof = async (proofSpec, witnesses, context) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.generateProof(proofSpec, witnesses, context)
+  );
+};
+
+module.exports.verifyProof = async (proof, proofSpec, context) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.verifyProof(proof, proofSpec, context)
   );
 };

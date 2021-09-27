@@ -25,12 +25,15 @@ import {
   bbsUnblindSigG2,
   bbsInitializeProofOfKnowledgeOfSignature,
   bbsGenProofOfKnowledgeOfSignature,
-  bbsVerifyProofOfKnowledgeOfSignature
-} from "../../lib";
+  bbsVerifyProofOfKnowledgeOfSignature,
+  bbsChallengeContributionFromProtocol,
+  bbsChallengeContributionFromProof,
+  generateChallengeFromBytes
+} from "../lib";
 
-import { BbsSigParams } from "../../lib/types";
+import { BbsSigParams } from "../lib/types";
 
-import { stringToBytes } from "../utilities";
+import { stringToBytes } from "./utilities";
 
 describe("For BBS+ signatures", () => {
   let sigParamsG1: BbsSigParams,
@@ -65,6 +68,11 @@ describe("For BBS+ signatures", () => {
   });
 
   it("generate signature params in G1", async () => {
+    const params0 = await generateSignatureParamsG1(messageCount);
+    expect(params0).toBeInstanceOf(Object);
+    expect(params0.h.length).toEqual(messageCount);
+    expect(await isSignatureParamsG1Valid(params0)).toBe(true);
+
     const label = stringToBytes("Sig params g1");
     const params = await generateSignatureParamsG1(messageCount, label);
     expect(params).toBeInstanceOf(Object);
@@ -76,6 +84,11 @@ describe("For BBS+ signatures", () => {
   });
 
   it("generate signature params in G2", async () => {
+    const params0 = await generateSignatureParamsG2(messageCount);
+    expect(params0).toBeInstanceOf(Object);
+    expect(params0.h.length).toEqual(messageCount);
+    expect(await isSignatureParamsG2Valid(params0)).toBe(true);
+
     const params = await generateSignatureParamsG2(messageCount);
     expect(params).toBeInstanceOf(Object);
     expect(params.h.length).toEqual(messageCount);
@@ -104,8 +117,8 @@ describe("For BBS+ signatures", () => {
     expect(keypair1).toBeInstanceOf(Object);
     expect(keypair).toEqual(keypair1);
 
-    expect(keypair.secretKey).toEqual(sk);
-    expect(keypair.publicKey).toEqual(pkG1);
+    expect(keypair.secret_key).toEqual(sk);
+    expect(keypair.public_key).toEqual(pkG1);
   });
 
   it("generate keypair in G2 from given seed", async () => {
@@ -115,8 +128,8 @@ describe("For BBS+ signatures", () => {
     expect(keypair1).toBeInstanceOf(Object);
     expect(keypair).toEqual(keypair1);
 
-    expect(keypair.secretKey).toEqual(sk);
-    expect(keypair.publicKey).toEqual(pkG2);
+    expect(keypair.secret_key).toEqual(sk);
+    expect(keypair.public_key).toEqual(pkG2);
   });
 
   it("generate and verify signature in G1", async () => {
@@ -178,7 +191,7 @@ describe("For BBS+ signatures", () => {
 
     // Prover reveals message indices 0 and 2 and supplies blindings for message indices 1, 4 and 5
     const blindings = new Map();
-    const revealed = new Set();
+    const revealed: Set<number> = new Set();
     const revealedMsgs = new Map();
 
     blindings.set(1, await generateRandomFieldElement());
@@ -190,9 +203,17 @@ describe("For BBS+ signatures", () => {
     revealedMsgs.set(2, messages[2]);
 
     const protocol = await bbsInitializeProofOfKnowledgeOfSignature(sig, sigParamsG1, messages, blindings, revealed, true);
-    const challenge = await generateRandomFieldElement();
-    const proof = await bbsGenProofOfKnowledgeOfSignature(protocol, challenge);
-    const result = await bbsVerifyProofOfKnowledgeOfSignature(proof, revealedMsgs, challenge, pkG2, sigParamsG1, true);
+    const pBytes = await bbsChallengeContributionFromProtocol(protocol, revealedMsgs, sigParamsG1, true);
+    expect(pBytes).toBeInstanceOf(Uint8Array);
+    const proverChallenge = await generateChallengeFromBytes(pBytes);
+    const proof = await bbsGenProofOfKnowledgeOfSignature(protocol, proverChallenge);
+
+    const vBytes = await bbsChallengeContributionFromProof(proof, revealedMsgs, sigParamsG1, true);
+    expect(vBytes).toBeInstanceOf(Uint8Array);
+    expect(pBytes).toEqual(vBytes);
+    const verifierChallenge = await generateChallengeFromBytes(vBytes);
+    expect(proverChallenge).toEqual(verifierChallenge);
+    const result = await bbsVerifyProofOfKnowledgeOfSignature(proof, revealedMsgs, verifierChallenge, pkG2, sigParamsG1, true);
     expect(result.verified).toBe(true);
   });
 

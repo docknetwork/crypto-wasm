@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-//! Test suite for the Web and headless browsers.
+/*//! Test suite for the Web and headless browsers.
 
 #![cfg(target_arch = "wasm32")]
 extern crate wasm_bindgen_test;
@@ -128,4 +128,4 @@ async fn bls_generate_key_test() {
     let secretKey = js_sys::Array::from(&values.get(1));
     assert_eq!(publicKey.length(), 96);
     assert_eq!(secretKey.length(), 32);
-}
+}*/

@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-//! Test suite for the Web and headless browsers.
+/*//! Test suite for the Web and headless browsers.
 
 #![cfg(target_arch = "wasm32")]
 extern crate wasm_bindgen_test;
@@ -147,3 +147,4 @@ pub async fn bbs_blind_sign_tests() {
     let res = res.unwrap();
     assert!(res.is_falsy());
 }
+*/

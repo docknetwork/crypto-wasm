@@ -33,12 +33,12 @@ use wasm_bindgen::prelude::*;
 #[macro_use]
 mod macros;
 pub mod accumulator;
-pub mod bbs_plus;
-pub mod bls12381;
+// pub mod bbs_plus;
+// pub mod bls12381;
 pub mod common;
 pub mod dock_bbs_plus;
-
-mod utils;
+pub mod proof_system;
+pub mod utils;
 
 pub(crate) type Fr = <Bls12_381 as PairingEngine>::Fr;
 pub(crate) type G1Affine = <Bls12_381 as PairingEngine>::G1Affine;
@@ -128,10 +128,10 @@ impl<'a> Deserialize<'a> for PoKOfSignatureProofWrapper {
     }
 }
 
-pub mod prelude {
+/*pub mod prelude {
     pub use crate::bbs_plus::*;
     pub use crate::bls12381::*;
-}
+}*/
 
 /// Expects `revealed` to be sorted
 pub(crate) fn revealed_to_bitvector(total: usize, revealed: &BTreeSet<usize>) -> Vec<u8> {

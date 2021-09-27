@@ -33,5 +33,6 @@ export { BbsSigParams } from "./BbsSigParams";
 export { BbsSig } from "./BbsSig";
 export { BbsPoKSigProtocol } from "./BbsPoKSigProtocol";
 export { BbsPoKSigProof } from "./BbsPoKSigProof";
-// @ts-ignore
-export { BbsKeypair } from "./BbsKeypair";
+export {AccumulatorParams} from "./AccumulatorParams";
+export {Keypair} from "./Keypair";
+export { VerifyResult } from "./VerifyResult";

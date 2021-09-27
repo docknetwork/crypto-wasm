@@ -11,6 +11,7 @@
  * limitations under the License.
  */
 
+/*
 import {
   generateBls12381G1KeyPair,
   generateBls12381G2KeyPair,
@@ -126,3 +127,4 @@ describe("bls12381", () => {
     });
   });
 });
+*/

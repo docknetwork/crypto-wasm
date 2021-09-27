@@ -11,16 +11,12 @@
  * limitations under the License.
  */
 
-use crate::Fr;
-use ark_bls12_381::Bls12_381;
-use ark_ec::PairingEngine;
+use crate::{Fr, G1Affine, G2Affine};
 use ark_ff::PrimeField;
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use ark_std::collections::BTreeMap;
 use ark_std::rand::prelude::{RngCore, SeedableRng, StdRng};
 use blake2::Blake2b;
-use serde::{Deserialize, Serialize};
-use serde_wasm_bindgen::*;
 use wasm_bindgen::prelude::*;
 
 pub fn set_panic_hook() {
@@ -52,24 +48,42 @@ extern "C" {
     pub fn log_many(a: &str, b: &str);
 }
 
-pub fn fr_to_jsvalue(elem: &<Bls12_381 as PairingEngine>::Fr) -> Result<JsValue, JsValue> {
+pub fn fr_to_jsvalue(elem: &Fr) -> Result<JsValue, JsValue> {
     let mut bytes = vec![];
     elem.serialize(&mut bytes)
-        .map_err(|e| JsValue::from(&format!("Cannot serialize Fr due to error: {:?}", e)))?;
+        .map_err(|e| JsValue::from(&format!("Cannot serialize {:?} Fr due to error: {:?}", elem, e)))?;
     // Following unwrap won't fail as its serializing only bytes
     Ok(serde_wasm_bindgen::to_value(&bytes).unwrap())
 }
 
-pub fn fr_from_jsvalue(value: JsValue) -> Result<<Bls12_381 as PairingEngine>::Fr, JsValue> {
+pub fn fr_from_jsvalue(value: JsValue) -> Result<Fr, JsValue> {
     let bytes: Vec<u8> = serde_wasm_bindgen::from_value(value)?;
-    let elem = <Bls12_381 as PairingEngine>::Fr::deserialize(&bytes[..])
-        .map_err(|e| JsValue::from(&format!("Cannot deserialize to Fr due to error: {:?}", e)))?;
+    let elem = Fr::deserialize(&bytes[..])
+        .map_err(|e| JsValue::from(&format!("Cannot deserialize {:?} to Fr due to error: {:?}", bytes, e)))?;
     Ok(elem)
 }
 
-pub fn g1_affine_to_jsvalue(
-    elem: &<Bls12_381 as PairingEngine>::G1Affine,
-) -> Result<JsValue, JsValue> {
+pub fn frs_from_jsvalue(value: JsValue) -> Result<Vec<Fr>, JsValue> {
+    let bytes: Vec<u8> = serde_wasm_bindgen::from_value(value)?;
+    let elem = <Vec<Fr>>::deserialize(&bytes[..]).map_err(|e| {
+        JsValue::from(&format!(
+            "Cannot deserialize to Fr vector due to error: {:?}",
+            e
+        ))
+    })?;
+    Ok(elem)
+}
+
+pub fn frs_to_jsvalue(elems: &[Fr]) -> Result<JsValue, JsValue> {
+    let mut bytes = vec![];
+    elems
+        .serialize(&mut bytes)
+        .map_err(|e| JsValue::from(&format!("Cannot serialize Fr vector due to error: {:?}", e)))?;
+    // Following unwrap won't fail as its serializing only bytes
+    Ok(serde_wasm_bindgen::to_value(&bytes).unwrap())
+}
+
+pub fn g1_affine_to_jsvalue(elem: &G1Affine) -> Result<JsValue, JsValue> {
     let mut bytes = vec![];
     elem.serialize(&mut bytes)
         .map_err(|e| JsValue::from(&format!("Cannot serialize G1Affine due to error: {:?}", e)))?;
@@ -77,11 +91,9 @@ pub fn g1_affine_to_jsvalue(
     Ok(serde_wasm_bindgen::to_value(&bytes).unwrap())
 }
 
-pub fn g1_affine_from_jsvalue(
-    value: JsValue,
-) -> Result<<Bls12_381 as PairingEngine>::G1Affine, JsValue> {
+pub fn g1_affine_from_jsvalue(value: JsValue) -> Result<G1Affine, JsValue> {
     let bytes: Vec<u8> = serde_wasm_bindgen::from_value(value)?;
-    let elem = <Bls12_381 as PairingEngine>::G1Affine::deserialize(&bytes[..]).map_err(|e| {
+    let elem = G1Affine::deserialize(&bytes[..]).map_err(|e| {
         JsValue::from(&format!(
             "Cannot deserialize to G1Affine due to error: {:?}",
             e
@@ -90,9 +102,7 @@ pub fn g1_affine_from_jsvalue(
     Ok(elem)
 }
 
-pub fn g2_affine_to_jsvalue(
-    elem: &<Bls12_381 as PairingEngine>::G2Affine,
-) -> Result<JsValue, JsValue> {
+pub fn g2_affine_to_jsvalue(elem: &G2Affine) -> Result<JsValue, JsValue> {
     let mut bytes = vec![];
     elem.serialize(&mut bytes)
         .map_err(|e| JsValue::from(&format!("Cannot serialize G2Affine due to error: {:?}", e)))?;
@@ -100,11 +110,9 @@ pub fn g2_affine_to_jsvalue(
     Ok(serde_wasm_bindgen::to_value(&bytes).unwrap())
 }
 
-pub fn g2_affine_from_jsvalue(
-    value: JsValue,
-) -> Result<<Bls12_381 as PairingEngine>::G2Affine, JsValue> {
+pub fn g2_affine_from_jsvalue(value: JsValue) -> Result<G2Affine, JsValue> {
     let bytes: Vec<u8> = serde_wasm_bindgen::from_value(value)?;
-    let elem = <Bls12_381 as PairingEngine>::G2Affine::deserialize(&bytes[..]).map_err(|e| {
+    let elem = G2Affine::deserialize(&bytes[..]).map_err(|e| {
         JsValue::from(&format!(
             "Cannot deserialize to G2Affine due to error: {:?}",
             e
@@ -120,7 +128,7 @@ pub fn message_bytes_to_messages(messages_as_bytes: &[Vec<u8>], encode_messages:
             if encode_messages {
                 encode_message_for_signing(m)
             } else {
-                Fr::from_be_bytes_mod_order(m)
+                Fr::deserialize(m.as_slice()).unwrap()
             }
         })
         .collect::<Vec<_>>()
@@ -131,24 +139,56 @@ pub fn msgs_bytes_map_to_fr_btreemap(
     encode_messages: bool,
 ) -> Result<BTreeMap<usize, Fr>, serde_wasm_bindgen::Error> {
     let mut msgs = BTreeMap::new();
-    /*let mut msgs_vec = Vec::new();
-    messages.for_each(&mut |m, i| {
-        msgs_vec.push((i,m))
-    });*/
     for e in messages.entries() {
         let arr = js_sys::Array::from(&e.unwrap());
         let index: usize = serde_wasm_bindgen::from_value(arr.get(0))?;
         let msg: Vec<u8> = serde_wasm_bindgen::from_value(arr.get(1))?;
-        msgs.insert(
-            index,
-            if encode_messages {
-                encode_message_for_signing(&msg)
-            } else {
-                Fr::from_be_bytes_mod_order(&msg)
-            },
-        );
+        let m = if encode_messages {
+            encode_message_for_signing(&msg)
+        } else {
+            Fr::deserialize(msg.as_slice()).map_err(|e| {
+                JsValue::from(&format!("Cannot deserialize to Fr due to error: {:?}", e))
+            })?
+        };
+        msgs.insert(index, m);
     }
     Ok(msgs)
+}
+
+pub fn js_array_to_fr_vec(array: &js_sys::Array) -> Result<Vec<Fr>, serde_wasm_bindgen::Error> {
+    let mut frs = Vec::with_capacity(array.length() as usize);
+    for a in array.values() {
+        frs.push(fr_from_jsvalue(a.unwrap())?);
+    }
+    Ok(frs)
+}
+
+pub fn js_array_from_frs(frs: &[Fr]) -> Result<js_sys::Array, serde_wasm_bindgen::Error> {
+    let array = js_sys::Array::new();
+    for fr in frs {
+        array.push(&fr_to_jsvalue(fr)?);
+    }
+    Ok(array)
+}
+
+pub fn js_array_to_g1_affine_vec(
+    array: &js_sys::Array,
+) -> Result<Vec<G1Affine>, serde_wasm_bindgen::Error> {
+    let mut g1s = Vec::with_capacity(array.length() as usize);
+    for a in array.values() {
+        g1s.push(g1_affine_from_jsvalue(a.unwrap())?);
+    }
+    Ok(g1s)
+}
+
+pub fn js_array_to_g2_affine_vec(
+    array: &js_sys::Array,
+) -> Result<Vec<G2Affine>, serde_wasm_bindgen::Error> {
+    let mut g2s = Vec::with_capacity(array.length() as usize);
+    for a in array.values() {
+        g2s.push(g2_affine_from_jsvalue(a.unwrap())?);
+    }
+    Ok(g2s)
 }
 
 /// This is to convert a message to field element. This encoding needs to be collision resistant but
@@ -161,6 +201,18 @@ pub fn encode_message_for_signing(msg: &[u8]) -> Fr {
     )
 }
 
+pub fn field_element_from_u32(number: u32) -> Fr {
+    // Using BigInteger256 is fine as Bls12-381 curve
+    Fr::from_repr(ark_ff::BigInteger256::from(number as u64)).unwrap()
+}
+
+pub fn encode_bytes_as_accumulator_member(bytes: &[u8]) -> Fr {
+    dock_crypto_utils::hashing_utils::field_elem_from_seed::<Fr, Blake2b>(
+        bytes,
+        "Accumulator element".as_bytes(),
+    )
+}
+
 pub fn get_seeded_rng() -> StdRng {
     let mut buf = [0u8; 32];
     getrandom::getrandom(&mut buf).unwrap();
@@ -169,7 +221,87 @@ pub fn get_seeded_rng() -> StdRng {
 
 pub fn random_bytes() -> Vec<u8> {
     let mut rng = get_seeded_rng();
-    let mut s = vec![0u8, 32];
+    let mut s = vec![0u8; 32];
     rng.fill_bytes(s.as_mut_slice());
     s
+}
+
+#[cfg(test)]
+mod tests {
+    #![cfg(target_arch = "wasm32")]
+    extern crate wasm_bindgen_test;
+    use wasm_bindgen_test::*;
+
+    wasm_bindgen_test_configure!(run_in_browser);
+
+    use super::*;
+    use ark_bls12_381::{G1Projective, G2Projective};
+    use ark_ec::ProjectiveCurve;
+    use ark_std::UniformRand;
+    use blake2::Blake2b;
+
+    #[wasm_bindgen_test]
+    pub async fn to_and_from_js_value() {
+        let seed = random_bytes();
+        let f = dock_crypto_utils::hashing_utils::field_elem_from_seed::<Fr, Blake2b>(&seed, &[]);
+        let jf = fr_to_jsvalue(&f).unwrap();
+        assert_eq!(f, fr_from_jsvalue(jf).unwrap());
+
+        let f = vec![
+            dock_crypto_utils::hashing_utils::field_elem_from_seed::<Fr, Blake2b>(
+                &random_bytes(),
+                &[],
+            ),
+            dock_crypto_utils::hashing_utils::field_elem_from_seed::<Fr, Blake2b>(
+                &random_bytes(),
+                &[],
+            ),
+            dock_crypto_utils::hashing_utils::field_elem_from_seed::<Fr, Blake2b>(
+                &random_bytes(),
+                &[],
+            ),
+            dock_crypto_utils::hashing_utils::field_elem_from_seed::<Fr, Blake2b>(
+                &random_bytes(),
+                &[],
+            ),
+        ];
+        let jf = frs_to_jsvalue(&f).unwrap();
+        assert_eq!(f, frs_from_jsvalue(jf).unwrap());
+
+        let mut rng = get_seeded_rng();
+        let g1 = G1Projective::rand(&mut rng).into_affine();
+        let jg1 = g1_affine_to_jsvalue(&g1).unwrap();
+        assert_eq!(g1, g1_affine_from_jsvalue(jg1).unwrap());
+
+        let mut rng = get_seeded_rng();
+        let g2 = G2Projective::rand(&mut rng).into_affine();
+        let jg2 = g2_affine_to_jsvalue(&g2).unwrap();
+        assert_eq!(g2, g2_affine_from_jsvalue(jg2).unwrap());
+    }
+
+    #[wasm_bindgen_test]
+    pub async fn fr_map() {
+        let map = js_sys::Map::new();
+        let f1 = dock_crypto_utils::hashing_utils::field_elem_from_seed::<Fr, Blake2b>(
+            &random_bytes(),
+            &[],
+        );
+        let f2 = dock_crypto_utils::hashing_utils::field_elem_from_seed::<Fr, Blake2b>(
+            &random_bytes(),
+            &[],
+        );
+        let f3 = dock_crypto_utils::hashing_utils::field_elem_from_seed::<Fr, Blake2b>(
+            &random_bytes(),
+            &[],
+        );
+        map.set(&JsValue::from(1), &fr_to_jsvalue(&f1).unwrap());
+        map.set(&JsValue::from(2), &fr_to_jsvalue(&f2).unwrap());
+        map.set(&JsValue::from(3), &fr_to_jsvalue(&f3).unwrap());
+
+        let fr_map = msgs_bytes_map_to_fr_btreemap(&map, false).unwrap();
+
+        assert_eq!(f1, *fr_map.get(&1).unwrap());
+        assert_eq!(f2, *fr_map.get(&2).unwrap());
+        assert_eq!(f3, *fr_map.get(&3).unwrap());
+    }
 }
