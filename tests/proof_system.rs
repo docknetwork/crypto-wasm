@@ -19,9 +19,23 @@ use wasm::common::{
     field_element_as_bytes, field_element_from_number, generate_field_element_from_bytes,
     generate_random_field_element, random_ff, VerifyResponse,
 };
-use wasm::dock_bbs_plus::{bbs_blind_sign_g1, bbs_commit_to_message_in_g1, bbs_encode_message_for_signing, bbs_encode_messages_for_signing, bbs_generate_g1_params, bbs_generate_public_key_g2, bbs_generate_secret_key, bbs_get_bases_for_commitment_g1, bbs_sign_g1, bbs_unblind_sig_g1, bbs_verify_g1};
-use wasm::proof_system::{generate_accumulator_membership_statement, generate_accumulator_membership_witness, generate_accumulator_non_membership_statement, generate_accumulator_non_membership_witness, generate_pedersen_commitment_witness, generate_pedersen_commitment_g1_statement, generate_pok_bbs_sig_statement, generate_pok_bbs_sig_witness, generate_proof, generate_proof_spec, generate_witness_equality_meta_statement, verify_proof};
-use wasm::utils::{fr_from_jsvalue, js_array_from_frs, msgs_bytes_map_to_fr_btreemap, random_bytes};
+use wasm::dock_bbs_plus::{
+    bbs_blind_sign_g1, bbs_commit_to_message_in_g1, bbs_encode_message_for_signing,
+    bbs_encode_messages_for_signing, bbs_generate_g1_params, bbs_generate_public_key_g2,
+    bbs_generate_secret_key, bbs_get_bases_for_commitment_g1, bbs_sign_g1, bbs_unblind_sig_g1,
+    bbs_verify_g1,
+};
+use wasm::proof_system::{
+    generate_accumulator_membership_statement, generate_accumulator_membership_witness,
+    generate_accumulator_non_membership_statement, generate_accumulator_non_membership_witness,
+    generate_composite_proof, generate_pedersen_commitment_g1_statement,
+    generate_pedersen_commitment_witness, generate_pok_bbs_sig_statement,
+    generate_pok_bbs_sig_witness, generate_proof_spec, generate_witness_equality_meta_statement,
+    verify_composite_proof,
+};
+use wasm::utils::{
+    fr_from_jsvalue, js_array_from_frs, msgs_bytes_map_to_fr_btreemap, random_bytes,
+};
 use wasm_bindgen::JsValue;
 use wasm_bindgen_test::*;
 
@@ -220,7 +234,9 @@ pub async fn three_bbs_sigs_and_msg_equality() {
     statements.push(&stmt_2);
     statements.push(&stmt_3);
 
-    let proof_spec = generate_proof_spec(statements, meta_statements)
+    let context = Some("test-context".as_bytes().to_vec());
+
+    let proof_spec = generate_proof_spec(statements, meta_statements, context)
         .await
         .unwrap();
 
@@ -239,11 +255,14 @@ pub async fn three_bbs_sigs_and_msg_equality() {
     witnesses.push(&witness_2);
     witnesses.push(&witness_3);
 
-    let context = Some("test-context".as_bytes().to_vec());
-    let proof = generate_proof(proof_spec.clone(), witnesses, context.clone())
+    let nonce = Some("test-nonce".as_bytes().to_vec());
+
+    let proof = generate_composite_proof(proof_spec.clone(), witnesses, nonce.clone())
         .await
         .unwrap();
-    let result = verify_proof(proof, proof_spec, context).await.unwrap();
+    let result = verify_composite_proof(proof, proof_spec, nonce)
+        .await
+        .unwrap();
     let r: VerifyResponse = serde_wasm_bindgen::from_value(result).unwrap();
     r.validate();
 }
@@ -571,7 +590,9 @@ pub async fn bbs_sig_and_accumulator() {
 
     meta_statements.push(&meta_statement);
 
-    let proof_spec = generate_proof_spec(statements, meta_statements)
+    let context = Some("test-context".as_bytes().to_vec());
+
+    let proof_spec = generate_proof_spec(statements, meta_statements, context)
         .await
         .unwrap();
 
@@ -628,12 +649,15 @@ pub async fn bbs_sig_and_accumulator() {
     test_bbs_witness(witness_1.clone(), unrevealed_msgs_1.clone()).await;
     test_bbs_witness(witness_2.clone(), unrevealed_msgs_2.clone()).await;
 
-    let context = Some("test-context".as_bytes().to_vec());
-    let proof = generate_proof(proof_spec.clone(), witnesses, context.clone())
+    let nonce = Some("test-nonce".as_bytes().to_vec());
+
+    let proof = generate_composite_proof(proof_spec.clone(), witnesses, nonce.clone())
         .await
         .unwrap();
 
-    let result = verify_proof(proof, proof_spec, context).await.unwrap();
+    let result = verify_composite_proof(proof, proof_spec, nonce)
+        .await
+        .unwrap();
     let r: VerifyResponse = serde_wasm_bindgen::from_value(result).unwrap();
     r.validate();
 }
@@ -689,8 +713,8 @@ pub async fn request_blind_bbs_sig() {
         params_2.clone(),
         true,
     )
-        .await
-        .unwrap();
+    .await
+    .unwrap();
 
     let statements = js_sys::Array::new();
     let stmt_1 = generate_pok_bbs_sig_statement(
@@ -699,19 +723,25 @@ pub async fn request_blind_bbs_sig() {
         revealed_msgs_1.clone(),
         true,
     )
-        .await
-        .unwrap();
+    .await
+    .unwrap();
     statements.push(&stmt_1);
 
-    let bases = bbs_get_bases_for_commitment_g1(params_2.clone(), indices_to_commit.clone()).await.unwrap();
-    let stmt_2 = generate_pedersen_commitment_g1_statement(bases, commitment.clone()).await.unwrap();
+    let bases = bbs_get_bases_for_commitment_g1(params_2.clone(), indices_to_commit.clone())
+        .await
+        .unwrap();
+    let stmt_2 = generate_pedersen_commitment_g1_statement(bases, commitment.clone())
+        .await
+        .unwrap();
     statements.push(&stmt_2);
 
     let meta_statements = js_sys::Array::new();
     let meta_statement = get_witness_equality_statement(vec![(0, 4), (1, 5)]).await;
     meta_statements.push(&meta_statement);
 
-    let proof_spec = generate_proof_spec(statements, meta_statements)
+    let context = Some("test-context".as_bytes().to_vec());
+
+    let proof_spec = generate_proof_spec(statements, meta_statements, context)
         .await
         .unwrap();
 
@@ -719,7 +749,9 @@ pub async fn request_blind_bbs_sig() {
         .await
         .unwrap();
 
-    let wits = bbs_encode_messages_for_signing(msgs_2_jsvalue.clone(), indices_to_commit.clone()).await.unwrap();
+    let wits = bbs_encode_messages_for_signing(msgs_2_jsvalue.clone(), indices_to_commit.clone())
+        .await
+        .unwrap();
     wits.unshift(&blinding);
     let witness_2 = generate_pedersen_commitment_witness(wits).await.unwrap();
 
@@ -727,15 +759,20 @@ pub async fn request_blind_bbs_sig() {
     witnesses.push(&witness_1);
     witnesses.push(&witness_2);
 
-    let context = Some("test-context".as_bytes().to_vec());
-    let proof = generate_proof(proof_spec.clone(), witnesses, context.clone())
+    let nonce = Some("test-nonce".as_bytes().to_vec());
+    let proof = generate_composite_proof(proof_spec.clone(), witnesses, nonce.clone())
         .await
         .unwrap();
-    let result = verify_proof(proof, proof_spec, context).await.unwrap();
+    let result = verify_composite_proof(proof, proof_spec, nonce)
+        .await
+        .unwrap();
     let r: VerifyResponse = serde_wasm_bindgen::from_value(result).unwrap();
     r.validate();
 
-    let blinded_sig = bbs_blind_sign_g1(commitment, msgs_to_not_commit, sk_2, params_2.clone(), true).await.unwrap();
+    let blinded_sig =
+        bbs_blind_sign_g1(commitment, msgs_to_not_commit, sk_2, params_2.clone(), true)
+            .await
+            .unwrap();
     let sig_2 = bbs_unblind_sig_g1(blinded_sig, blinding).await.unwrap();
 
     let result = bbs_verify_g1(msgs_2_jsvalue, sig_2, pk_2, params_2, true)

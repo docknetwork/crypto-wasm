@@ -29,11 +29,11 @@ import {
   bbsChallengeContributionFromProtocol,
   bbsChallengeContributionFromProof,
   generateChallengeFromBytes
-} from "../lib";
+} from "../../lib";
 
-import { BbsSigParams } from "../lib/types";
+import { BbsSigParams } from "../../lib/types";
 
-import { stringToBytes } from "./utilities";
+import { stringToBytes } from "../utilities";
 
 describe("For BBS+ signatures", () => {
   let sigParamsG1: BbsSigParams,

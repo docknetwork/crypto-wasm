@@ -1,5 +1,5 @@
-import { stringToBytes } from "./utilities";
-import {BbsSigParams} from "../lib/types";
+import { stringToBytes } from "../utilities";
+import {BbsSigParams} from "../../lib/types";
 import {
     accumulatorDeriveMembershipProvingKeyFromNonMembershipKey, bbsBlindSignG1, bbsCommitMsgsInG1,
     bbsEncodeMessageForSigning, bbsEncodeMessagesForSigning, bbsGetBasesForCommitmentG1,
@@ -18,7 +18,7 @@ import {
     generateNonMembershipProvingKey, generatePedersenCommitmentG1Statement, generatePedersenCommitmentWitness,
     generatePoKBBSSignatureStatement,
     generatePoKBBSSignatureWitness,
-    generateProof,
+    generateCompositeProof,
     generateProofSpec, generateRandomFieldElement,
     generateSignatureParamsG1,
     generateWitnessEqualityMetaStatement,
@@ -33,10 +33,10 @@ import {
     universalAccumulatorInitialiseGivenFv,
     universalAccumulatorMembershipWitness,
     universalAccumulatorNonMembershipWitness,
-    verifyProof
-} from "../lib";
+    verifyCompositeProof
+} from "../../lib";
 
-async function setupBBS(messageCount: number, prefix: string, encode: boolean) {
+async function setupBBS(messageCount: number, prefix: string, encode: boolean): Promise<[BbsSigParams, Uint8Array, Uint8Array, Uint8Array[]]> {
     const sigParams = await generateSignatureParamsG1(messageCount);
     const sk = await generateBBSSigningKey();
     const pk = await generateBBSPublicKeyG2(sk, sigParams);
@@ -51,7 +51,7 @@ async function setupBBS(messageCount: number, prefix: string, encode: boolean) {
     return [sigParams, sk, pk, messages];
 }
 
-function getRevealedUnrevealed(messages: Uint8Array[], revealedIndices: Set<number>) {
+function getRevealedUnrevealed(messages: Uint8Array[], revealedIndices: Set<number>): [Map<number, Uint8Array>, Map<number, Uint8Array>] {
     const revealedMsgs = new Map();
     const unrevealedMsgs = new Map();
     for (let i = 0; i < messages.length; i++) {
@@ -100,18 +100,18 @@ describe("Proving knowledge of many BBS+ signatures", () => {
 
         const metaStatements = [];
 
-        const set1 = new Set();
+        const set1 = new Set<number[]>();
         set1.add([0, 2]);
         set1.add([1, 3]);
         set1.add([2, 3]);
         metaStatements.push(await generateWitnessEqualityMetaStatement(set1));
 
-        const set2 = new Set();
+        const set2 = new Set<number[]>();
         set2.add([0, 3]);
         set2.add([1, 4]);
         metaStatements.push(await generateWitnessEqualityMetaStatement(set2));
 
-        const set3 = new Set();
+        const set3 = new Set<number[]>();
         set3.add([0, 4]);
         set3.add([1, 5]);
         set3.add([2, 5]);
@@ -122,7 +122,8 @@ describe("Proving knowledge of many BBS+ signatures", () => {
         statements.push(statement2);
         statements.push(statement3);
 
-        const proofSpec = await generateProofSpec(statements, metaStatements);
+        const context = stringToBytes('test-context');
+        const proofSpec = await generateProofSpec(statements, metaStatements, context);
 
         const witness1 = await generatePoKBBSSignatureWitness(sig1, unrevealedMsgs1, encodeWhileSigning);
         const witness2 = await generatePoKBBSSignatureWitness(sig2, unrevealedMsgs2, encodeWhileSigning);
@@ -133,10 +134,10 @@ describe("Proving knowledge of many BBS+ signatures", () => {
         witnesses.push(witness2);
         witnesses.push(witness3);
 
-        const context = stringToBytes('test');
+        const nonce = stringToBytes('test-nonce');
 
-        const proof = await generateProof(proofSpec, witnesses, context);
-        const res = await verifyProof(proof, proofSpec, context);
+        const proof = await generateCompositeProof(proofSpec, witnesses, nonce);
+        const res = await verifyCompositeProof(proof, proofSpec, nonce);
         expect(res.verified).toBe(true);
     }
 
@@ -213,14 +214,14 @@ describe("Proving knowledge of BBS+ signatures and accumulator membership and no
 
         const metaStatements = [];
 
-        const set1 = new Set();
+        const set1 = new Set<number[]>();
         set1.add([0, 5]);
         set1.add([1, 5]);
         set1.add([2, 0]);
         set1.add([3, 0]);
         metaStatements.push(await generateWitnessEqualityMetaStatement(set1));
 
-        const set2 = new Set();
+        const set2 = new Set<number[]>();
         set2.add([0, 3]);
         set2.add([4, 0]);
         metaStatements.push(await generateWitnessEqualityMetaStatement(set2));
@@ -247,11 +248,9 @@ describe("Proving knowledge of BBS+ signatures and accumulator membership and no
         witnesses.push(witness4);
         witnesses.push(witness5);
 
-        const context = stringToBytes('test');
+        const proof = await generateCompositeProof(proofSpec, witnesses);
 
-        const proof = await generateProof(proofSpec, witnesses, context);
-
-        const res = await verifyProof(proof, proofSpec, context);
+        const res = await verifyCompositeProof(proof, proofSpec);
         expect(res.verified).toBe(true);
     });
 });
@@ -272,7 +271,7 @@ describe("Proving knowledge of a BBS+ signature while requesting a partially bli
         revealedIndices1.add(0);
         const [revealedMsgs1, unrevealedMsgs1] = getRevealedUnrevealed(messages1, revealedIndices1);
 
-        const indicesToCommit = new Set();
+        const indicesToCommit = new Set<number>();
         indicesToCommit.add(0);
         indicesToCommit.add(1);
         indicesToCommit.add(4);
@@ -299,7 +298,7 @@ describe("Proving knowledge of a BBS+ signature while requesting a partially bli
 
         const metaStatements = [];
 
-        const set = new Set();
+        const set = new Set<number[]>();
         set.add([0, 4]);
         set.add([1, 5]);
         metaStatements.push(await generateWitnessEqualityMetaStatement(set));
@@ -318,8 +317,8 @@ describe("Proving knowledge of a BBS+ signature while requesting a partially bli
 
         const context = stringToBytes('test');
 
-        const proof = await generateProof(proofSpec, witnesses, context);
-        const res = await verifyProof(proof, proofSpec, context);
+        const proof = await generateCompositeProof(proofSpec, witnesses, context);
+        const res = await verifyCompositeProof(proof, proofSpec, context);
         expect(res.verified).toBe(true);
 
         const blindSig = await bbsBlindSignG1(commitment, msgsToNotCommit, sk2, sigParams2, true);

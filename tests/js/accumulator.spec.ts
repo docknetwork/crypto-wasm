@@ -58,11 +58,11 @@ import {
     accumulatorChallengeContributionFromMembershipProof,
     accumulatorChallengeContributionFromNonMembershipProtocol,
     accumulatorChallengeContributionFromNonMembershipProof
-} from "../lib";
+} from "../../lib";
 
-import {AccumulatorParams} from "../lib/types";
+import {AccumulatorParams} from "../../lib/types";
 
-import {stringToBytes} from "./utilities";
+import {stringToBytes} from "../utilities";
 
 describe("For Positive accumulator", () => {
     let params: AccumulatorParams, sk: Uint8Array, pk: Uint8Array, accumulator: Uint8Array;

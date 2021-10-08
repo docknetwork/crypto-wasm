@@ -10,6 +10,7 @@ use wasm_bindgen::prelude::*;
 use crate::common::VerifyResponse;
 use crate::Fr;
 use ark_bls12_381::Bls12_381;
+use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use ark_std::collections::{BTreeMap, BTreeSet};
 use bbs_plus::prelude::{
     KeypairG1, KeypairG2, PoKOfSignatureG1Proof, PoKOfSignatureG1Protocol, PublicKeyG1,
@@ -166,7 +167,11 @@ pub async fn bbs_get_bases_for_commitment_g1(
     for i in indices_to_commit.values() {
         let index: usize = serde_wasm_bindgen::from_value(i.unwrap())?;
         if index >= params.max_message_count() {
-            return Err(JsValue::from(&format!("Invalid index {:?} to get signature param", index)).into())
+            return Err(JsValue::from(&format!(
+                "Invalid index {:?} to get signature param",
+                index
+            ))
+            .into());
         }
         bases.push(&g1_affine_to_jsvalue(&params.h[index])?);
     }
@@ -184,7 +189,11 @@ pub async fn bbs_get_bases_for_commitment_g2(
     for i in indices_to_commit.values() {
         let index: usize = serde_wasm_bindgen::from_value(i.unwrap())?;
         if index >= params.max_message_count() {
-            return Err(JsValue::from(&format!("Invalid index {:?} to get signature param", index)).into())
+            return Err(JsValue::from(&format!(
+                "Invalid index {:?} to get signature param",
+                index
+            ))
+            .into());
         }
         bases.push(&g2_affine_to_jsvalue(&params.h[index])?);
     }
@@ -212,7 +221,7 @@ pub async fn bbs_encode_messages_for_signing(
     for i in indices_to_encode.values() {
         let index: usize = serde_wasm_bindgen::from_value(i.unwrap())?;
         if index >= messages_as_bytes.len() {
-            return Err(JsValue::from(&format!("Invalid index {:?} to get message", index)).into())
+            return Err(JsValue::from(&format!("Invalid index {:?} to get message", index)).into());
         }
         let fr = encode_message_for_signing(&messages_as_bytes[index]);
         encoded.push(&fr_to_jsvalue(&fr)?);
@@ -271,7 +280,7 @@ pub async fn bbs_sign_g1(
     secret_key: JsValue,
     params: JsValue,
     encode_messages: bool,
-) -> Result<JsValue, JsValue> {
+) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let messages_as_bytes: Vec<Vec<u8>> = serde_wasm_bindgen::from_value(messages)?;
     let sk: BBSPlusSk = serde_wasm_bindgen::from_value(secret_key)?;
@@ -281,7 +290,8 @@ pub async fn bbs_sign_g1(
 
     let mut rng = get_seeded_rng();
     match SigG1::new(&mut rng, &messages, &sk, &params) {
-        Ok(sig) => Ok(serde_wasm_bindgen::to_value(&sig).unwrap()),
+        // Ok(sig) => Ok(serde_wasm_bindgen::to_value(&sig).unwrap()),
+        Ok(sig) => Ok(obj_to_uint8array!(&sig)),
         Err(e) => Err(JsValue::from(&format!("{:?}", e))),
     }
 }
@@ -293,7 +303,7 @@ pub async fn bbs_blind_sign_g1(
     secret_key: JsValue,
     params: JsValue,
     encode_messages: bool,
-) -> Result<JsValue, JsValue> {
+) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let commitment = g1_affine_from_jsvalue(commitment)?;
     let msgs = msgs_bytes_map_to_fr_btreemap(&uncommitted_messages, encode_messages)?;
@@ -306,32 +316,36 @@ pub async fn bbs_blind_sign_g1(
 
     let mut rng = get_seeded_rng();
     match SigG1::new_with_committed_messages(&mut rng, &commitment, msgs_ref, &sk, &params) {
-        Ok(sig) => Ok(serde_wasm_bindgen::to_value(&sig).unwrap()),
+        // Ok(sig) => Ok(serde_wasm_bindgen::to_value(&sig).unwrap()),
+        Ok(sig) => Ok(obj_to_uint8array!(&sig)),
         Err(e) => Err(JsValue::from(&format!("{:?}", e))),
     }
 }
 
 #[wasm_bindgen(js_name = bbsUnblindSigG1)]
 pub async fn bbs_unblind_sig_g1(
-    blind_signature: JsValue,
+    blind_signature: js_sys::Uint8Array,
     blinding: JsValue,
-) -> Result<JsValue, serde_wasm_bindgen::Error> {
+) -> Result<js_sys::Uint8Array, serde_wasm_bindgen::Error> {
     set_panic_hook();
-    let signature: SigG1 = serde_wasm_bindgen::from_value(blind_signature)?;
+    // let signature: SigG1 = serde_wasm_bindgen::from_value(blind_signature)?;
+    let signature = obj_from_uint8array!(SigG1, blind_signature);
     let blinding = fr_from_jsvalue(blinding)?;
-    serde_wasm_bindgen::to_value(&signature.unblind(&blinding))
+    // serde_wasm_bindgen::to_value(&signature.unblind(&blinding))
+    Ok(obj_to_uint8array!(&signature.unblind(&blinding)))
 }
 
 #[wasm_bindgen(js_name = bbsVerfiyG1)]
 pub async fn bbs_verify_g1(
     messages: JsValue,
-    signature: JsValue,
+    signature: js_sys::Uint8Array,
     public_key: JsValue,
     params: JsValue,
     encode_messages: bool,
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
-    let signature: SigG1 = serde_wasm_bindgen::from_value(signature)?;
+    // let signature: SigG1 = serde_wasm_bindgen::from_value(signature)?;
+    let signature = obj_from_uint8array!(SigG1, signature);
     let pk: BBSPlusPkG2 = serde_wasm_bindgen::from_value(public_key)?;
     let params: SigParamsG1 = serde_wasm_bindgen::from_value(params)?;
 
@@ -358,7 +372,7 @@ pub async fn bbs_sign_g2(
     secret_key: JsValue,
     params: JsValue,
     encode_messages: bool,
-) -> Result<JsValue, JsValue> {
+) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let messages_as_bytes: Vec<Vec<u8>> = serde_wasm_bindgen::from_value(messages)?;
     let sk: BBSPlusSk = serde_wasm_bindgen::from_value(secret_key)?;
@@ -368,7 +382,8 @@ pub async fn bbs_sign_g2(
 
     let mut rng = get_seeded_rng();
     match SigG2::new(&mut rng, &messages, &sk, &params) {
-        Ok(sig) => Ok(serde_wasm_bindgen::to_value(&sig).unwrap()),
+        // Ok(sig) => Ok(serde_wasm_bindgen::to_value(&sig).unwrap()),
+        Ok(sig) => Ok(obj_to_uint8array!(&sig)),
         Err(e) => Err(JsValue::from(&format!("{:?}", e))),
     }
 }
@@ -380,7 +395,7 @@ pub async fn bbs_blind_sign_g2(
     secret_key: JsValue,
     params: JsValue,
     encode_messages: bool,
-) -> Result<JsValue, JsValue> {
+) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let commitment = g2_affine_from_jsvalue(commitment)?;
     let msgs = msgs_bytes_map_to_fr_btreemap(&uncommitted_messages, encode_messages)?;
@@ -393,33 +408,37 @@ pub async fn bbs_blind_sign_g2(
 
     let mut rng = get_seeded_rng();
     match SigG2::new_with_committed_messages(&mut rng, &commitment, msgs_ref, &sk, &params) {
-        Ok(sig) => Ok(serde_wasm_bindgen::to_value(&sig).unwrap()),
+        // Ok(sig) => Ok(serde_wasm_bindgen::to_value(&sig).unwrap()),
+        Ok(sig) => Ok(obj_to_uint8array!(&sig)),
         Err(e) => Err(JsValue::from(&format!("{:?}", e))),
     }
 }
 
 #[wasm_bindgen(js_name = bbsUnblindSigG2)]
 pub async fn bbs_unblind_sig_g2(
-    blind_signature: JsValue,
+    blind_signature: js_sys::Uint8Array,
     blinding: JsValue,
-) -> Result<JsValue, serde_wasm_bindgen::Error> {
+) -> Result<js_sys::Uint8Array, serde_wasm_bindgen::Error> {
     set_panic_hook();
-    let signature: SigG2 = serde_wasm_bindgen::from_value(blind_signature)?;
+    // let signature: SigG2 = serde_wasm_bindgen::from_value(blind_signature)?;
+    let signature = obj_from_uint8array!(SigG2, blind_signature);
     let blinding = fr_from_jsvalue(blinding)?;
-    serde_wasm_bindgen::to_value(&signature.unblind(&blinding))
+    // serde_wasm_bindgen::to_value(&signature.unblind(&blinding))
+    Ok(obj_to_uint8array!(&signature.unblind(&blinding)))
 }
 
 #[wasm_bindgen(js_name = bbsVerfiyG2)]
 pub async fn bbs_verify_g2(
     messages: JsValue,
-    signature: JsValue,
+    signature: js_sys::Uint8Array,
     public_key: JsValue,
     params: JsValue,
     encode_messages: bool,
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
 
-    let signature: SigG2 = serde_wasm_bindgen::from_value(signature)?;
+    // let signature: SigG2 = serde_wasm_bindgen::from_value(signature)?;
+    let signature = obj_from_uint8array!(SigG2, signature);
     let pk: BBSPlusPkG1 = serde_wasm_bindgen::from_value(public_key)?;
     let params: SigParamsG2 = serde_wasm_bindgen::from_value(params)?;
 
@@ -442,7 +461,7 @@ pub async fn bbs_verify_g2(
 
 #[wasm_bindgen(js_name = bbsInitializeProofOfKnowledgeOfSignature)]
 pub async fn bbs_initialize_proof_of_knowledge_of_signature(
-    signature: JsValue,
+    signature: js_sys::Uint8Array,
     params: JsValue,
     messages: JsValue,
     blindings: js_sys::Map,
@@ -451,7 +470,8 @@ pub async fn bbs_initialize_proof_of_knowledge_of_signature(
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
 
-    let signature: SigG1 = serde_wasm_bindgen::from_value(signature)?;
+    // let signature: SigG1 = serde_wasm_bindgen::from_value(signature)?;
+    let signature = obj_from_uint8array!(SigG1, signature);
     let params: SigParamsG1 = serde_wasm_bindgen::from_value(params)?;
     let blindings = msgs_bytes_map_to_fr_btreemap(&blindings, false)?;
 
@@ -471,19 +491,23 @@ pub async fn bbs_initialize_proof_of_knowledge_of_signature(
 }
 
 #[wasm_bindgen(js_name = bbsGenProofOfKnowledgeOfSignature)]
-pub async fn bbs_gen_proof(protocol: JsValue, challenge: JsValue) -> Result<JsValue, JsValue> {
+pub async fn bbs_gen_proof(
+    protocol: JsValue,
+    challenge: JsValue,
+) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let protocol: PoKOfSigProtocol = serde_wasm_bindgen::from_value(protocol)?;
     let challenge = fr_from_jsvalue(challenge)?;
     match protocol.gen_proof(&challenge) {
-        Ok(proof) => Ok(serde_wasm_bindgen::to_value(&proof).unwrap()),
+        // Ok(proof) => Ok(serde_wasm_bindgen::to_value(&proof).unwrap()),
+        Ok(proof) => Ok(obj_to_uint8array!(&proof)),
         Err(e) => Err(JsValue::from(&format!("{:?}", e))),
     }
 }
 
 #[wasm_bindgen(js_name = bbsVerifyProofOfKnowledgeOfSignature)]
 pub async fn bbs_verify_proof(
-    proof: JsValue,
+    proof: js_sys::Uint8Array,
     revealed_msgs: js_sys::Map,
     challenge: JsValue,
     public_key: JsValue,
@@ -491,7 +515,8 @@ pub async fn bbs_verify_proof(
     encode_messages: bool,
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
-    let proof: PoKOfSigProof = serde_wasm_bindgen::from_value(proof)?;
+    // let proof: PoKOfSigProof = serde_wasm_bindgen::from_value(proof)?;
+    let proof: PoKOfSigProof = obj_from_uint8array!(PoKOfSigProof, proof);
     let params: SigParamsG1 = serde_wasm_bindgen::from_value(params)?;
     let public_key: BBSPlusPkG2 = serde_wasm_bindgen::from_value(public_key)?;
     let challenge = fr_from_jsvalue(challenge)?;
@@ -537,13 +562,14 @@ pub async fn bbs_challenge_contribution_from_protocol(
 
 #[wasm_bindgen(js_name = bbsChallengeContributionFromProof)]
 pub async fn bbs_challenge_contribution_from_proof(
-    proof: JsValue,
+    proof: js_sys::Uint8Array,
     revealed_msgs: js_sys::Map,
     params: JsValue,
     encode_messages: bool,
 ) -> Result<js_sys::Uint8Array, serde_wasm_bindgen::Error> {
     set_panic_hook();
-    let proof: PoKOfSigProof = serde_wasm_bindgen::from_value(proof)?;
+    // let proof: PoKOfSigProof = serde_wasm_bindgen::from_value(proof)?;
+    let proof: PoKOfSigProof = obj_from_uint8array!(PoKOfSigProof, proof);
     let msgs = msgs_bytes_map_to_fr_btreemap(&revealed_msgs, encode_messages)?;
     let params: SigParamsG1 = serde_wasm_bindgen::from_value(params)?;
     let mut bytes = vec![];

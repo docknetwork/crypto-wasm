@@ -32,17 +32,20 @@ use wasm_bindgen::prelude::*;
 
 #[macro_use]
 mod macros;
+#[macro_use]
+pub mod utils;
 pub mod accumulator;
-// pub mod bbs_plus;
-// pub mod bls12381;
+pub mod bbs_plus;
+pub mod bls12381;
 pub mod common;
 pub mod dock_bbs_plus;
 pub mod proof_system;
-pub mod utils;
 
 pub(crate) type Fr = <Bls12_381 as PairingEngine>::Fr;
 pub(crate) type G1Affine = <Bls12_381 as PairingEngine>::G1Affine;
+pub(crate) type G1Proj = <Bls12_381 as PairingEngine>::G1Projective;
 pub(crate) type G2Affine = <Bls12_381 as PairingEngine>::G2Affine;
+pub(crate) type G2Proj = <Bls12_381 as PairingEngine>::G2Projective;
 
 wasm_impl!(BbsVerifyResponse, verified: bool, error: Option<String>);
 

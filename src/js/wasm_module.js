@@ -49,6 +49,7 @@ const {
   generateAccumulatorNonMembershipStatement, generatePedersenCommitmentStatement, generateWitnessEqualityMetaStatement,
   generatePoKBBSSignatureWitness, generateAccumulatorMembershipWitness, generateAccumulatorNonMembershipWitness,
   generatePedersenCommitmentWitness, generateProofSpec, generateProof, verifyProof, bbsGetBasesForCommitmentG1,
+  generateCompositeProof, generateRandomG1Element, bbsGenProofOfKnowledgeOfSignature,
 } = require("./index");
 
 // TODO should be able to remove this duplicate definition syntax by using ESM over index.web.js
@@ -150,10 +151,10 @@ module.exports.blsCreateProof = async (request) => {
   );
 };
 
-/*module.exports.verifyProof = async (request) => {
+module.exports.verifyProof = async (request) => {
   await initialize();
   return await throwErrorOnRejectedPromise(wasm.verifyProof(request));
-};*/
+};
 
 module.exports.blsVerifyProof = async (request) => {
   await initialize();
@@ -164,6 +165,20 @@ module.exports.generateRandomFieldElement = async (seed) => {
   await initialize();
   return await throwErrorOnRejectedPromise(
     wasm.generateRandomFieldElement(seed)
+  );
+};
+
+module.exports.generateRandomG1Element = async () => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.generateRandomG1Element()
+  );
+};
+
+module.exports.generateRandomG2Element = async () => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.generateRandomG2Element()
   );
 };
 
@@ -277,10 +292,10 @@ module.exports.bbsEncodeMessageForSigning = async (message) => {
   );
 };
 
-module.exports.bbsEncodeMessagesForSigning = async (messages) => {
+module.exports.bbsEncodeMessagesForSigning = async (messages, indicesToEncode) => {
   await initialize();
   return await throwErrorOnRejectedPromise(
-      wasm.bbsEncodeMessagesForSigning(messages)
+      wasm.bbsEncodeMessagesForSigning(messages, indicesToEncode)
   );
 };
 
@@ -381,7 +396,7 @@ module.exports.bbsBlindSignG1 = async (
 ) => {
   await initialize();
   return await throwErrorOnRejectedPromise(
-      wasm.bbsBlindSignG1(commitment, uncommittedMessages, blinding, params, encodeMessages)
+      wasm.bbsBlindSignG1(commitment, uncommittedMessages, secretKey, params, encodeMessages)
   );
 };
 
@@ -394,7 +409,7 @@ module.exports.bbsBlindSignG2 = async (
 ) => {
   await initialize();
   return await throwErrorOnRejectedPromise(
-      wasm.bbsBlindSignG2(commitment, uncommittedMessages, blinding, params, encodeMessages)
+      wasm.bbsBlindSignG2(commitment, uncommittedMessages, secretKey, params, encodeMessages)
   );
 };
 
@@ -429,6 +444,16 @@ module.exports.bbsInitializeProofOfKnowledgeOfSignature = async (
   await initialize();
   return await throwErrorOnRejectedPromise(
       wasm.bbsInitializeProofOfKnowledgeOfSignature(signature, params, messages, blindings, revealedIndices, encodeMessages)
+  );
+};
+
+module.exports.bbsGenProofOfKnowledgeOfSignature = async (
+    protocol,
+    challenge
+) => {
+  await initialize();
+  return await throwErrorOnRejectedPromise(
+      wasm.bbsGenProofOfKnowledgeOfSignature(protocol, challenge)
   );
 };
 
@@ -938,7 +963,7 @@ module.exports.generatePoKBBSSignatureWitness = async (signature, unrevealedMess
 module.exports.generateAccumulatorMembershipWitness = async (element, witness) => {
   await initialize();
   return await throwErrorOnRejectedPromise(
-      wasm.generatePoKBBSSignatureWitness(element, witness)
+      wasm.generateAccumulatorMembershipWitness(element, witness)
   );
 };
 
@@ -956,23 +981,23 @@ module.exports.generatePedersenCommitmentWitness = async (elements) => {
   );
 };
 
-module.exports.generateProofSpec = async (statements, metaStatements) => {
+module.exports.generateProofSpec = async (statements, metaStatements, context) => {
   await initialize();
   return await throwErrorOnRejectedPromise(
-      wasm.generateProofSpec(statements, metaStatements)
+      wasm.generateProofSpec(statements, metaStatements, context)
   );
 };
 
-module.exports.generateProof = async (proofSpec, witnesses, context) => {
+module.exports.generateCompositeProof = async (proofSpec, witnesses, nonce) => {
   await initialize();
   return await throwErrorOnRejectedPromise(
-      wasm.generateProof(proofSpec, witnesses, context)
+      wasm.generateCompositeProof(proofSpec, witnesses, nonce)
   );
 };
 
-module.exports.verifyProof = async (proof, proofSpec, context) => {
+module.exports.verifyCompositeProof = async (proof, proofSpec, nonce) => {
   await initialize();
   return await throwErrorOnRejectedPromise(
-      wasm.verifyProof(proof, proofSpec, context)
+      wasm.verifyCompositeProof(proof, proofSpec, nonce)
   );
 };

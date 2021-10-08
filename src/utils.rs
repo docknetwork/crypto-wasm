@@ -50,16 +50,24 @@ extern "C" {
 
 pub fn fr_to_jsvalue(elem: &Fr) -> Result<JsValue, JsValue> {
     let mut bytes = vec![];
-    elem.serialize(&mut bytes)
-        .map_err(|e| JsValue::from(&format!("Cannot serialize {:?} Fr due to error: {:?}", elem, e)))?;
+    elem.serialize(&mut bytes).map_err(|e| {
+        JsValue::from(&format!(
+            "Cannot serialize {:?} Fr due to error: {:?}",
+            elem, e
+        ))
+    })?;
     // Following unwrap won't fail as its serializing only bytes
     Ok(serde_wasm_bindgen::to_value(&bytes).unwrap())
 }
 
 pub fn fr_from_jsvalue(value: JsValue) -> Result<Fr, JsValue> {
     let bytes: Vec<u8> = serde_wasm_bindgen::from_value(value)?;
-    let elem = Fr::deserialize(&bytes[..])
-        .map_err(|e| JsValue::from(&format!("Cannot deserialize {:?} to Fr due to error: {:?}", bytes, e)))?;
+    let elem = Fr::deserialize(&bytes[..]).map_err(|e| {
+        JsValue::from(&format!(
+            "Cannot deserialize {:?} to Fr due to error: {:?}",
+            bytes, e
+        ))
+    })?;
     Ok(elem)
 }
 
@@ -215,7 +223,13 @@ pub fn encode_bytes_as_accumulator_member(bytes: &[u8]) -> Fr {
 
 pub fn get_seeded_rng() -> StdRng {
     let mut buf = [0u8; 32];
-    getrandom::getrandom(&mut buf).unwrap();
+    use rand::thread_rng;
+    use rand::RngCore as RngCoreOld;
+    let mut rng = thread_rng();
+    rng.fill_bytes(&mut buf);
+    // getrandom is using node-js crypto module which doesn't work when building for target web. It
+    // works for `wasm-pack test` with chrome in headless and normal mode
+    // getrandom::getrandom(&mut buf).unwrap();
     StdRng::from_seed(buf)
 }
 
@@ -224,6 +238,29 @@ pub fn random_bytes() -> Vec<u8> {
     let mut s = vec![0u8; 32];
     rng.fill_bytes(s.as_mut_slice());
     s
+}
+
+macro_rules! obj_to_uint8array {
+    ($obj:expr) => {{
+        let mut serz = vec![];
+        CanonicalSerialize::serialize($obj, &mut serz).map_err(|e| {
+            JsValue::from(format!(
+                "Failed to serialize to bytes due to error: {:?}",
+                e
+            ))
+        })?;
+        js_sys::Uint8Array::from(serz.as_slice())
+    }};
+}
+
+macro_rules! obj_from_uint8array {
+    ($obj_type:ty, $uint8array:expr) => {{
+        let serz = $uint8array.to_vec();
+        // let deserz: $obj_type = CanonicalDeserialize::deserialize(&serz[..]).unwrap();
+        // let deserz: Result<$obj_type, _> = CanonicalDeserialize::deserialize(&serz[..]).map_err(|e| JsValue::from(format!("Failed to deserialize from bytes due to error: {:?}", e)));
+        let deserz: $obj_type = CanonicalDeserialize::deserialize(&serz[..]).map_err(|e| JsValue::from(format!("Failed to deserialize from bytes due to error: {:?}", e)))?;
+        deserz
+    }};
 }
 
 #[cfg(test)]

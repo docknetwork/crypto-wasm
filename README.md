@@ -1,15 +1,13 @@
-[![MATTR](./docs/assets/mattr-logo-square.svg)](https://github.com/mattrglobal)
+# wasm-crypto
 
-# bbs-signatures
 
-![npm-version](https://badgen.net/npm/v/@mattrglobal/bbs-signatures)
-![npm-unstable-version](https://badgen.net/npm/v/@mattrglobal/bbs-signatures/unstable)
-![Master](https://github.com/mattrglobal/bbs-signatures/workflows/push-master/badge.svg)
-![Release](https://github.com/mattrglobal/bbs-signatures/workflows/push-release/badge.svg)
-![codecov](https://codecov.io/gh/mattrglobal/bbs-signatures/branch/master/graph/badge.svg)
-
-This repository is the home to a performant multi-message digital signature algorithm implementation which supports
+This repository is the home to 
+- a performant multi-message digital signature algorithm implementation which supports
 deriving zero knowledge proofs that enable selective disclosure from the originally signed message set.
+- bilinear map, positive and universal accumulator supporting single and batch updates to the accumulator and witness
+- composite proof system
+
+This project started as fork of @mattrglobal/bbs-signatures but now only borrows the WASM setup; the API is completely different.
 
 [BBS+ Signatures](https://github.com/mattrglobal/bbs-signatures-spec) are a digital signature algorithm originally born from the work on
 [Short group signatures](https://crypto.stanford.edu/~xb/crypto04a/groupsigs.pdf) by Boneh, Boyen, and Shachum which was
@@ -230,5 +228,13 @@ For those interested in more details, you might find the following resources hel
 - [BLS Signatures](https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02)
 
 ---
+
+
+To build, use
+```
+BUILD_MODE=DEBUG ./scripts/build-package.sh 
+```
+
+To run jest tests, build with target nodejs as `wasm-pack build --out-dir lib --target nodejs` 
 
 <p align="center"><a href="https://mattr.global" target="_blank"><img height="40px" src ="./docs/assets/mattr-logo-tm.svg"></a></p><p align="center">Copyright © MATTR Limited. <a href="./LICENSE">Some rights reserved.</a><br/>“MATTR” is a trademark of MATTR Limited, registered in New Zealand and other countries.</p>

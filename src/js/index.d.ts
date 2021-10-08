@@ -23,7 +23,6 @@ import {
   BbsCreateProofRequest,
   BbsVerifyProofRequest,
   BbsSigParams,
-  BbsSig,
   BbsPoKSigProtocol,
   BbsPoKSigProof,
   AccumulatorParams,
@@ -67,9 +66,9 @@ export function createProof(
   request: BbsCreateProofRequest
 ): Promise<Uint8Array>;
 
-/*export function verifyProof(
+export function verifyProof(
   request: BbsVerifyProofRequest
-): Promise<BbsVerifyResult>;*/
+): Promise<BbsVerifyResult>;
 
 export function blsCreateProof(
   request: BbsCreateProofRequest
@@ -82,6 +81,10 @@ export function blsVerifyProof(
 export function generateRandomFieldElement(
   seed?: Uint8Array
 ): Promise<Uint8Array>;
+
+export function generateRandomG1Element(): Promise<Uint8Array>;
+
+export function generateRandomG2Element(): Promise<Uint8Array>;
 
 export function generateFieldElementFromBytes(
     bytes: Uint8Array
@@ -152,7 +155,8 @@ export function bbsEncodeMessageForSigning(
 ): Promise<Uint8Array>;
 
 export function bbsEncodeMessagesForSigning(
-    message: Uint8Array[]
+    messages: Uint8Array[],
+    indicesToEncode: Set<number>
 ): Promise<Uint8Array[]>;
 
 export function bbsGetBasesForCommitmentG1(
@@ -170,18 +174,18 @@ export function bbsSignG1(
   secretKey: Uint8Array,
   params: BbsSigParams,
   encodeMessages: Boolean
-): Promise<Required<BbsSig>>;
+): Promise<Uint8Array>;
 
 export function bbsSignG2(
   messages: Uint8Array[],
   secretKey: Uint8Array,
   params: BbsSigParams,
   encodeMessages: Boolean
-): Promise<Required<BbsSig>>;
+): Promise<Uint8Array>;
 
 export function bbsVerfiyG1(
     messages: Uint8Array[],
-    signature: BbsSig,
+    signature: Uint8Array,
     publicKey: Uint8Array,
     params: BbsSigParams,
     encodeMessages: Boolean
@@ -189,7 +193,7 @@ export function bbsVerfiyG1(
 
 export function bbsVerfiyG2(
     messages: Uint8Array[],
-    signature: BbsSig,
+    signature: Uint8Array,
     publicKey: Uint8Array,
     params: BbsSigParams,
     encodeMessages: Boolean
@@ -215,7 +219,7 @@ export function bbsBlindSignG1(
     secretKey: Uint8Array,
     params: BbsSigParams,
     encodeMessages: Boolean
-): Promise<BbsSig>;
+): Promise<Uint8Array>;
 
 export function bbsBlindSignG2(
     commitment: Uint8Array,
@@ -223,20 +227,20 @@ export function bbsBlindSignG2(
     secretKey: Uint8Array,
     params: BbsSigParams,
     encodeMessages: Boolean
-): Promise<BbsSig>;
+): Promise<Uint8Array>;
 
 export function bbsUnblindSigG1(
-    signature: BbsSig,
+    signature: Uint8Array,
     blinding: Uint8Array,
-): Promise<BbsSig>;
+): Promise<Uint8Array>;
 
 export function bbsUnblindSigG2(
-    signature: BbsSig,
+    signature: Uint8Array,
     blinding: Uint8Array,
-): Promise<BbsSig>;
+): Promise<Uint8Array>;
 
 export function bbsInitializeProofOfKnowledgeOfSignature(
-    signature: BbsSig,
+    signature: Uint8Array,
     params: BbsSigParams,
     messages: Uint8Array[],
     blindings: Map<number, Uint8Array>,
@@ -247,10 +251,10 @@ export function bbsInitializeProofOfKnowledgeOfSignature(
 export function bbsGenProofOfKnowledgeOfSignature(
     protocol: BbsPoKSigProtocol,
     challenge: Uint8Array
-): Promise<BbsPoKSigProof>;
+): Promise<Uint8Array>;
 
 export function bbsVerifyProofOfKnowledgeOfSignature(
-    proof: BbsPoKSigProof,
+    proof: Uint8Array,
     revealedMessages: Map<number, Uint8Array>,
     challenge: Uint8Array,
     publicKey: Uint8Array,
@@ -266,7 +270,7 @@ export function bbsChallengeContributionFromProtocol(
 ): Promise<Uint8Array>;
 
 export function bbsChallengeContributionFromProof(
-    proof: BbsPoKSigProof,
+    proof: Uint8Array,
     revealedMessages: Map<number, Uint8Array>,
     params: BbsSigParams,
     encodeMessages: Boolean
@@ -533,25 +537,17 @@ export function updateNonMembershipWitnessUsingPublicInfoAfterBatchUpdate(
 export function updateMembershipWitnessUsingPublicInfoAfterMultipleBatchUpdates(
     witness: Uint8Array,
     member: Uint8Array,
-    additions: Uint8Array[],
-    removals: Uint8Array[],
+    additions: Uint8Array[][],
+    removals: Uint8Array[][],
     publicInfo: Uint8Array[],
 ): Promise<Uint8Array>;
 
 export function updateNonMembershipWitnessUsingPublicInfoAfterMultipleBatchUpdates(
     witness: Uint8Array,
     nonMember: Uint8Array,
-    additions: Uint8Array[],
-    removals: Uint8Array[],
-    publicInfo: Uint8Array,
-): Promise<Uint8Array>;
-
-export function updateNonMembershipWitnessUsingPublicInfoAfterMultipleBatchUpdates(
-    witness: Uint8Array,
-    nonMember: Uint8Array,
-    additions: Uint8Array[],
-    removals: Uint8Array[],
-    publicInfo: Uint8Array,
+    additions: Uint8Array[][],
+    removals: Uint8Array[][],
+    publicInfo: Uint8Array[],
 ): Promise<Uint8Array>;
 
 export function generateMembershipProvingKey(
@@ -709,17 +705,18 @@ export function generatePedersenCommitmentWitness(
 
 export function generateProofSpec(
     statements: Uint8Array[],
-    metaStatements: Uint8Array[]
+    metaStatements: Uint8Array[],
+    context?: Uint8Array
 ): Promise<Uint8Array>;
 
-export function generateProof(
-    proofSpec: Uint8Array[],
+export function generateCompositeProof(
+    proofSpec: Uint8Array,
     witnesses: Uint8Array[],
-    context?: Uint8Array
+    nonce?: Uint8Array
 ): Promise<Uint8Array>;
 
-export function verifyProof(
+export function verifyCompositeProof(
     proof: Uint8Array,
-    proofSpec: Uint8Array[],
-    context?: Uint8Array
+    proofSpec: Uint8Array,
+    nonce?: Uint8Array
 ): Promise<Required<VerifyResult>>;
