@@ -1,13 +1,13 @@
 # wasm-crypto
 
 
-This repository is the home to 
-- a performant multi-message digital signature algorithm implementation which supports
+This repository is a WASM wrapper over [Dock's Rust crypto library](https://github.com/docknetwork/crypto) and is home to 
+- BBS+, a performant multi-message digital signature algorithm implementation which supports
 deriving zero knowledge proofs that enable selective disclosure from the originally signed message set.
-- bilinear map, positive and universal accumulator supporting single and batch updates to the accumulator and witness
-- composite proof system
+- bilinear map, positive and universal accumulators supporting single and batch updates to the accumulator and witness
+- composite proof system that lets you combine BBS+ signatures, accumulators and Schnorr protocols
 
-This project started as fork of @mattrglobal/bbs-signatures but now only borrows the WASM setup; the API is completely different.
+This project started as fork of [@mattrglobal/bbs-signatures](https://github.com/mattrglobal/bbs-signatures) but now only borrows the WASM setup; the API is quite different.
 
 [BBS+ Signatures](https://github.com/mattrglobal/bbs-signatures-spec) are a digital signature algorithm originally born from the work on
 [Short group signatures](https://crypto.stanford.edu/~xb/crypto04a/groupsigs.pdf) by Boneh, Boyen, and Shachum which was
@@ -23,91 +23,23 @@ BBS+ Signatures allow for multi-message signing whilst producing a single output
 [proof of knowledge](https://en.wikipedia.org/wiki/Proof_of_knowledge) based proof can be produced where only some of
 the originally signed messages are revealed at the discretion of the prover.
 
-For more details on the signature algorithm please refer to [here](https://github.com/mattrglobal/bbs-signatures-spec).
-
 ## Getting started
 
 To use this package within your project simply run
 
 ```
-npm install @mattrglobal/bbs-signatures
+npm install @docknetwork/crypto-wasm
 ```
 
 Or with [Yarn](https://yarnpkg.com/)
 
 ```
-yarn add @mattrglobal/bbs-signatures
+yarn add @docknetwork/crypto-wasm
 ```
-
-### Environment Support
-
-This library includes a couple of features to ensure the most performant implementation of BBS is running in a execution environment. The order of selection is the following.
-
-1. If in a node js based environment and the optional dependency of [@mattrglobal/node-bbs-signatures](https://github.com/mattrglobal/node-bbs-signatures) is installed use this.
-2. If in an environment that supports [Web Assembly](https://webassembly.org/) use this.
-3. Else use a version compiled to [asm.js](http://asmjs.org/).
-
-**Note** Please refer to running the benchmarks below where you can compare these different implementations, the differences are very notable.
-
-**Note** To force the usage of a particular environment set the `BBS_SIGNATURES_MODE` environment variable to one of the following values
-
-- `NODE_JS_MODULE` - Use native node module, ensure [@mattrglobal/node-bbs-signatures](https://github.com/mattrglobal/node-bbs-signatures) is installed
-- `WASM` - Use the wasm module
-
-## Usage
 
 See the [sample](./sample) directory for a runnable demo's.
 
 The following is a short sample on how to use the API
-
-```typescript
-import {
-  generateBls12381G2KeyPair,
-  blsSign,
-  blsVerify,
-  blsCreateProof,
-  blsVerifyProof,
-} from "@mattrglobal/bbs-signatures";
-
-//Generate a new key pair
-const keyPair = await generateBls12381G2KeyPair();
-
-//Set of messages we wish to sign
-const messages = [
-  Uint8Array.from(Buffer.from("message1", "utf-8")),
-  Uint8Array.from(Buffer.from("message2", "utf-8")),
-];
-
-//Create the signature
-const signature = await blsSign({
-  keyPair,
-  messages: messages,
-});
-
-//Verify the signature
-const isVerified = await blsVerify({
-  publicKey: keyPair.publicKey,
-  messages: messages,
-  signature,
-});
-
-//Derive a proof from the signature revealing the first message
-const proof = await blsCreateProof({
-  signature,
-  publicKey: keyPair.publicKey,
-  messages,
-  nonce: Uint8Array.from(Buffer.from("nonce", "utf8")),
-  revealed: [0],
-});
-
-//Verify the created proof
-const isProofVerified = await blsVerifyProof({
-  proof,
-  publicKey: keyPair.publicKey,
-  messages: messages.slice(0, 1),
-  nonce: Uint8Array.from(Buffer.from("nonce", "utf8")),
-});
-```
 
 ## Element Size
 
@@ -219,7 +151,6 @@ Please see our [security policy](./SECURITY.md) for additional details about res
 
 For those interested in more details, you might find the following resources helpful
 
-- [Details on the algorithm](docs/ALGORITHM.md)
 - [BLS12-381 For The Rest Of Us](https://hackmd.io/@benjaminion/bls12-381)
 - [Pairing-based cryptography](https://en.wikipedia.org/wiki/Pairing-based_cryptography)
 - [Exploring Elliptic Curve Pairings](https://vitalik.ca/general/2017/01/14/exploring_ecp.html)
@@ -236,5 +167,3 @@ BUILD_MODE=DEBUG ./scripts/build-package.sh
 ```
 
 To run jest tests, build with target nodejs as `wasm-pack build --out-dir lib --target nodejs` 
-
-<p align="center"><a href="https://mattr.global" target="_blank"><img height="40px" src ="./docs/assets/mattr-logo-tm.svg"></a></p><p align="center">Copyright © MATTR Limited. <a href="./LICENSE">Some rights reserved.</a><br/>“MATTR” is a trademark of MATTR Limited, registered in New Zealand and other countries.</p>

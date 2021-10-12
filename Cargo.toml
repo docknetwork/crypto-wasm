@@ -1,10 +1,10 @@
 [package]
-authors = ["Tobias Looker <tobias.looker@mattr.global>", "Mike Lodder <redmike7@gmail.com>"]
-description = "WASM binding to bbs rust crate"
+authors = ["Dock.io", "Tobias Looker <tobias.looker@mattr.global>", "Mike Lodder <redmike7@gmail.com>"]
+description = "WASM binding to Dock's crypto lib"
 edition = "2018"
 license = "Apache-2.0"
 name = "wasm"
-repository = "https://github.com/mattrglobal/bbs-signatures"
+repository = "https://github.com/docknetwork/crypto-wasm"
 version = "0.1.0"
 
 [lib]
@@ -15,24 +15,19 @@ console = ["console_error_panic_hook"]
 default = ["wee_alloc"]
 
 [dependencies]
-arrayref = "0.3"
-bbs = { version = "0.4.1", default-features = false, features = ["wasm"] }
 console_error_panic_hook = { version = "0.1.1", optional = true }
-hkdf = "0.8"
 js-sys = "0.3"
 rand = { version = "0.7", features = ["wasm-bindgen"] }
-pairing-plus = "0.19"
 serde = { version = "1.0", features = ["derive"] }
 serde-wasm-bindgen = "0.3.1"
-sha2 = "0.8"
 wasm-bindgen = "= 0.2.74"
 wasm-bindgen-futures = "0.4.18"
 web-sys = { version = "0.3.39", features = ['console'] }
 wee_alloc = { version = "0.4.5", optional = true }
-bbs_plus = { version = "0.4.1", default-features = false, path = "/home/lovesh/dev/dock/crypto/bbs_plus" }
-vb_accumulator = { version = "0.4.1", default-features = false, path = "/home/lovesh/dev/dock/crypto/vb_accumulator" }
-schnorr_pok = { version = "0.4.1", default-features = false, path = "/home/lovesh/dev/dock/crypto/schnorr_pok" }
-proof_system = { version = "0.5.0", default-features = false, path = "/home/lovesh/dev/dock/crypto/proof_system" }
+bbs_plus = { version = "0.5.0", default-features = false }
+vb_accumulator = { version = "0.4.2", default-features = false }
+schnorr_pok = { version = "0.4.1", default-features = false }
+proof_system = { version = "0.5.2", default-features = false }
 dock_crypto_utils = { version = "0.2.0", default-features = false }
 ark-ec = { version = "^0.3.0", default-features = false }
 ark-ff = { version = "^0.3.0", default-features = false }

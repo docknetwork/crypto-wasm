@@ -28,7 +28,7 @@ import {
   bbsVerifyProofOfKnowledgeOfSignature,
   bbsChallengeContributionFromProtocol,
   bbsChallengeContributionFromProof,
-  generateChallengeFromBytes
+  generateChallengeFromBytes, bbsExtendSigParamsG1ForMsgCount, bbsExtendSigParamsG2ForMsgCount
 } from "../../lib";
 
 import { BbsSigParams } from "../../lib/types";
@@ -142,6 +142,36 @@ describe("For BBS+ signatures", () => {
     const sig = await bbsSignG2(messages, sk, sigParamsG2, true);
     const res = await bbsVerfiyG2(messages, sig, pkG1, sigParamsG2, true);
     expect(res.verified).toBe(true);
+  });
+
+  it("extend signature params in G1", async () => {
+    const label = stringToBytes("Sig params g1");
+    const params0 = await generateSignatureParamsG1(1);
+    expect(await bbsSignatureParamsG1MaxSupportedMsgs(params0)).toBe(1);
+
+    const params1 = await bbsExtendSigParamsG1ForMsgCount(params0, label, 5);
+    expect(await bbsSignatureParamsG1MaxSupportedMsgs(params1)).toBe(5);
+    expect(params0.h[0]).toEqual(params1.h[0]);
+
+    const params2 = await bbsExtendSigParamsG1ForMsgCount(params1, label, 2);
+    expect(await bbsSignatureParamsG1MaxSupportedMsgs(params2)).toBe(2);
+    expect(params1.h[0]).toEqual(params2.h[0])
+    expect(params1.h[1]).toEqual(params2.h[1])
+  });
+
+  it("extend signature params in G2", async () => {
+    const label = stringToBytes("Sig params g2");
+    const params0 = await generateSignatureParamsG2(1);
+    expect(await bbsSignatureParamsG2MaxSupportedMsgs(params0)).toBe(1);
+
+    const params1 = await bbsExtendSigParamsG2ForMsgCount(params0, label, 5);
+    expect(await bbsSignatureParamsG2MaxSupportedMsgs(params1)).toBe(5);
+    expect(params0.h[0]).toEqual(params1.h[0]);
+
+    const params2 = await bbsExtendSigParamsG2ForMsgCount(params1, label, 2);
+    expect(await bbsSignatureParamsG2MaxSupportedMsgs(params2)).toBe(2);
+    expect(params1.h[0]).toEqual(params2.h[0])
+    expect(params1.h[1]).toEqual(params2.h[1])
   });
 
   it("generate and verify a blind signature in G1", async () => {

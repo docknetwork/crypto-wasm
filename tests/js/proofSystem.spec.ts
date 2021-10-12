@@ -274,7 +274,7 @@ describe("Proving knowledge of a BBS+ signature while requesting a partially bli
         const indicesToCommit = new Set<number>();
         indicesToCommit.add(0);
         indicesToCommit.add(1);
-        indicesToCommit.add(4);
+        indicesToCommit.add(5);
         const msgsToCommit = new Map();
         const msgsToNotCommit = new Map();
         for (let i = 0; i < messageCount2; i++) {
@@ -300,7 +300,7 @@ describe("Proving knowledge of a BBS+ signature while requesting a partially bli
 
         const set = new Set<number[]>();
         set.add([0, 4]);
-        set.add([1, 5]);
+        set.add([1, 3]);
         metaStatements.push(await generateWitnessEqualityMetaStatement(set));
 
         const proofSpec = await generateProofSpec(statements, metaStatements);
@@ -315,10 +315,10 @@ describe("Proving knowledge of a BBS+ signature while requesting a partially bli
         witnesses.push(witness1);
         witnesses.push(witness2);
 
-        const context = stringToBytes('test');
+        const nonce = stringToBytes('test');
 
-        const proof = await generateCompositeProof(proofSpec, witnesses, context);
-        const res = await verifyCompositeProof(proof, proofSpec, context);
+        const proof = await generateCompositeProof(proofSpec, witnesses, nonce);
+        const res = await verifyCompositeProof(proof, proofSpec, nonce);
         expect(res.verified).toBe(true);
 
         const blindSig = await bbsBlindSignG1(commitment, msgsToNotCommit, sk2, sigParams2, true);

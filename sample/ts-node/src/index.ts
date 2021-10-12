@@ -11,69 +11,79 @@
  * limitations under the License.
  */
 
-import {
-  generateBls12381G2KeyPair,
-  blsSign,
-  blsVerify,
-  blsCreateProof,
-  blsVerifyProof,
-} from "@mattrglobal/bbs-signatures";
+import {generateSignatureParamsG1, generateBBSPublicKeyG2, generateBBSSigningKey, bbsSignG1, bbsVerfiyG1, bbsInitializeProofOfKnowledgeOfSignature, bbsGenProofOfKnowledgeOfSignature, bbsVerifyProofOfKnowledgeOfSignature, bbsChallengeContributionFromProtocol, bbsChallengeContributionFromProof, generateChallengeFromBytes} from "@docknetwork/crypto-wasm";
+
+const stringToBytes = (str: string) => Uint8Array.from(Buffer.from(str, "utf-8"));
 
 const main = async () => {
-  //Generate a new key pair
-  const keyPair = await generateBls12381G2KeyPair();
-
-  console.log("Key pair generated");
-  console.log(
-    `Public key base64 = ${Buffer.from(keyPair.publicKey).toString("base64")}`
-  );
-
-  //Set of messages we wish to sign
   const messages = [
     Uint8Array.from(Buffer.from("message1", "utf8")),
     Uint8Array.from(Buffer.from("message2", "utf8")),
+    Uint8Array.from(Buffer.from("message3", "utf8")),
   ];
+
+  const label = stringToBytes("test");
+  const messageCount = messages.length;
+  // Generate params
+  const sigParams = await generateSignatureParamsG1(messageCount, label);
+  console.log('params is', sigParams);
+  // Generate a new key pair
+  const sk = await generateBBSSigningKey();
+  const pk = await generateBBSPublicKeyG2(sk, sigParams);
+
+  console.log("Key pair generated");
+  console.log(
+    `Public key base64 = ${Buffer.from(pk).toString("base64")}`
+  );
 
   console.log("Signing a message set of " + messages);
 
   //Create the signature
-  const signature = await blsSign({
-    keyPair,
-    messages: messages,
-  });
+  const signature = await bbsSignG1(messages, sk, sigParams, true);
 
   console.log(
     `Output signature base64 = ${Buffer.from(signature).toString("base64")}`
   );
 
   //Verify the signature
-  const isVerified = await blsVerify({
-    publicKey: keyPair.publicKey,
-    messages: messages,
-    signature,
-  });
+  const isVerified = await bbsVerfiyG1(messages, signature, pk, sigParams, true);
 
   const isVerifiedString = JSON.stringify(isVerified);
   console.log(`Signature verified ? ${isVerifiedString}`);
 
-  //Derive a proof from the signature revealing the first message
-  const proof = await blsCreateProof({
-    signature,
-    publicKey: keyPair.publicKey,
-    messages,
-    nonce: Uint8Array.from(Buffer.from("nonce", "utf8")),
-    revealed: [0],
-  });
+  // Derive a proof from the signature revealing the first message
+  const revealed = new Set<number>();
+  revealed.add(0);
+  const revealedMsgs = new Map();
+  revealedMsgs.set(0, messages[0]);
+  const unrevealedMsgs = new Map();
+  unrevealedMsgs.set(1, messages[1]);
+  unrevealedMsgs.set(2, messages[2]);
+
+  const protocol = await bbsInitializeProofOfKnowledgeOfSignature(
+      signature,
+      sigParams,
+      messages,
+    new Map(),
+      revealed,
+      true
+  );
+
+  const challengeProver = await generateChallengeFromBytes(await bbsChallengeContributionFromProtocol(protocol, revealedMsgs, sigParams, true));
+  const proof = await bbsGenProofOfKnowledgeOfSignature(protocol, challengeProver);
 
   console.log(`Output proof base64 = ${Buffer.from(proof).toString("base64")}`);
 
-  //Verify the created proof
-  const isProofVerified = await blsVerifyProof({
+  // Verify the created proof
+  const challengeVerifier = await generateChallengeFromBytes(await bbsChallengeContributionFromProof(proof, revealedMsgs, sigParams, true));
+  const isProofVerified = await bbsVerifyProofOfKnowledgeOfSignature(
     proof,
-    publicKey: keyPair.publicKey,
-    messages: messages.slice(0, 1),
-    nonce: Uint8Array.from(Buffer.from("nonce", "utf8")),
-  });
+      revealedMsgs,
+    challengeVerifier,
+    pk,
+    sigParams,
+    true,
+  );
 
   const isProofVerifiedString = JSON.stringify(isProofVerified);
   console.log(`Proof verified ? ${isProofVerifiedString}`);

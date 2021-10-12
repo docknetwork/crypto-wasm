@@ -138,7 +138,9 @@ pub async fn positive_accumulator_add(
     let accum: PositiveAccum = serde_wasm_bindgen::from_value(existing_accum)?;
     let element = fr_from_jsvalue(element)?;
     let sk: AccumSk = serde_wasm_bindgen::from_value(secret_key)?;
+
     let new_value = accum.compute_new_post_add(&element, &sk);
+
     serde_wasm_bindgen::to_value(&PositiveAccum::from_value(new_value))
 }
 
@@ -404,6 +406,7 @@ pub async fn positive_accumulator_membership_witnesses_for_batch(
 ) -> Result<js_sys::Array, serde_wasm_bindgen::Error> {
     set_panic_hook();
     let accum: PositiveAccum = serde_wasm_bindgen::from_value(accum)?;
+
     get_membership_witnesses_for_batch(&accum, elements, secret_key)
 }
 
@@ -899,7 +902,9 @@ fn get_membership_witnesses_for_batch(
 ) -> Result<js_sys::Array, serde_wasm_bindgen::Error> {
     let elems = js_array_to_fr_vec(&elements)?;
     let sk: AccumSk = serde_wasm_bindgen::from_value(sk)?;
+
     let witnesses = accum.compute_membership_witness_for_batch(&elems, &sk);
+
     let result = js_sys::Array::new();
     for witness in witnesses {
         result.push(&serde_wasm_bindgen::to_value(&witness)?);

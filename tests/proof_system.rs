@@ -19,7 +19,7 @@ use wasm::common::{
     field_element_as_bytes, field_element_from_number, generate_field_element_from_bytes,
     generate_random_field_element, random_ff, VerifyResponse,
 };
-use wasm::dock_bbs_plus::{
+use wasm::bbs_plus::{
     bbs_blind_sign_g1, bbs_commit_to_message_in_g1, bbs_encode_message_for_signing,
     bbs_encode_messages_for_signing, bbs_generate_g1_params, bbs_generate_public_key_g2,
     bbs_generate_secret_key, bbs_get_bases_for_commitment_g1, bbs_sign_g1, bbs_unblind_sig_g1,
@@ -687,7 +687,7 @@ pub async fn request_blind_bbs_sig() {
     revealed_indices.insert(0);
     let (revealed_msgs_1, unrevealed_msgs_1) = get_revealed_unrevealed(&msgs_1, &revealed_indices);
 
-    let committed_indices = vec![0, 1, 4];
+    let committed_indices = vec![0, 1, 5];
     let indices_to_commit = js_sys::Set::new(&JsValue::undefined());
     let msgs_to_commit = js_sys::Map::new();
     let msgs_to_not_commit = js_sys::Map::new();
@@ -736,7 +736,7 @@ pub async fn request_blind_bbs_sig() {
     statements.push(&stmt_2);
 
     let meta_statements = js_sys::Array::new();
-    let meta_statement = get_witness_equality_statement(vec![(0, 4), (1, 5)]).await;
+    let meta_statement = get_witness_equality_statement(vec![(0, 4), (1, 3)]).await;
     meta_statements.push(&meta_statement);
 
     let context = Some("test-context".as_bytes().to_vec());
