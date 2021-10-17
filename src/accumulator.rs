@@ -584,6 +584,48 @@ pub async fn update_non_membership_witness_post_remove(
     crate::update_witness_post_remove!(witness, non_member, removal, new_accumulated)
 }
 
+#[wasm_bindgen(js_name = updateMembershipWitnessesPostBatchUpdates)]
+pub async fn update_membership_witnesses_post_batch_updates(
+    witnesses: js_sys::Array,
+    members: js_sys::Array,
+    additions: js_sys::Array,
+    removals: js_sys::Array,
+    old_accumulated: JsValue,
+    secret_key: JsValue,
+) -> Result<js_sys::Array, serde_wasm_bindgen::Error> {
+    set_panic_hook();
+    crate::update_using_secret_key_after_batch_updates!(
+        witnesses,
+        members,
+        additions,
+        removals,
+        old_accumulated,
+        secret_key,
+        MembershipWit
+    )
+}
+
+#[wasm_bindgen(js_name = updateNonMembershipWitnessesPostBatchUpdates)]
+pub async fn update_non_membership_witnesses_post_batch_updates(
+    witnesses: js_sys::Array,
+    non_members: js_sys::Array,
+    additions: js_sys::Array,
+    removals: js_sys::Array,
+    old_accumulated: JsValue,
+    secret_key: JsValue,
+) -> Result<js_sys::Array, serde_wasm_bindgen::Error> {
+    set_panic_hook();
+    crate::update_using_secret_key_after_batch_updates!(
+        witnesses,
+        non_members,
+        additions,
+        removals,
+        old_accumulated,
+        secret_key,
+        NonMembershipWit
+    )
+}
+
 #[wasm_bindgen(js_name = publicInfoForWitnessUpdate)]
 pub async fn public_info_for_witness_update(
     old_accumulated: JsValue,
@@ -1055,5 +1097,39 @@ mod macros {
                 .unwrap()),
             }
         }};
+    }
+
+    #[macro_export]
+    macro_rules! update_using_secret_key_after_batch_updates {
+        ($witnesses: ident, $elements:ident, $additions: ident, $removals: ident, $old_accumulated: ident, $secret_key: ident, $wit_type: ident) => {{
+            let elements = js_array_to_fr_vec(&$elements)?;
+            let additions = js_array_to_fr_vec(&$additions)?;
+            let removals = js_array_to_fr_vec(&$removals)?;
+            let old_accumulated = g1_affine_from_jsvalue($old_accumulated)?;
+            let sk: AccumSk = serde_wasm_bindgen::from_value($secret_key)?;
+            let mut wits = Vec::with_capacity($witnesses.length() as usize);
+            for w in $witnesses.values() {
+                wits.push(serde_wasm_bindgen::from_value::<$wit_type>(w.unwrap())?);
+            }
+            let new_wits = $wit_type::update_using_secret_key_after_batch_updates(
+                &additions,
+                &removals,
+                &elements,
+                &wits,
+                &old_accumulated,
+                &sk,
+            )
+            .map_err(|e| {
+                JsValue::from(&format!(
+                    "Evaluating update_using_secret_key_after_batch_updates returned error: {:?}",
+                    e
+                ))
+            })?;
+            let result = js_sys::Array::new();
+            for w in new_wits {
+                result.push(&serde_wasm_bindgen::to_value(&w)?);
+            }
+            Ok(result)
+        }}
     }
 }

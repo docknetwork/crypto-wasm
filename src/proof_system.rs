@@ -4,8 +4,8 @@ use wasm_bindgen::prelude::*;
 use crate::accumulator::{
     AccumPk, AccumSetupParams, MembershipPrk, MembershipWit, NonMembershipPrk, NonMembershipWit,
 };
-use crate::common::VerifyResponse;
 use crate::bbs_plus::{BBSPlusPkG2, SigG1, SigParamsG1};
+use crate::common::VerifyResponse;
 use crate::utils::{
     fr_from_jsvalue, g1_affine_from_jsvalue, g2_affine_from_jsvalue, get_seeded_rng,
     js_array_to_fr_vec, js_array_to_g1_affine_vec, js_array_to_g2_affine_vec,

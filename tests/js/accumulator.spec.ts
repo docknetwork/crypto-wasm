@@ -414,7 +414,7 @@ describe("Witness update", () => {
     let params: AccumulatorParams, sk: Uint8Array, pk: Uint8Array, posAccumulator: Uint8Array,
         uniAccumulator: Uint8Array;
 
-    beforeAll(async () => {
+    beforeEach(async () => {
         params = await generateAccumulatorParams();
         sk = await generateAccumulatorSecretKey();
         pk = await generateAccumulatorPublicKey(sk, params);

@@ -24,8 +24,8 @@ use wasm_bindgen::prelude::*;
 #[macro_use]
 pub mod utils;
 pub mod accumulator;
-pub mod common;
 pub mod bbs_plus;
+pub mod common;
 pub mod proof_system;
 
 pub(crate) type Fr = <Bls12_381 as PairingEngine>::Fr;

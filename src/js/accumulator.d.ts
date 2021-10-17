@@ -231,6 +231,24 @@ export function updateNonMembershipWitnessPostRemove(
     newAccumulated: Uint8Array,
 ): Promise<Uint8Array>;
 
+export function updateMembershipWitnessesPostBatchUpdates(
+    witnesses: Uint8Array[],
+    members: Uint8Array[],
+    additions: Uint8Array[],
+    removals: Uint8Array[],
+    oldAccumulated: Uint8Array,
+    secretKey: Uint8Array,
+): Promise<Uint8Array[]>;
+
+export function updateNonMembershipWitnessesPostBatchUpdates(
+    witnesses: Uint8Array[],
+    nonMembers: Uint8Array[],
+    additions: Uint8Array[],
+    removals: Uint8Array[],
+    oldAccumulated: Uint8Array,
+    secretKey: Uint8Array,
+): Promise<Uint8Array[]>;
+
 export function publicInfoForWitnessUpdate(
     oldAccumulated: Uint8Array,
     additions: Uint8Array[],

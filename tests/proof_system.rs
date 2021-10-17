@@ -15,15 +15,15 @@ use wasm::accumulator::{
     universal_accumulator_get_accumulated, universal_accumulator_initialize_given_f_v,
     universal_accumulator_membership_witness, universal_accumulator_non_membership_witness,
 };
-use wasm::common::{
-    field_element_as_bytes, field_element_from_number, generate_field_element_from_bytes,
-    generate_random_field_element, random_ff, VerifyResponse,
-};
 use wasm::bbs_plus::{
     bbs_blind_sign_g1, bbs_commit_to_message_in_g1, bbs_encode_message_for_signing,
     bbs_encode_messages_for_signing, bbs_generate_g1_params, bbs_generate_public_key_g2,
     bbs_generate_secret_key, bbs_get_bases_for_commitment_g1, bbs_sign_g1, bbs_unblind_sig_g1,
     bbs_verify_g1,
+};
+use wasm::common::{
+    field_element_as_bytes, field_element_from_number, generate_field_element_from_bytes,
+    generate_random_field_element, random_ff, VerifyResponse,
 };
 use wasm::proof_system::{
     generate_accumulator_membership_statement, generate_accumulator_membership_witness,

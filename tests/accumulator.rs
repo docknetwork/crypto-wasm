@@ -46,6 +46,132 @@ async fn get_universal_accum(sk: JsValue, params: JsValue, max_size: u32) -> JsV
         .unwrap()
 }
 
+async fn positive_accumulator_verify_membership_for_batch(
+    accum: JsValue,
+    batch: js_sys::Array,
+    witnesses: &js_sys::Array,
+    pk: JsValue,
+    params: JsValue,
+) {
+    for w in witnesses.entries() {
+        let arr = js_sys::Array::from(&w.unwrap());
+        let i: u32 = serde_wasm_bindgen::from_value(arr.get(0)).unwrap();
+        let witness = arr.get(1);
+        assert!(positive_accumulator_verify_membership(
+            accum.clone(),
+            batch.get(i),
+            witness,
+            pk.clone(),
+            params.clone()
+        )
+        .await
+        .unwrap());
+    }
+}
+
+async fn universal_accumulator_verify_membership_for_batch(
+    accum: JsValue,
+    batch: js_sys::Array,
+    witnesses: &js_sys::Array,
+    pk: JsValue,
+    params: JsValue,
+) {
+    for w in witnesses.entries() {
+        let arr = js_sys::Array::from(&w.unwrap());
+        let i: u32 = serde_wasm_bindgen::from_value(arr.get(0)).unwrap();
+        let witness = arr.get(1);
+        assert!(universal_accumulator_verify_membership(
+            accum.clone(),
+            batch.get(i),
+            witness,
+            pk.clone(),
+            params.clone()
+        )
+        .await
+        .unwrap());
+    }
+}
+
+async fn verify_non_membership_for_batch(
+    accum: JsValue,
+    non_members: js_sys::Array,
+    witnesses: &js_sys::Array,
+    pk: JsValue,
+    params: JsValue,
+) {
+    for w in witnesses.entries() {
+        let arr = js_sys::Array::from(&w.unwrap());
+        let i: u32 = serde_wasm_bindgen::from_value(arr.get(0)).unwrap();
+        let witness = arr.get(1);
+        assert!(universal_accumulator_verify_non_membership(
+            accum.clone(),
+            non_members.get(i),
+            witness,
+            pk.clone(),
+            params.clone()
+        )
+        .await
+        .unwrap());
+    }
+}
+
+async fn positive_accumulator_create_verify_membership_for_batch(
+    accum: JsValue,
+    batch: js_sys::Array,
+    sk: JsValue,
+    pk: JsValue,
+    params: JsValue,
+) -> js_sys::Array {
+    let witnesses =
+        positive_accumulator_membership_witnesses_for_batch(accum.clone(), batch.clone(), sk)
+            .await
+            .unwrap();
+    positive_accumulator_verify_membership_for_batch(accum, batch, &witnesses, pk, params).await;
+
+    witnesses
+}
+
+async fn universal_accumulator_create_verify_membership_for_batch(
+    accum: JsValue,
+    batch: js_sys::Array,
+    sk: JsValue,
+    pk: JsValue,
+    params: JsValue,
+) -> js_sys::Array {
+    let witnesses =
+        universal_accumulator_membership_witnesses_for_batch(accum.clone(), batch.clone(), sk)
+            .await
+            .unwrap();
+    universal_accumulator_verify_membership_for_batch(accum, batch, &witnesses, pk, params).await;
+
+    witnesses
+}
+
+async fn create_verify_non_membership_for_batch(
+    accum: JsValue,
+    non_members_array: js_sys::Array,
+    members_array: js_sys::Array,
+    sk: JsValue,
+    pk: JsValue,
+    params: JsValue,
+) -> js_sys::Array {
+    let d = universal_accumulator_compute_d_for_batch(non_members_array.clone(), members_array)
+        .await
+        .unwrap();
+    let witnesses = universal_accumulator_non_membership_witnesses_for_batch(
+        accum.clone(),
+        d,
+        non_members_array.clone(),
+        sk,
+        params.clone(),
+    )
+    .await
+    .unwrap();
+    verify_non_membership_for_batch(accum, non_members_array, &witnesses, pk, params).await;
+
+    witnesses
+}
+
 #[allow(non_snake_case)]
 #[wasm_bindgen_test]
 pub async fn accumulator_params_and_keygen() {
@@ -455,38 +581,11 @@ pub async fn positive_accumulator_batch() {
     remove_batch.push(&element_3);
     remove_batch.push(&element_4);
 
-    async fn create_verify_membership_for_batch(
-        accum: JsValue,
-        batch: js_sys::Array,
-        sk: JsValue,
-        pk: JsValue,
-        params: JsValue,
-    ) {
-        let witnesses =
-            positive_accumulator_membership_witnesses_for_batch(accum.clone(), batch.clone(), sk)
-                .await
-                .unwrap();
-        for w in witnesses.entries() {
-            let arr = js_sys::Array::from(&w.unwrap());
-            let i: u32 = serde_wasm_bindgen::from_value(arr.get(0)).unwrap();
-            let witness = arr.get(1);
-            assert!(positive_accumulator_verify_membership(
-                accum.clone(),
-                batch.get(i),
-                witness,
-                pk.clone(),
-                params.clone()
-            )
-            .await
-            .unwrap());
-        }
-    }
-
     let wont_remove = js_sys::Array::new();
     wont_remove.push(&element_1);
     wont_remove.push(&element_2);
 
-    create_verify_membership_for_batch(
+    positive_accumulator_create_verify_membership_for_batch(
         accumulator_1.clone(),
         wont_remove.clone(),
         sk.clone(),
@@ -501,7 +600,7 @@ pub async fn positive_accumulator_batch() {
             .unwrap();
     }
 
-    create_verify_membership_for_batch(
+    positive_accumulator_create_verify_membership_for_batch(
         accumulator_1.clone(),
         add_batch.clone(),
         sk.clone(),
@@ -509,7 +608,7 @@ pub async fn positive_accumulator_batch() {
         params.clone(),
     )
     .await;
-    create_verify_membership_for_batch(
+    positive_accumulator_create_verify_membership_for_batch(
         accumulator_1.clone(),
         wont_remove.clone(),
         sk.clone(),
@@ -522,7 +621,7 @@ pub async fn positive_accumulator_batch() {
         .await
         .unwrap();
 
-    create_verify_membership_for_batch(
+    positive_accumulator_create_verify_membership_for_batch(
         accumulator_2.clone(),
         add_batch.clone(),
         sk.clone(),
@@ -530,7 +629,7 @@ pub async fn positive_accumulator_batch() {
         params.clone(),
     )
     .await;
-    create_verify_membership_for_batch(
+    positive_accumulator_create_verify_membership_for_batch(
         accumulator_2.clone(),
         wont_remove.clone(),
         sk.clone(),
@@ -585,7 +684,7 @@ pub async fn positive_accumulator_batch() {
             .unwrap(),
     );
 
-    create_verify_membership_for_batch(
+    positive_accumulator_create_verify_membership_for_batch(
         accumulator_3.clone(),
         wont_remove.clone(),
         sk.clone(),
@@ -672,74 +771,11 @@ pub async fn universal_accumulator_batch() {
         .await
         .unwrap();
 
-    async fn create_verify_membership_for_batch(
-        accum: JsValue,
-        batch: js_sys::Array,
-        sk: JsValue,
-        pk: JsValue,
-        params: JsValue,
-    ) {
-        let witnesses =
-            universal_accumulator_membership_witnesses_for_batch(accum.clone(), batch.clone(), sk)
-                .await
-                .unwrap();
-        for w in witnesses.entries() {
-            let arr = js_sys::Array::from(&w.unwrap());
-            let i: u32 = serde_wasm_bindgen::from_value(arr.get(0)).unwrap();
-            let witness = arr.get(1);
-            assert!(universal_accumulator_verify_membership(
-                accum.clone(),
-                batch.get(i),
-                witness,
-                pk.clone(),
-                params.clone()
-            )
-            .await
-            .unwrap());
-        }
-    }
-
-    async fn create_verify_non_membership_for_batch(
-        accum: JsValue,
-        non_members_array: js_sys::Array,
-        members_array: js_sys::Array,
-        sk: JsValue,
-        pk: JsValue,
-        params: JsValue,
-    ) {
-        let d = universal_accumulator_compute_d_for_batch(non_members_array.clone(), members_array)
-            .await
-            .unwrap();
-        let witnesses = universal_accumulator_non_membership_witnesses_for_batch(
-            accum.clone(),
-            d,
-            non_members_array.clone(),
-            sk,
-            params.clone(),
-        )
-        .await
-        .unwrap();
-        for w in witnesses.entries() {
-            let arr = js_sys::Array::from(&w.unwrap());
-            let i: u32 = serde_wasm_bindgen::from_value(arr.get(0)).unwrap();
-            let witness = arr.get(1);
-            assert!(universal_accumulator_verify_non_membership(
-                accum.clone(),
-                non_members_array.get(i),
-                witness,
-                pk.clone(),
-                params.clone()
-            )
-            .await
-            .unwrap());
-        }
-    }
-
     let wont_remove = js_sys::Array::new();
     wont_remove.push(&element_1);
     wont_remove.push(&element_2);
 
-    create_verify_membership_for_batch(
+    universal_accumulator_create_verify_membership_for_batch(
         accumulator_0.clone(),
         wont_remove.clone(),
         sk.clone(),
@@ -781,7 +817,7 @@ pub async fn universal_accumulator_batch() {
             .await
             .unwrap();
     }
-    create_verify_membership_for_batch(
+    universal_accumulator_create_verify_membership_for_batch(
         accumulator_1.clone(),
         add_batch.clone(),
         sk.clone(),
@@ -789,7 +825,7 @@ pub async fn universal_accumulator_batch() {
         params.clone(),
     )
     .await;
-    create_verify_membership_for_batch(
+    universal_accumulator_create_verify_membership_for_batch(
         accumulator_1.clone(),
         wont_remove.clone(),
         sk.clone(),
@@ -826,7 +862,7 @@ pub async fn universal_accumulator_batch() {
             .unwrap();
     }
 
-    create_verify_membership_for_batch(
+    universal_accumulator_create_verify_membership_for_batch(
         accumulator_1.clone(),
         wont_remove.clone(),
         sk.clone(),
@@ -880,7 +916,7 @@ pub async fn universal_accumulator_batch() {
             .unwrap(),
     );
 
-    create_verify_membership_for_batch(
+    universal_accumulator_create_verify_membership_for_batch(
         accumulator_3.clone(),
         wont_remove.clone(),
         sk.clone(),
@@ -1102,6 +1138,174 @@ pub async fn witness_update_single() {
     )
     .await
     .unwrap());
+}
+
+#[allow(non_snake_case)]
+#[wasm_bindgen_test]
+pub async fn multiple_witnesses_update_using_secret_key() {
+    let label = b"test".to_vec();
+    let (params, sk, pk) = get_params_and_keys(Some(label)).await;
+
+    let max_size = 100;
+    let mut pos_accum = positive_accumulator_initialize(params.clone())
+        .await
+        .unwrap();
+    let mut uni_accum = get_universal_accum(sk.clone(), params.clone(), max_size).await;
+
+    let non_member_1 = generate_random_field_element(None).await.unwrap();
+    let non_member_2 = generate_random_field_element(None).await.unwrap();
+    let element_1 = generate_random_field_element(None).await.unwrap();
+    let element_2 = generate_random_field_element(None).await.unwrap();
+    let element_3 = generate_random_field_element(None).await.unwrap();
+    let element_4 = generate_random_field_element(None).await.unwrap();
+    let element_5 = generate_random_field_element(None).await.unwrap();
+    let element_6 = generate_random_field_element(None).await.unwrap();
+
+    let initial_batch = js_sys::Array::new();
+    initial_batch.push(&element_1);
+    initial_batch.push(&element_2);
+
+    let non_members = js_sys::Array::new();
+    initial_batch.push(&non_member_1);
+    initial_batch.push(&non_member_2);
+
+    pos_accum = positive_accumulator_add_batch(pos_accum, initial_batch.clone(), sk.clone())
+        .await
+        .unwrap();
+
+    uni_accum = universal_accumulator_add_batch(uni_accum, initial_batch.clone(), sk.clone())
+        .await
+        .unwrap();
+
+    let new_batch = js_sys::Array::new();
+    new_batch.push(&element_3);
+    new_batch.push(&element_4);
+
+    pos_accum = positive_accumulator_add_batch(pos_accum, new_batch.clone(), sk.clone())
+        .await
+        .unwrap();
+
+    uni_accum = universal_accumulator_add_batch(uni_accum, new_batch.clone(), sk.clone())
+        .await
+        .unwrap();
+
+    let witnesses = positive_accumulator_create_verify_membership_for_batch(
+        pos_accum.clone(),
+        initial_batch.clone(),
+        sk.clone(),
+        pk.clone(),
+        params.clone(),
+    )
+    .await;
+
+    let uni_witnesses = universal_accumulator_create_verify_membership_for_batch(
+        uni_accum.clone(),
+        initial_batch.clone(),
+        sk.clone(),
+        pk.clone(),
+        params.clone(),
+    )
+    .await;
+
+    let members = js_sys::Array::new();
+    members.push(&element_1);
+    members.push(&element_2);
+    members.push(&element_3);
+    members.push(&element_4);
+    let nm_witnesses = create_verify_non_membership_for_batch(
+        uni_accum.clone(),
+        non_members.clone(),
+        members,
+        sk.clone(),
+        pk.clone(),
+        params.clone(),
+    )
+    .await;
+
+    let add_batch = js_sys::Array::new();
+    add_batch.push(&element_5);
+    add_batch.push(&element_6);
+
+    let remove_batch = js_sys::Array::new();
+    remove_batch.push(&element_3);
+    remove_batch.push(&element_4);
+
+    let pos_accum_1 = positive_accumulator_batch_updates(
+        pos_accum.clone(),
+        add_batch.clone(),
+        remove_batch.clone(),
+        sk.clone(),
+    )
+    .await
+    .unwrap();
+
+    let uni_accum_1 = universal_accumulator_batch_updates(
+        uni_accum.clone(),
+        add_batch.clone(),
+        remove_batch.clone(),
+        sk.clone(),
+    )
+    .await
+    .unwrap();
+
+    let new_witnesses = update_membership_witnesses_post_batch_updates(
+        witnesses,
+        initial_batch.clone(),
+        add_batch.clone(),
+        remove_batch.clone(),
+        positive_accumulator_get_accumulated(pos_accum.clone())
+            .await
+            .unwrap(),
+        sk.clone(),
+    )
+    .await
+    .unwrap();
+
+    let new_uni_witnesses = update_membership_witnesses_post_batch_updates(
+        uni_witnesses,
+        initial_batch.clone(),
+        add_batch.clone(),
+        remove_batch.clone(),
+        universal_accumulator_get_accumulated(uni_accum.clone())
+            .await
+            .unwrap(),
+        sk.clone(),
+    )
+    .await
+    .unwrap();
+
+    let new_nm_witnesses = update_non_membership_witnesses_post_batch_updates(
+        nm_witnesses,
+        non_members.clone(),
+        add_batch.clone(),
+        remove_batch.clone(),
+        universal_accumulator_get_accumulated(uni_accum.clone())
+            .await
+            .unwrap(),
+        sk.clone(),
+    )
+    .await
+    .unwrap();
+
+    positive_accumulator_verify_membership_for_batch(
+        pos_accum_1,
+        initial_batch.clone(),
+        &new_witnesses,
+        pk.clone(),
+        params.clone(),
+    )
+    .await;
+
+    universal_accumulator_verify_membership_for_batch(
+        uni_accum_1.clone(),
+        initial_batch.clone(),
+        &new_uni_witnesses,
+        pk.clone(),
+        params.clone(),
+    )
+    .await;
+
+    verify_non_membership_for_batch(uni_accum_1, non_members, &new_nm_witnesses, pk, params).await;
 }
 
 #[allow(non_snake_case)]
