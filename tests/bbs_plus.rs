@@ -145,6 +145,34 @@ pub async fn bbs_params_and_keygen() {
         js_value_to_bytes(values_g2_obj.get(1)),
         js_value_to_bytes(pk_g2.clone())
     );
+
+    let bytes = bbs_params_g1_to_bytes(params_g1.clone()).await.unwrap();
+    let desez_params = bbs_params_g1_from_bytes(bytes).await.unwrap();
+    assert!(bbs_is_params_g1_valid(desez_params.clone()).await.unwrap());
+    let params_1: SigParamsG1 = serde_wasm_bindgen::from_value(params_g1).unwrap();
+    let params_2: SigParamsG1 = serde_wasm_bindgen::from_value(desez_params).unwrap();
+    assert_eq!(params_1, params_2);
+
+    let bytes = bbs_params_g2_to_bytes(params_g2.clone()).await.unwrap();
+    let desez_params = bbs_params_g2_from_bytes(bytes).await.unwrap();
+    assert!(bbs_is_params_g2_valid(desez_params.clone()).await.unwrap());
+    let params_1: SigParamsG2 = serde_wasm_bindgen::from_value(params_g2).unwrap();
+    let params_2: SigParamsG2 = serde_wasm_bindgen::from_value(desez_params).unwrap();
+    assert_eq!(params_1, params_2);
+
+    let bytes = bbs_public_key_g1_to_bytes(pk_g1.clone()).await.unwrap();
+    let desez_pk = bbs_public_key_g1_from_bytes(bytes).await.unwrap();
+    assert!(bbs_is_pubkey_g1_valid(desez_pk.clone()).await.unwrap());
+    let pk_1: BBSPlusPkG1 = serde_wasm_bindgen::from_value(pk_g1).unwrap();
+    let pk_2: BBSPlusPkG1 = serde_wasm_bindgen::from_value(desez_pk).unwrap();
+    assert_eq!(pk_1, pk_2);
+
+    let bytes = bbs_public_key_g2_to_bytes(pk_g2.clone()).await.unwrap();
+    let desez_pk = bbs_public_key_g2_from_bytes(bytes).await.unwrap();
+    assert!(bbs_is_pubkey_g2_valid(desez_pk.clone()).await.unwrap());
+    let pk_1: BBSPlusPkG2 = serde_wasm_bindgen::from_value(pk_g2).unwrap();
+    let pk_2: BBSPlusPkG2 = serde_wasm_bindgen::from_value(desez_pk).unwrap();
+    assert_eq!(pk_1, pk_2);
 }
 
 #[allow(non_snake_case)]
@@ -400,8 +428,8 @@ pub async fn bbs_proof_of_knowledge() {
             let verifier_challenge = generate_challenge_from_bytes(verifier_bytes.to_vec()).await;
 
             assert_eq!(
-                js_value_to_bytes(prover_challenge),
-                js_value_to_bytes(verifier_challenge.clone())
+                prover_challenge.to_vec(),
+                verifier_challenge.to_vec()
             );
 
             let result = bbs_verify_proof(proof, revealed_msgs, verifier_challenge, pk, params, $encode)

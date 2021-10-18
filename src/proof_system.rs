@@ -7,9 +7,10 @@ use crate::accumulator::{
 use crate::bbs_plus::{BBSPlusPkG2, SigG1, SigParamsG1};
 use crate::common::VerifyResponse;
 use crate::utils::{
-    fr_from_jsvalue, g1_affine_from_jsvalue, g2_affine_from_jsvalue, get_seeded_rng,
-    js_array_to_fr_vec, js_array_to_g1_affine_vec, js_array_to_g2_affine_vec,
-    msgs_bytes_map_to_fr_btreemap, set_panic_hook,
+    fr_from_jsvalue, fr_from_uint8_array, g1_affine_from_jsvalue, g1_affine_from_uint8_array,
+    g2_affine_from_jsvalue, g2_affine_from_uint8_array, get_seeded_rng, js_array_to_fr_vec,
+    js_array_to_g1_affine_vec, js_array_to_g2_affine_vec, msgs_bytes_map_to_fr_btreemap,
+    set_panic_hook,
 };
 use crate::{Fr, G1Affine};
 use ark_bls12_381::Bls12_381;
@@ -54,10 +55,10 @@ pub async fn generate_accumulator_membership_statement(
     params: JsValue,
     public_key: JsValue,
     proving_key: JsValue,
-    accumulated: JsValue,
+    accumulated: js_sys::Uint8Array,
 ) -> Result<JsValue, serde_wasm_bindgen::Error> {
     set_panic_hook();
-    let accumulated = g1_affine_from_jsvalue(accumulated)?;
+    let accumulated = g1_affine_from_uint8_array(accumulated)?;
     let pk: AccumPk = serde_wasm_bindgen::from_value(public_key)?;
     let params: AccumSetupParams = serde_wasm_bindgen::from_value(params)?;
     let prk: MembershipPrk = serde_wasm_bindgen::from_value(proving_key)?;
@@ -70,10 +71,10 @@ pub async fn generate_accumulator_non_membership_statement(
     params: JsValue,
     public_key: JsValue,
     proving_key: JsValue,
-    accumulated: JsValue,
+    accumulated: js_sys::Uint8Array,
 ) -> Result<JsValue, serde_wasm_bindgen::Error> {
     set_panic_hook();
-    let accumulated = g1_affine_from_jsvalue(accumulated)?;
+    let accumulated = g1_affine_from_uint8_array(accumulated)?;
     let pk: AccumPk = serde_wasm_bindgen::from_value(public_key)?;
     let params: AccumSetupParams = serde_wasm_bindgen::from_value(params)?;
     let prk: NonMembershipPrk = serde_wasm_bindgen::from_value(proving_key)?;
@@ -84,11 +85,11 @@ pub async fn generate_accumulator_non_membership_statement(
 #[wasm_bindgen(js_name = generatePedersenCommitmentG1Statement)]
 pub async fn generate_pedersen_commitment_g1_statement(
     bases: js_sys::Array,
-    commitment: JsValue,
+    commitment: js_sys::Uint8Array,
 ) -> Result<JsValue, serde_wasm_bindgen::Error> {
     set_panic_hook();
     let bases = js_array_to_g1_affine_vec(&bases)?;
-    let commitment = g1_affine_from_jsvalue(commitment)?;
+    let commitment = g1_affine_from_uint8_array(commitment)?;
     let statement = PedCommG1Stmt::new_as_statement::<Bls12_381>(bases, commitment);
     serde_wasm_bindgen::to_value(&statement)
 }
@@ -96,11 +97,11 @@ pub async fn generate_pedersen_commitment_g1_statement(
 #[wasm_bindgen(js_name = generatePedersenCommitmentG2Statement)]
 pub async fn generate_pedersen_commitment_g2_statement(
     bases: js_sys::Array,
-    commitment: JsValue,
+    commitment: js_sys::Uint8Array,
 ) -> Result<JsValue, serde_wasm_bindgen::Error> {
     set_panic_hook();
     let bases = js_array_to_g2_affine_vec(&bases)?;
-    let commitment = g2_affine_from_jsvalue(commitment)?;
+    let commitment = g2_affine_from_uint8_array(commitment)?;
     let statement = PedCommG2Stmt::new_as_statement::<Bls12_381>(bases, commitment);
     serde_wasm_bindgen::to_value(&statement)
 }
@@ -144,11 +145,11 @@ pub async fn generate_pok_bbs_sig_witness(
 
 #[wasm_bindgen(js_name = generateAccumulatorMembershipWitness)]
 pub async fn generate_accumulator_membership_witness(
-    element: JsValue,
+    element: js_sys::Uint8Array,
     accum_witness: JsValue,
 ) -> Result<JsValue, serde_wasm_bindgen::Error> {
     set_panic_hook();
-    let element = fr_from_jsvalue(element)?;
+    let element = fr_from_uint8_array(element)?;
     let accum_witness: MembershipWit = serde_wasm_bindgen::from_value(accum_witness)?;
     let witness = AccumMemWit::new_as_witness(element, accum_witness);
     serde_wasm_bindgen::to_value(&witness)
@@ -156,11 +157,11 @@ pub async fn generate_accumulator_membership_witness(
 
 #[wasm_bindgen(js_name = generateAccumulatorNonMembershipWitness)]
 pub async fn generate_accumulator_non_membership_witness(
-    element: JsValue,
+    element: js_sys::Uint8Array,
     accum_witness: JsValue,
 ) -> Result<JsValue, serde_wasm_bindgen::Error> {
     set_panic_hook();
-    let element = fr_from_jsvalue(element)?;
+    let element = fr_from_uint8_array(element)?;
     let accum_witness: NonMembershipWit = serde_wasm_bindgen::from_value(accum_witness)?;
     let witness = AccumNonMemWit::new_as_witness(element, accum_witness);
     serde_wasm_bindgen::to_value(&witness)

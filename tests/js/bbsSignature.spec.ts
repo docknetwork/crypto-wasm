@@ -28,10 +28,16 @@ import {
   bbsVerifyProofOfKnowledgeOfSignature,
   bbsChallengeContributionFromProtocol,
   bbsChallengeContributionFromProof,
-  generateChallengeFromBytes, bbsExtendSigParamsG1ForMsgCount, bbsExtendSigParamsG2ForMsgCount
+  generateChallengeFromBytes,
+  bbsExtendSigParamsG1ForMsgCount,
+  bbsExtendSigParamsG2ForMsgCount,
+  bbsSignatureParamsG1ToBytes,
+  bbsSignatureParamsG1FromBytes,
+  bbsSignatureParamsG2FromBytes,
+  bbsSignatureParamsG2ToBytes,
+  bbsPublicKeyG1ToBytes, bbsPublicKeyG1FromBytes, bbsPublicKeyG2FromBytes, bbsPublicKeyG2ToBytes,
+  BbsSigParams
 } from "../../lib";
-
-import { BbsSigParams } from "../../lib/types";
 
 import { stringToBytes } from "../utilities";
 
@@ -80,6 +86,10 @@ describe("For BBS+ signatures", () => {
     expect(await isSignatureParamsG1Valid(params)).toBe(true);
     expect(await bbsSignatureParamsG1MaxSupportedMsgs(params)).toBe(messageCount);
 
+    const bytes = await bbsSignatureParamsG1ToBytes(params);
+    const deserzParams = await bbsSignatureParamsG1FromBytes(bytes);
+    expect(params).toEqual(deserzParams);
+
     sigParamsG1 = params;
   });
 
@@ -95,6 +105,10 @@ describe("For BBS+ signatures", () => {
     expect(await isSignatureParamsG2Valid(params)).toBe(true);
     expect(await bbsSignatureParamsG2MaxSupportedMsgs(params)).toBe(messageCount);
 
+    const bytes = await bbsSignatureParamsG2ToBytes(params);
+    const deserzParams = await bbsSignatureParamsG2FromBytes(bytes);
+    expect(params).toEqual(deserzParams);
+
     sigParamsG2 = params;
   });
 
@@ -102,12 +116,20 @@ describe("For BBS+ signatures", () => {
     pkG1 = await generateBBSPublicKeyG1(sk, sigParamsG2);
     expect(pkG1).toBeInstanceOf(Uint8Array);
     expect(await isBBSPublicKeyG1Valid(pkG1)).toBe(true);
+
+    const bytes = await bbsPublicKeyG1ToBytes(pkG1);
+    const deserzPk = await bbsPublicKeyG1FromBytes(bytes);
+    expect(pkG1).toEqual(deserzPk);
   });
 
   it("generate public key in G2 from secret key", async () => {
     pkG2 = await generateBBSPublicKeyG2(sk, sigParamsG1);
     expect(pkG2).toBeInstanceOf(Uint8Array);
     expect(await isBBSPublicKeyG2Valid(pkG2)).toBe(true);
+
+    const bytes = await bbsPublicKeyG2ToBytes(pkG2);
+    const deserzPk = await bbsPublicKeyG2FromBytes(bytes);
+    expect(pkG2).toEqual(deserzPk);
   });
 
   it("generate keypair in G1 from given seed", async () => {

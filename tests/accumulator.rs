@@ -7,7 +7,7 @@ use wasm::accumulator::*;
 use wasm::common::{
     generate_challenge_from_bytes, generate_random_field_element, random_ff, VerifyResponse,
 };
-use wasm::utils::{fr_from_jsvalue, js_array_from_frs};
+use wasm::utils::{fr_from_jsvalue, fr_from_uint8_array, js_array_from_frs};
 use wasm_bindgen::JsValue;
 use wasm_bindgen_test::*;
 
@@ -53,13 +53,14 @@ async fn positive_accumulator_verify_membership_for_batch(
     pk: JsValue,
     params: JsValue,
 ) {
+    let accum = positive_accumulator_get_accumulated(accum).await.unwrap();
     for w in witnesses.entries() {
         let arr = js_sys::Array::from(&w.unwrap());
         let i: u32 = serde_wasm_bindgen::from_value(arr.get(0)).unwrap();
         let witness = arr.get(1);
         assert!(positive_accumulator_verify_membership(
             accum.clone(),
-            batch.get(i),
+            js_sys::Uint8Array::new(&batch.get(i)),
             witness,
             pk.clone(),
             params.clone()
@@ -76,13 +77,14 @@ async fn universal_accumulator_verify_membership_for_batch(
     pk: JsValue,
     params: JsValue,
 ) {
+    let accum = universal_accumulator_get_accumulated(accum).await.unwrap();
     for w in witnesses.entries() {
         let arr = js_sys::Array::from(&w.unwrap());
         let i: u32 = serde_wasm_bindgen::from_value(arr.get(0)).unwrap();
         let witness = arr.get(1);
         assert!(universal_accumulator_verify_membership(
             accum.clone(),
-            batch.get(i),
+            js_sys::Uint8Array::new(&batch.get(i)),
             witness,
             pk.clone(),
             params.clone()
@@ -99,13 +101,14 @@ async fn verify_non_membership_for_batch(
     pk: JsValue,
     params: JsValue,
 ) {
+    let accum = universal_accumulator_get_accumulated(accum).await.unwrap();
     for w in witnesses.entries() {
         let arr = js_sys::Array::from(&w.unwrap());
         let i: u32 = serde_wasm_bindgen::from_value(arr.get(0)).unwrap();
         let witness = arr.get(1);
         assert!(universal_accumulator_verify_non_membership(
             accum.clone(),
-            non_members.get(i),
+            js_sys::Uint8Array::new(&non_members.get(i)),
             witness,
             pk.clone(),
             params.clone()
@@ -211,6 +214,22 @@ pub async fn accumulator_params_and_keygen() {
         js_value_to_bytes(values_obj.get(1)),
         js_value_to_bytes(pk.clone())
     );
+
+    let bytes = accumulator_params_to_bytes(params.clone()).await.unwrap();
+    let desez_params = accumulator_params_from_bytes(bytes).await.unwrap();
+    assert!(accumulator_is_params_valid(desez_params.clone())
+        .await
+        .unwrap());
+    let params_1: AccumSetupParams = serde_wasm_bindgen::from_value(params).unwrap();
+    let params_2: AccumSetupParams = serde_wasm_bindgen::from_value(desez_params).unwrap();
+    assert_eq!(params_1, params_2);
+
+    let bytes = accumulator_public_key_to_bytes(pk.clone()).await.unwrap();
+    let desez_pk = accumulator_public_key_from_bytes(bytes).await.unwrap();
+    assert!(accumulator_is_pubkey_valid(desez_pk.clone()).await.unwrap());
+    let pk_1: AccumPk = serde_wasm_bindgen::from_value(pk).unwrap();
+    let pk_2: AccumPk = serde_wasm_bindgen::from_value(desez_pk).unwrap();
+    assert_eq!(pk_1, pk_2);
 }
 
 #[allow(non_snake_case)]
@@ -235,7 +254,9 @@ pub async fn positive_accumulator_membership() {
             .await
             .unwrap();
     assert!(positive_accumulator_verify_membership(
-        accumulator.clone(),
+        positive_accumulator_get_accumulated(accumulator.clone())
+            .await
+            .unwrap(),
         element_1.clone(),
         witness.clone(),
         pk.clone(),
@@ -246,7 +267,9 @@ pub async fn positive_accumulator_membership() {
 
     // Witness does not verify with old accumulator
     assert!(!positive_accumulator_verify_membership(
-        accumulator_0.clone(),
+        positive_accumulator_get_accumulated(accumulator_0.clone())
+            .await
+            .unwrap(),
         element_1.clone(),
         witness,
         pk.clone(),
@@ -275,7 +298,9 @@ pub async fn positive_accumulator_membership() {
             .await
             .unwrap();
     assert!(positive_accumulator_verify_membership(
-        accumulator.clone(),
+        positive_accumulator_get_accumulated(accumulator.clone())
+            .await
+            .unwrap(),
         element_3.clone(),
         witness.clone(),
         pk.clone(),
@@ -285,7 +310,9 @@ pub async fn positive_accumulator_membership() {
     .unwrap());
     // Witness does not verify with old accumulator
     assert!(!positive_accumulator_verify_membership(
-        accumulator_old.clone(),
+        positive_accumulator_get_accumulated(accumulator_old.clone())
+            .await
+            .unwrap(),
         element_3,
         witness,
         pk.clone(),
@@ -299,7 +326,9 @@ pub async fn positive_accumulator_membership() {
             .await
             .unwrap();
     assert!(positive_accumulator_verify_membership(
-        accumulator,
+        positive_accumulator_get_accumulated(accumulator)
+            .await
+            .unwrap(),
         element_1.clone(),
         witness.clone(),
         pk.clone(),
@@ -309,7 +338,9 @@ pub async fn positive_accumulator_membership() {
     .unwrap());
     // Witness does not verify with old accumulator
     assert!(!positive_accumulator_verify_membership(
-        accumulator_old,
+        positive_accumulator_get_accumulated(accumulator_old)
+            .await
+            .unwrap(),
         element_1,
         witness,
         pk,
@@ -368,10 +399,7 @@ pub async fn universal_accumulator_initialize() {
     let combined_f_v = universal_accumulator_combine_multiple_initial_fv(array)
         .await
         .unwrap();
-    assert_eq!(
-        js_value_to_bytes(f_v.clone()),
-        js_value_to_bytes(combined_f_v.clone())
-    );
+    assert_eq!(f_v.to_vec(), combined_f_v.to_vec());
 }
 
 #[allow(non_snake_case)]
@@ -398,7 +426,9 @@ pub async fn universal_accumulator_membership_non_membership() {
     .await
     .unwrap();
     assert!(universal_accumulator_verify_membership(
-        accumulator.clone(),
+        universal_accumulator_get_accumulated(accumulator.clone())
+            .await
+            .unwrap(),
         element_1.clone(),
         witness.clone(),
         pk.clone(),
@@ -408,7 +438,9 @@ pub async fn universal_accumulator_membership_non_membership() {
     .unwrap());
     // Witness does not verify with old accumulator
     assert!(!universal_accumulator_verify_membership(
-        accumulator_0.clone(),
+        universal_accumulator_get_accumulated(accumulator_0.clone())
+            .await
+            .unwrap(),
         element_1.clone(),
         witness,
         pk.clone(),
@@ -438,7 +470,9 @@ pub async fn universal_accumulator_membership_non_membership() {
     .await
     .unwrap();
     assert!(universal_accumulator_verify_membership(
-        accumulator.clone(),
+        universal_accumulator_get_accumulated(accumulator.clone())
+            .await
+            .unwrap(),
         element_3.clone(),
         witness,
         pk.clone(),
@@ -454,7 +488,9 @@ pub async fn universal_accumulator_membership_non_membership() {
     .await
     .unwrap();
     assert!(universal_accumulator_verify_membership(
-        accumulator.clone(),
+        universal_accumulator_get_accumulated(accumulator.clone())
+            .await
+            .unwrap(),
         element_1.clone(),
         witness,
         pk.clone(),
@@ -477,10 +513,10 @@ pub async fn universal_accumulator_membership_non_membership() {
 
     let non_member = generate_random_field_element(None).await.unwrap();
     let members = vec![
-        fr_from_jsvalue(element_1.clone()).unwrap(),
-        fr_from_jsvalue(element_3.clone()).unwrap(),
-        fr_from_jsvalue(element_4.clone()).unwrap(),
-        fr_from_jsvalue(element_5.clone()).unwrap(),
+        fr_from_uint8_array(element_1.clone()).unwrap(),
+        fr_from_uint8_array(element_3.clone()).unwrap(),
+        fr_from_uint8_array(element_4.clone()).unwrap(),
+        fr_from_uint8_array(element_5.clone()).unwrap(),
     ];
     let d =
         universal_accumulator_compute_d(non_member.clone(), js_array_from_frs(&members).unwrap())
@@ -496,7 +532,9 @@ pub async fn universal_accumulator_membership_non_membership() {
     .await
     .unwrap();
     assert!(universal_accumulator_verify_non_membership(
-        accumulator.clone(),
+        universal_accumulator_get_accumulated(accumulator.clone())
+            .await
+            .unwrap(),
         non_member.clone(),
         witness.clone(),
         pk.clone(),
@@ -506,7 +544,9 @@ pub async fn universal_accumulator_membership_non_membership() {
     .unwrap());
     // Witness does not verify with old accumulator
     assert!(!universal_accumulator_verify_non_membership(
-        accumulator_old.clone(),
+        universal_accumulator_get_accumulated(accumulator_old.clone())
+            .await
+            .unwrap(),
         non_member.clone(),
         witness,
         pk.clone(),
@@ -518,8 +558,8 @@ pub async fn universal_accumulator_membership_non_membership() {
     let d1 = universal_accumulator_compute_d(
         non_member.clone(),
         js_array_from_frs(&[
-            fr_from_jsvalue(element_1).unwrap(),
-            fr_from_jsvalue(element_3).unwrap(),
+            fr_from_uint8_array(element_1).unwrap(),
+            fr_from_uint8_array(element_3).unwrap(),
         ])
         .unwrap(),
     )
@@ -528,8 +568,8 @@ pub async fn universal_accumulator_membership_non_membership() {
     let d2 = universal_accumulator_compute_d(
         non_member.clone(),
         js_array_from_frs(&[
-            fr_from_jsvalue(element_4).unwrap(),
-            fr_from_jsvalue(element_5).unwrap(),
+            fr_from_uint8_array(element_4).unwrap(),
+            fr_from_uint8_array(element_5).unwrap(),
         ])
         .unwrap(),
     )
@@ -542,7 +582,7 @@ pub async fn universal_accumulator_membership_non_membership() {
     let combined_d = universal_accumulator_combine_multiple_d(array)
         .await
         .unwrap();
-    assert_eq!(js_value_to_bytes(combined_d), js_value_to_bytes(d));
+    assert_eq!(combined_d.to_vec(), d.to_vec());
 }
 
 #[allow(non_snake_case)]
@@ -595,9 +635,13 @@ pub async fn positive_accumulator_batch() {
     .await;
 
     for a in add_batch.values() {
-        accumulator_1 = positive_accumulator_add(accumulator_1, a.unwrap(), sk.clone())
-            .await
-            .unwrap();
+        accumulator_1 = positive_accumulator_add(
+            accumulator_1,
+            js_sys::Uint8Array::new(&a.unwrap()),
+            sk.clone(),
+        )
+        .await
+        .unwrap();
     }
 
     positive_accumulator_create_verify_membership_for_batch(
@@ -646,9 +690,13 @@ pub async fn positive_accumulator_batch() {
     );
 
     for r in remove_batch.values() {
-        accumulator_1 = positive_accumulator_remove(accumulator_1, r.unwrap(), sk.clone())
-            .await
-            .unwrap();
+        accumulator_1 = positive_accumulator_remove(
+            accumulator_1,
+            js_sys::Uint8Array::new(&r.unwrap()),
+            sk.clone(),
+        )
+        .await
+        .unwrap();
     }
 
     accumulator_2 =
@@ -813,9 +861,13 @@ pub async fn universal_accumulator_batch() {
     remove_batch.push(&element_4);
 
     for a in add_batch.values() {
-        accumulator_1 = universal_accumulator_add(accumulator_1, a.unwrap(), sk.clone())
-            .await
-            .unwrap();
+        accumulator_1 = universal_accumulator_add(
+            accumulator_1,
+            js_sys::Uint8Array::new(&a.unwrap()),
+            sk.clone(),
+        )
+        .await
+        .unwrap();
     }
     universal_accumulator_create_verify_membership_for_batch(
         accumulator_1.clone(),
@@ -857,9 +909,13 @@ pub async fn universal_accumulator_batch() {
     );
 
     for r in remove_batch.values() {
-        accumulator_1 = universal_accumulator_remove(accumulator_1, r.unwrap(), sk.clone())
-            .await
-            .unwrap();
+        accumulator_1 = universal_accumulator_remove(
+            accumulator_1,
+            js_sys::Uint8Array::new(&r.unwrap()),
+            sk.clone(),
+        )
+        .await
+        .unwrap();
     }
 
     universal_accumulator_create_verify_membership_for_batch(
@@ -948,7 +1004,9 @@ pub async fn witness_update_single() {
             .await
             .unwrap();
     assert!(positive_accumulator_verify_membership(
-        pos_accum.clone(),
+        positive_accumulator_get_accumulated(pos_accum.clone())
+            .await
+            .unwrap(),
         element_1.clone(),
         witness_1.clone(),
         pk.clone(),
@@ -973,7 +1031,9 @@ pub async fn witness_update_single() {
     .await
     .unwrap();
     assert!(positive_accumulator_verify_membership(
-        pos_accum_1.clone(),
+        positive_accumulator_get_accumulated(pos_accum_1.clone())
+            .await
+            .unwrap(),
         element_1.clone(),
         new_witness_1.clone(),
         pk.clone(),
@@ -998,7 +1058,9 @@ pub async fn witness_update_single() {
     .await
     .unwrap();
     assert!(positive_accumulator_verify_membership(
-        pos_accum_2.clone(),
+        positive_accumulator_get_accumulated(pos_accum_2.clone())
+            .await
+            .unwrap(),
         element_1.clone(),
         new_witness_1,
         pk.clone(),
@@ -1017,7 +1079,9 @@ pub async fn witness_update_single() {
             .await
             .unwrap();
     assert!(universal_accumulator_verify_membership(
-        uni_accum.clone(),
+        universal_accumulator_get_accumulated(uni_accum.clone())
+            .await
+            .unwrap(),
         element_1.clone(),
         witness_1.clone(),
         pk.clone(),
@@ -1041,7 +1105,9 @@ pub async fn witness_update_single() {
     .await
     .unwrap();
     assert!(universal_accumulator_verify_non_membership(
-        uni_accum.clone(),
+        universal_accumulator_get_accumulated(uni_accum.clone())
+            .await
+            .unwrap(),
         non_member.clone(),
         nm_witness_1.clone(),
         pk.clone(),
@@ -1065,7 +1131,9 @@ pub async fn witness_update_single() {
     .await
     .unwrap();
     assert!(universal_accumulator_verify_membership(
-        uni_accum_1.clone(),
+        universal_accumulator_get_accumulated(uni_accum_1.clone())
+            .await
+            .unwrap(),
         element_1.clone(),
         new_witness_1.clone(),
         pk.clone(),
@@ -1085,7 +1153,9 @@ pub async fn witness_update_single() {
     .await
     .unwrap();
     assert!(universal_accumulator_verify_non_membership(
-        uni_accum_1.clone(),
+        universal_accumulator_get_accumulated(uni_accum_1.clone())
+            .await
+            .unwrap(),
         non_member.clone(),
         new_nm_witness_1.clone(),
         pk.clone(),
@@ -1110,7 +1180,9 @@ pub async fn witness_update_single() {
     .await
     .unwrap();
     assert!(universal_accumulator_verify_membership(
-        uni_accum_2.clone(),
+        universal_accumulator_get_accumulated(uni_accum_2.clone())
+            .await
+            .unwrap(),
         element_1.clone(),
         new_witness_1,
         pk.clone(),
@@ -1130,7 +1202,9 @@ pub async fn witness_update_single() {
     .await
     .unwrap();
     assert!(universal_accumulator_verify_non_membership(
-        uni_accum_2.clone(),
+        universal_accumulator_get_accumulated(uni_accum_2.clone())
+            .await
+            .unwrap(),
         non_member.clone(),
         new_nm_witness_1,
         pk.clone(),
@@ -1411,7 +1485,9 @@ pub async fn witness_update_batch() {
     .await
     .unwrap();
     assert!(positive_accumulator_verify_membership(
-        pos_accum_1.clone(),
+        positive_accumulator_get_accumulated(pos_accum_1.clone())
+            .await
+            .unwrap(),
         element_3.clone(),
         new_witness,
         pk.clone(),
@@ -1438,7 +1514,9 @@ pub async fn witness_update_batch() {
     .await
     .unwrap();
     assert!(universal_accumulator_verify_membership(
-        uni_accum_1.clone(),
+        universal_accumulator_get_accumulated(uni_accum_1.clone())
+            .await
+            .unwrap(),
         element_3.clone(),
         new_uni_witness,
         pk.clone(),
@@ -1457,7 +1535,9 @@ pub async fn witness_update_batch() {
     .await
     .unwrap();
     assert!(universal_accumulator_verify_non_membership(
-        uni_accum_1.clone(),
+        universal_accumulator_get_accumulated(uni_accum_1.clone())
+            .await
+            .unwrap(),
         non_member.clone(),
         new_nm_witness,
         pk.clone(),
@@ -1664,7 +1744,9 @@ pub async fn witness_update_multiple_batches() {
     .await
     .unwrap();
     assert!(positive_accumulator_verify_membership(
-        pos_accum.clone(),
+        positive_accumulator_get_accumulated(pos_accum.clone())
+            .await
+            .unwrap(),
         member.clone(),
         new_pos_witness,
         pk.clone(),
@@ -1683,7 +1765,9 @@ pub async fn witness_update_multiple_batches() {
     .await
     .unwrap();
     assert!(universal_accumulator_verify_membership(
-        uni_accum.clone(),
+        universal_accumulator_get_accumulated(uni_accum.clone())
+            .await
+            .unwrap(),
         member.clone(),
         new_uni_witness,
         pk.clone(),
@@ -1703,7 +1787,9 @@ pub async fn witness_update_multiple_batches() {
         .await
         .unwrap();
     assert!(universal_accumulator_verify_non_membership(
-        uni_accum.clone(),
+        universal_accumulator_get_accumulated(uni_accum.clone())
+            .await
+            .unwrap(),
         non_member.clone(),
         new_nm_witness,
         pk.clone(),
@@ -1790,10 +1876,7 @@ pub async fn membership_proof() {
     .unwrap();
     let verifier_challenge = generate_challenge_from_bytes(verifier_bytes.to_vec()).await;
 
-    assert_eq!(
-        js_value_to_bytes(prover_challenge),
-        js_value_to_bytes(verifier_challenge.clone())
-    );
+    assert_eq!(prover_challenge.to_vec(), verifier_challenge.to_vec());
 
     let result = accumulator_verify_membership_proof(
         proof,
@@ -1847,10 +1930,7 @@ pub async fn membership_proof() {
     .unwrap();
     let verifier_challenge = generate_challenge_from_bytes(verifier_bytes.to_vec()).await;
 
-    assert_eq!(
-        js_value_to_bytes(prover_challenge),
-        js_value_to_bytes(verifier_challenge.clone())
-    );
+    assert_eq!(prover_challenge.to_vec(), verifier_challenge.to_vec());
 
     let result = accumulator_verify_membership_proof(
         proof,
@@ -1941,10 +2021,7 @@ pub async fn non_membership_proof() {
     .unwrap();
     let verifier_challenge = generate_challenge_from_bytes(verifier_bytes.to_vec()).await;
 
-    assert_eq!(
-        js_value_to_bytes(prover_challenge),
-        js_value_to_bytes(verifier_challenge.clone())
-    );
+    assert_eq!(prover_challenge.to_vec(), verifier_challenge.to_vec());
 
     let result = accumulator_verify_non_membership_proof(
         proof,

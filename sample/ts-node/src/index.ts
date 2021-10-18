@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-import {generateSignatureParamsG1, generateBBSPublicKeyG2, generateBBSSigningKey, bbsSignG1, bbsVerfiyG1, bbsInitializeProofOfKnowledgeOfSignature, bbsGenProofOfKnowledgeOfSignature, bbsVerifyProofOfKnowledgeOfSignature, bbsChallengeContributionFromProtocol, bbsChallengeContributionFromProof, generateChallengeFromBytes} from "@docknetwork/crypto-wasm";
+import {generateSignatureParamsG1, generateBBSPublicKeyG2, generateBBSSigningKey, bbsSignG1, bbsVerifyG1, bbsInitializeProofOfKnowledgeOfSignature, bbsGenProofOfKnowledgeOfSignature, bbsVerifyProofOfKnowledgeOfSignature, bbsChallengeContributionFromProtocol, bbsChallengeContributionFromProof, generateChallengeFromBytes} from "../../../lib";
 
 const stringToBytes = (str: string) => Uint8Array.from(Buffer.from(str, "utf-8"));
 
@@ -46,7 +46,7 @@ const main = async () => {
   );
 
   //Verify the signature
-  const isVerified = await bbsVerfiyG1(messages, signature, pk, sigParams, true);
+  const isVerified = await bbsVerifyG1(messages, signature, pk, sigParams, true);
 
   const isVerifiedString = JSON.stringify(isVerified);
   console.log(`Signature verified ? ${isVerifiedString}`);

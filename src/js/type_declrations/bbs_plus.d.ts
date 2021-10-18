@@ -1,4 +1,4 @@
-import {BbsPoKSigProtocol, BbsSigParams, Keypair, VerifyResult} from "./types";
+import {BbsPoKSigProtocol, BbsSigParams, Keypair, VerifyResult} from "../types";
 
 export const BBS_SIGNATURE_LENGTH = 112;
 
@@ -36,6 +36,22 @@ export function bbsSignatureParamsG2MaxSupportedMsgs(
     params: BbsSigParams
 ): Promise<number>;
 
+export function bbsSignatureParamsG1ToBytes(
+    params: BbsSigParams
+): Promise<Uint8Array>;
+
+export function bbsSignatureParamsG1FromBytes(
+    bytes: Uint8Array
+): Promise<BbsSigParams>;
+
+export function bbsSignatureParamsG2ToBytes(
+    params: BbsSigParams
+): Promise<Uint8Array>;
+
+export function bbsSignatureParamsG2FromBytes(
+    bytes: Uint8Array
+): Promise<BbsSigParams>;
+
 export function generateBBSPublicKeyG1(
     secretKey: Uint8Array,
     params: BbsSigParams
@@ -53,6 +69,22 @@ export function generateBBSPublicKeyG2(
 export function isBBSPublicKeyG2Valid(
     publicKey: Uint8Array
 ): Promise<boolean>;
+
+export function bbsPublicKeyG1ToBytes(
+    publicKey: Uint8Array
+): Promise<Uint8Array>;
+
+export function bbsPublicKeyG1FromBytes(
+    bytes: Uint8Array
+): Promise<Uint8Array>;
+
+export function bbsPublicKeyG2ToBytes(
+    publicKey: Uint8Array
+): Promise<Uint8Array>;
+
+export function bbsPublicKeyG2FromBytes(
+    bytes: Uint8Array
+): Promise<Uint8Array>;
 
 export function generateBBSKeyPairG1(
     params: BbsSigParams,

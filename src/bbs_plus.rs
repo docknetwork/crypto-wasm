@@ -1,7 +1,9 @@
 use crate::utils::{
-    encode_message_for_signing, fr_from_jsvalue, fr_to_jsvalue, g1_affine_from_jsvalue,
-    g1_affine_to_jsvalue, g2_affine_from_jsvalue, g2_affine_to_jsvalue, get_seeded_rng,
-    message_bytes_to_messages, msgs_bytes_map_to_fr_btreemap, random_bytes, set_panic_hook,
+    encode_message_for_signing, fr_from_jsvalue, fr_from_uint8_array, fr_to_jsvalue,
+    g1_affine_from_jsvalue, g1_affine_from_uint8_array, g1_affine_to_jsvalue,
+    g1_affine_to_uint8_array, g2_affine_from_jsvalue, g2_affine_from_uint8_array,
+    g2_affine_to_jsvalue, g2_affine_to_uint8_array, get_seeded_rng, message_bytes_to_messages,
+    msgs_bytes_map_to_fr_btreemap, random_bytes, set_panic_hook,
 };
 
 use serde_wasm_bindgen::*;
@@ -23,8 +25,8 @@ use dock_crypto_utils::hashing_utils::affine_group_elem_from_try_and_incr;
 pub type BBSPlusSk = SecretKey<Fr>;
 pub type SigParamsG1 = SignatureParamsG1<Bls12_381>;
 pub type SigParamsG2 = SignatureParamsG2<Bls12_381>;
-pub(crate) type BBSPlusPkG1 = PublicKeyG1<Bls12_381>;
-pub(crate) type BBSPlusPkG2 = PublicKeyG2<Bls12_381>;
+pub type BBSPlusPkG1 = PublicKeyG1<Bls12_381>;
+pub type BBSPlusPkG2 = PublicKeyG2<Bls12_381>;
 pub(crate) type SigG1 = SignatureG1<Bls12_381>;
 pub(crate) type SigG2 = SignatureG2<Bls12_381>;
 pub(crate) type PoKOfSigProtocol = PoKOfSignatureG1Protocol<Bls12_381>;
@@ -84,6 +86,58 @@ pub async fn bbs_params_g2_max_supported_msgs(
     Ok(js_sys::Number::from(params.supported_message_count() as i32))
 }
 
+#[wasm_bindgen(js_name = bbsSignatureParamsG1ToBytes)]
+pub async fn bbs_params_g1_to_bytes(
+    params: JsValue,
+) -> Result<js_sys::Uint8Array, serde_wasm_bindgen::Error> {
+    set_panic_hook();
+    let params: SigParamsG1 = serde_wasm_bindgen::from_value(params)?;
+    let mut bytes = vec![];
+    CanonicalSerialize::serialize(&params, &mut bytes).unwrap();
+    Ok(js_sys::Uint8Array::from(bytes.as_slice()))
+}
+
+#[wasm_bindgen(js_name = bbsSignatureParamsG1FromBytes)]
+pub async fn bbs_params_g1_from_bytes(
+    bytes: js_sys::Uint8Array,
+) -> Result<JsValue, serde_wasm_bindgen::Error> {
+    set_panic_hook();
+    let params: SigParamsG1 =
+        CanonicalDeserialize::deserialize(&bytes.to_vec()[..]).map_err(|e| {
+            JsValue::from(&format!(
+                "Failed to deserialize from bytes due to error: {:?}",
+                e
+            ))
+        })?;
+    serde_wasm_bindgen::to_value(&params)
+}
+
+#[wasm_bindgen(js_name = bbsSignatureParamsG2ToBytes)]
+pub async fn bbs_params_g2_to_bytes(
+    params: JsValue,
+) -> Result<js_sys::Uint8Array, serde_wasm_bindgen::Error> {
+    set_panic_hook();
+    let params: SigParamsG2 = serde_wasm_bindgen::from_value(params)?;
+    let mut bytes = vec![];
+    CanonicalSerialize::serialize(&params, &mut bytes).unwrap();
+    Ok(js_sys::Uint8Array::from(bytes.as_slice()))
+}
+
+#[wasm_bindgen(js_name = bbsSignatureParamsG2FromBytes)]
+pub async fn bbs_params_g2_from_bytes(
+    bytes: js_sys::Uint8Array,
+) -> Result<JsValue, serde_wasm_bindgen::Error> {
+    set_panic_hook();
+    let params: SigParamsG2 =
+        CanonicalDeserialize::deserialize(&bytes.to_vec()[..]).map_err(|e| {
+            JsValue::from(&format!(
+                "Failed to deserialize from bytes due to error: {:?}",
+                e
+            ))
+        })?;
+    serde_wasm_bindgen::to_value(&params)
+}
+
 #[wasm_bindgen(js_name = generateBBSSigningKey)]
 pub async fn bbs_generate_secret_key(
     seed: Option<Vec<u8>>,
@@ -132,6 +186,58 @@ pub async fn bbs_is_pubkey_g2_valid(
     set_panic_hook();
     let pk: BBSPlusPkG2 = serde_wasm_bindgen::from_value(public_key)?;
     Ok(pk.is_valid())
+}
+
+#[wasm_bindgen(js_name = bbsPublicKeyG1ToBytes)]
+pub async fn bbs_public_key_g1_to_bytes(
+    params: JsValue,
+) -> Result<js_sys::Uint8Array, serde_wasm_bindgen::Error> {
+    set_panic_hook();
+    let params: BBSPlusPkG1 = serde_wasm_bindgen::from_value(params)?;
+    let mut bytes = vec![];
+    CanonicalSerialize::serialize(&params, &mut bytes).unwrap();
+    Ok(js_sys::Uint8Array::from(bytes.as_slice()))
+}
+
+#[wasm_bindgen(js_name = bbsPublicKeyG1FromBytes)]
+pub async fn bbs_public_key_g1_from_bytes(
+    bytes: js_sys::Uint8Array,
+) -> Result<JsValue, serde_wasm_bindgen::Error> {
+    set_panic_hook();
+    let params: BBSPlusPkG1 =
+        CanonicalDeserialize::deserialize(&bytes.to_vec()[..]).map_err(|e| {
+            JsValue::from(&format!(
+                "Failed to deserialize from bytes due to error: {:?}",
+                e
+            ))
+        })?;
+    serde_wasm_bindgen::to_value(&params)
+}
+
+#[wasm_bindgen(js_name = bbsPublicKeyG2ToBytes)]
+pub async fn bbs_public_key_g2_to_bytes(
+    params: JsValue,
+) -> Result<js_sys::Uint8Array, serde_wasm_bindgen::Error> {
+    set_panic_hook();
+    let params: BBSPlusPkG2 = serde_wasm_bindgen::from_value(params)?;
+    let mut bytes = vec![];
+    CanonicalSerialize::serialize(&params, &mut bytes).unwrap();
+    Ok(js_sys::Uint8Array::from(bytes.as_slice()))
+}
+
+#[wasm_bindgen(js_name = bbsPublicKeyG2FromBytes)]
+pub async fn bbs_public_key_g2_from_bytes(
+    bytes: js_sys::Uint8Array,
+) -> Result<JsValue, serde_wasm_bindgen::Error> {
+    set_panic_hook();
+    let params: BBSPlusPkG2 =
+        CanonicalDeserialize::deserialize(&bytes.to_vec()[..]).map_err(|e| {
+            JsValue::from(&format!(
+                "Failed to deserialize from bytes due to error: {:?}",
+                e
+            ))
+        })?;
+    serde_wasm_bindgen::to_value(&params)
 }
 
 #[wasm_bindgen(js_name = generateBBSKeyPairG1)]
@@ -234,10 +340,10 @@ pub async fn bbs_encode_messages_for_signing(
 #[wasm_bindgen(js_name = bbsCommitMsgsInG1)]
 pub async fn bbs_commit_to_message_in_g1(
     messages_to_commit: js_sys::Map,
-    blinding: JsValue,
+    blinding: js_sys::Uint8Array,
     params: JsValue,
     encode_messages: bool,
-) -> Result<JsValue, JsValue> {
+) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let msgs = msgs_bytes_map_to_fr_btreemap(&messages_to_commit, encode_messages)?;
     let msgs_ref = msgs
@@ -246,9 +352,9 @@ pub async fn bbs_commit_to_message_in_g1(
         .collect::<BTreeMap<_, _>>();
 
     let params: SigParamsG1 = serde_wasm_bindgen::from_value(params)?;
-    let blinding = fr_from_jsvalue(blinding)?;
+    let blinding = fr_from_uint8_array(blinding)?;
     match params.commit_to_messages(msgs_ref, &blinding) {
-        Ok(comm) => g1_affine_to_jsvalue(&comm),
+        Ok(comm) => g1_affine_to_uint8_array(&comm),
         Err(e) => Err(JsValue::from(&format!("{:?}", e))),
     }
 }
@@ -256,10 +362,10 @@ pub async fn bbs_commit_to_message_in_g1(
 #[wasm_bindgen(js_name = bbsCommitMsgsInG2)]
 pub async fn bbs_commit_to_message_in_g2(
     messages_to_commit: js_sys::Map,
-    blinding: JsValue,
+    blinding: js_sys::Uint8Array,
     params: JsValue,
     encode_messages: bool,
-) -> Result<JsValue, JsValue> {
+) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
 
     let msgs = msgs_bytes_map_to_fr_btreemap(&messages_to_commit, encode_messages)?;
@@ -269,9 +375,9 @@ pub async fn bbs_commit_to_message_in_g2(
         .collect::<BTreeMap<_, _>>();
 
     let params: SigParamsG2 = serde_wasm_bindgen::from_value(params)?;
-    let blinding = fr_from_jsvalue(blinding)?;
+    let blinding = fr_from_uint8_array(blinding)?;
     match params.commit_to_messages(msgs_ref, &blinding) {
-        Ok(comm) => g2_affine_to_jsvalue(&comm),
+        Ok(comm) => g2_affine_to_uint8_array(&comm),
         Err(e) => Err(JsValue::from(&format!("{:?}", e))),
     }
 }
@@ -300,14 +406,14 @@ pub async fn bbs_sign_g1(
 
 #[wasm_bindgen(js_name = bbsBlindSignG1)]
 pub async fn bbs_blind_sign_g1(
-    commitment: JsValue,
+    commitment: js_sys::Uint8Array,
     uncommitted_messages: js_sys::Map,
     secret_key: JsValue,
     params: JsValue,
     encode_messages: bool,
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
-    let commitment = g1_affine_from_jsvalue(commitment)?;
+    let commitment = g1_affine_from_uint8_array(commitment)?;
     let msgs = msgs_bytes_map_to_fr_btreemap(&uncommitted_messages, encode_messages)?;
     let msgs_ref = msgs
         .iter()
@@ -327,12 +433,12 @@ pub async fn bbs_blind_sign_g1(
 #[wasm_bindgen(js_name = bbsUnblindSigG1)]
 pub async fn bbs_unblind_sig_g1(
     blind_signature: js_sys::Uint8Array,
-    blinding: JsValue,
+    blinding: js_sys::Uint8Array,
 ) -> Result<js_sys::Uint8Array, serde_wasm_bindgen::Error> {
     set_panic_hook();
     // let signature: SigG1 = serde_wasm_bindgen::from_value(blind_signature)?;
     let signature = obj_from_uint8array!(SigG1, blind_signature);
-    let blinding = fr_from_jsvalue(blinding)?;
+    let blinding = fr_from_uint8_array(blinding)?;
     // serde_wasm_bindgen::to_value(&signature.unblind(&blinding))
     Ok(obj_to_uint8array!(&signature.unblind(&blinding)))
 }
@@ -392,14 +498,14 @@ pub async fn bbs_sign_g2(
 
 #[wasm_bindgen(js_name = bbsBlindSignG2)]
 pub async fn bbs_blind_sign_g2(
-    commitment: JsValue,
+    commitment: js_sys::Uint8Array,
     uncommitted_messages: js_sys::Map,
     secret_key: JsValue,
     params: JsValue,
     encode_messages: bool,
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
-    let commitment = g2_affine_from_jsvalue(commitment)?;
+    let commitment = g2_affine_from_uint8_array(commitment)?;
     let msgs = msgs_bytes_map_to_fr_btreemap(&uncommitted_messages, encode_messages)?;
     let msgs_ref = msgs
         .iter()
@@ -419,12 +525,12 @@ pub async fn bbs_blind_sign_g2(
 #[wasm_bindgen(js_name = bbsUnblindSigG2)]
 pub async fn bbs_unblind_sig_g2(
     blind_signature: js_sys::Uint8Array,
-    blinding: JsValue,
+    blinding: js_sys::Uint8Array,
 ) -> Result<js_sys::Uint8Array, serde_wasm_bindgen::Error> {
     set_panic_hook();
     // let signature: SigG2 = serde_wasm_bindgen::from_value(blind_signature)?;
     let signature = obj_from_uint8array!(SigG2, blind_signature);
-    let blinding = fr_from_jsvalue(blinding)?;
+    let blinding = fr_from_uint8_array(blinding)?;
     // serde_wasm_bindgen::to_value(&signature.unblind(&blinding))
     Ok(obj_to_uint8array!(&signature.unblind(&blinding)))
 }
@@ -475,6 +581,7 @@ pub async fn bbs_initialize_proof_of_knowledge_of_signature(
     // let signature: SigG1 = serde_wasm_bindgen::from_value(signature)?;
     let signature = obj_from_uint8array!(SigG1, signature);
     let params: SigParamsG1 = serde_wasm_bindgen::from_value(params)?;
+    // TODO: Avoid this hack of passing false, create separate method to parse
     let blindings = msgs_bytes_map_to_fr_btreemap(&blindings, false)?;
 
     let messages_as_bytes: Vec<Vec<u8>> = serde_wasm_bindgen::from_value(messages)?;
@@ -495,11 +602,11 @@ pub async fn bbs_initialize_proof_of_knowledge_of_signature(
 #[wasm_bindgen(js_name = bbsGenProofOfKnowledgeOfSignature)]
 pub async fn bbs_gen_proof(
     protocol: JsValue,
-    challenge: JsValue,
+    challenge: js_sys::Uint8Array,
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let protocol: PoKOfSigProtocol = serde_wasm_bindgen::from_value(protocol)?;
-    let challenge = fr_from_jsvalue(challenge)?;
+    let challenge = fr_from_uint8_array(challenge)?;
     match protocol.gen_proof(&challenge) {
         // Ok(proof) => Ok(serde_wasm_bindgen::to_value(&proof).unwrap()),
         Ok(proof) => Ok(obj_to_uint8array!(&proof)),
@@ -511,7 +618,7 @@ pub async fn bbs_gen_proof(
 pub async fn bbs_verify_proof(
     proof: js_sys::Uint8Array,
     revealed_msgs: js_sys::Map,
-    challenge: JsValue,
+    challenge: js_sys::Uint8Array,
     public_key: JsValue,
     params: JsValue,
     encode_messages: bool,
@@ -521,7 +628,7 @@ pub async fn bbs_verify_proof(
     let proof: PoKOfSigProof = obj_from_uint8array!(PoKOfSigProof, proof);
     let params: SigParamsG1 = serde_wasm_bindgen::from_value(params)?;
     let public_key: BBSPlusPkG2 = serde_wasm_bindgen::from_value(public_key)?;
-    let challenge = fr_from_jsvalue(challenge)?;
+    let challenge = fr_from_uint8_array(challenge)?;
 
     let msgs = msgs_bytes_map_to_fr_btreemap(&revealed_msgs, encode_messages)?;
 

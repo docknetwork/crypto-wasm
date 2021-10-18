@@ -13,8 +13,5 @@
     "@types/node": "12.7.2",
     "ts-node": "8.4.1",
     "typescript": "3.7.5"
-  },
-  "dependencies": {
-    "@docknetwork/crypto-wasm": "file:../.."
   }
 }

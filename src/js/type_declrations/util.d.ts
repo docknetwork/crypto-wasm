@@ -17,3 +17,7 @@ export function fieldElementAsBytes(
 export function generateChallengeFromBytes(
     bytes: Uint8Array
 ): Promise<Uint8Array>;
+
+export function generateFieldElementFromNumber(
+    num: number,
+): Promise<Uint8Array>;

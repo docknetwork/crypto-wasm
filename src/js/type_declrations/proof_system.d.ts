@@ -1,4 +1,4 @@
-import {AccumulatorParams, BbsSigParams, VerifyResult} from "./types";
+import {AccumulatorParams, BbsSigParams, NonMembershipWitness, VerifyResult} from "../types";
 
 export function generatePoKBBSSignatureStatement(
     params: BbsSigParams,
@@ -48,7 +48,7 @@ export function generateAccumulatorMembershipWitness(
 
 export function generateAccumulatorNonMembershipWitness(
     element: Uint8Array,
-    witness: Uint8Array
+    witness: NonMembershipWitness
 ): Promise<Uint8Array>;
 
 export function generatePedersenCommitmentWitness(

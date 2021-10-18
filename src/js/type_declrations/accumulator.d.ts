@@ -1,4 +1,4 @@
-import {AccumulatorParams, Keypair, VerifyResult} from "./types";
+import {AccumulatorParams, Keypair, VerifyResult, UniversalAccumulator, NonMembershipWitness} from "../types";
 
 export function generateAccumulatorParams(
     label?: Uint8Array
@@ -7,6 +7,14 @@ export function generateAccumulatorParams(
 export function isAccumulatorParamsValid(
     params: AccumulatorParams
 ): Promise<boolean>;
+
+export function accumulatorParamsToBytes(
+    params: AccumulatorParams
+): Promise<Uint8Array>;
+
+export function accumulatorParamsFromBytes(
+    bytes: Uint8Array
+): Promise<AccumulatorParams>;
 
 export function generateAccumulatorSecretKey(seed?: Uint8Array): Promise<Uint8Array>;
 
@@ -19,14 +27,18 @@ export function isAccumulatorPublicKeyValid(
     publicKey: Uint8Array
 ): Promise<boolean>;
 
+export function accumulatorPublicKeyToBytes(
+    publicKey: Uint8Array
+): Promise<Uint8Array>;
+
+export function accumulatorPublicKeyFromBytes(
+    bytes: Uint8Array
+): Promise<Uint8Array>;
+
 export function generateAccumulatorKeyPair(
     params: AccumulatorParams,
     seed?: Uint8Array
 ): Promise<Required<Keypair>>;
-
-export function generateFieldElementFromNumber(
-    num: number,
-): Promise<Uint8Array>;
 
 export function accumulatorGetElementFromBytes(
     bytes: Uint8Array,
@@ -104,32 +116,32 @@ export function universalAccumulatorInitialiseGivenFv(
     fV: Uint8Array,
     params: AccumulatorParams,
     maxSize: number,
-): Promise<Uint8Array>;
+): Promise<Required<UniversalAccumulator>>;
 
 export function universalAccumulatorGetAccumulated(
-    accumulator: Uint8Array,
+    accumulator: UniversalAccumulator,
 ): Promise<Uint8Array>;
 
 export function universalAccumulatorAdd(
-    accumulator: Uint8Array,
+    accumulator: UniversalAccumulator,
     element: Uint8Array,
     secretKey: Uint8Array,
-): Promise<Uint8Array>;
+): Promise<UniversalAccumulator>;
 
 export function universalAccumulatorRemove(
-    accumulator: Uint8Array,
+    accumulator: UniversalAccumulator,
     element: Uint8Array,
     secretKey: Uint8Array,
-): Promise<Uint8Array>;
+): Promise<UniversalAccumulator>;
 
 export function universalAccumulatorMembershipWitness(
-    accumulator: Uint8Array,
+    accumulator: UniversalAccumulator,
     element: Uint8Array,
     secretKey: Uint8Array,
 ): Promise<Uint8Array>;
 
 export function universalAccumulatorVerifyMembership(
-    accumulator: Uint8Array,
+    accumulated: Uint8Array,
     element: Uint8Array,
     witness: Uint8Array,
     publicKey: Uint8Array,
@@ -146,42 +158,42 @@ export function universalAccumulatorCombineMultipleD(
 ): Promise<Uint8Array>;
 
 export function universalAccumulatorNonMembershipWitness(
-    accumulator: Uint8Array,
+    accumulator: UniversalAccumulator,
     d: Uint8Array,
     nonMember: Uint8Array,
     secretKey: Uint8Array,
     params: AccumulatorParams,
-): Promise<Uint8Array>;
+): Promise<NonMembershipWitness>;
 
 export function universalAccumulatorVerifyNonMembership(
-    accumulator: Uint8Array,
+    accumulated: Uint8Array,
     element: Uint8Array,
-    witness: Uint8Array,
+    witness: NonMembershipWitness,
     publicKey: Uint8Array,
     params: AccumulatorParams,
 ): Promise<boolean>;
 
 export function universalAccumulatorAddBatch(
-    accumulator: Uint8Array,
+    accumulator: UniversalAccumulator,
     elements: Uint8Array[],
     secretKey: Uint8Array,
-): Promise<Uint8Array>;
+): Promise<UniversalAccumulator>;
 
 export function universalAccumulatorRemoveBatch(
-    accumulator: Uint8Array,
+    accumulator: UniversalAccumulator,
     elements: Uint8Array[],
     secretKey: Uint8Array,
-): Promise<Uint8Array>;
+): Promise<UniversalAccumulator>;
 
 export function universalAccumulatorBatchUpdates(
-    accumulator: Uint8Array,
+    accumulator: UniversalAccumulator,
     additions: Uint8Array[],
     removals: Uint8Array[],
     secretKey: Uint8Array,
-): Promise<Uint8Array>;
+): Promise<UniversalAccumulator>;
 
 export function universalAccumulatorMembershipWitnessesForBatch(
-    accumulator: Uint8Array,
+    accumulator: UniversalAccumulator,
     elements: Uint8Array[],
     secretKey: Uint8Array,
 ): Promise<Uint8Array[]>;
@@ -196,12 +208,12 @@ export function universalAccumulatorCombineMultipleDForBatch(
 ): Promise<Uint8Array[]>;
 
 export function universalAccumulatorNonMembershipWitnessesForBatch(
-    accumulator: Uint8Array,
+    accumulator: UniversalAccumulator,
     d: Uint8Array[],
     nonMembers: Uint8Array[],
     secretKey: Uint8Array,
     params: AccumulatorParams,
-): Promise<Uint8Array[]>;
+): Promise<NonMembershipWitness[]>;
 
 export function updateMembershipWitnessPostAdd(
     witness: Uint8Array,
@@ -218,18 +230,18 @@ export function updateMembershipWitnessPostRemove(
 ): Promise<Uint8Array>;
 
 export function updateNonMembershipWitnessPostAdd(
-    witness: Uint8Array,
+    witness: NonMembershipWitness,
     nonMember: Uint8Array,
     addition: Uint8Array,
     oldAccumulated: Uint8Array,
-): Promise<Uint8Array>;
+): Promise<NonMembershipWitness>;
 
 export function updateNonMembershipWitnessPostRemove(
-    witness: Uint8Array,
+    witness: NonMembershipWitness,
     nonMember: Uint8Array,
     removal: Uint8Array,
     newAccumulated: Uint8Array,
-): Promise<Uint8Array>;
+): Promise<NonMembershipWitness>;
 
 export function updateMembershipWitnessesPostBatchUpdates(
     witnesses: Uint8Array[],
@@ -241,13 +253,13 @@ export function updateMembershipWitnessesPostBatchUpdates(
 ): Promise<Uint8Array[]>;
 
 export function updateNonMembershipWitnessesPostBatchUpdates(
-    witnesses: Uint8Array[],
+    witnesses: NonMembershipWitness[],
     nonMembers: Uint8Array[],
     additions: Uint8Array[],
     removals: Uint8Array[],
     oldAccumulated: Uint8Array,
     secretKey: Uint8Array,
-): Promise<Uint8Array[]>;
+): Promise<NonMembershipWitness[]>;
 
 export function publicInfoForWitnessUpdate(
     oldAccumulated: Uint8Array,
@@ -265,12 +277,12 @@ export function updateMembershipWitnessUsingPublicInfoAfterBatchUpdate(
 ): Promise<Uint8Array>;
 
 export function updateNonMembershipWitnessUsingPublicInfoAfterBatchUpdate(
-    witness: Uint8Array,
+    witness: NonMembershipWitness,
     nonMember: Uint8Array,
     additions: Uint8Array[],
     removals: Uint8Array[],
     publicInfo: Uint8Array,
-): Promise<Uint8Array>;
+): Promise<NonMembershipWitness>;
 
 export function updateMembershipWitnessUsingPublicInfoAfterMultipleBatchUpdates(
     witness: Uint8Array,
@@ -281,12 +293,12 @@ export function updateMembershipWitnessUsingPublicInfoAfterMultipleBatchUpdates(
 ): Promise<Uint8Array>;
 
 export function updateNonMembershipWitnessUsingPublicInfoAfterMultipleBatchUpdates(
-    witness: Uint8Array,
+    witness: NonMembershipWitness,
     nonMember: Uint8Array,
     additions: Uint8Array[][],
     removals: Uint8Array[][],
     publicInfo: Uint8Array[],
-): Promise<Uint8Array>;
+): Promise<NonMembershipWitness>;
 
 export function generateMembershipProvingKey(
     label?: Uint8Array
@@ -326,7 +338,7 @@ export function accumulatorVerifyMembershipProof(
 export function accumulatorInitializeNonMembershipProof(
     nonMember: Uint8Array,
     blinding: Uint8Array,
-    witness: Uint8Array,
+    witness: NonMembershipWitness,
     publicKey: Uint8Array,
     params: AccumulatorParams,
     provingKey: Uint8Array,

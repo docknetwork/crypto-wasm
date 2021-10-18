@@ -17,6 +17,11 @@
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
+// The functions defined in this package are async as each call has to make sure that WASM code has been loaded
+// using `WebAssembly.instantiate` which returns a promise and thus any function may need to wait for the promise to
+// resolve. Another possible approach is to have something like polkadot-js's `cryptoWaitReady` which should be called
+// before any function is called. This will simplify the Rust code.
+
 use ark_bls12_381::Bls12_381;
 use ark_ec::PairingEngine;
 use wasm_bindgen::prelude::*;

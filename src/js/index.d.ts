@@ -13,7 +13,7 @@
 
 export * from "./types";
 
-export * from "./util";
-export * from "./bbs_plus";
-export * from "./accumulator";
-export * from "./proof_system";
+export * from "./type_declrations/util";
+export * from "./type_declrations/bbs_plus";
+export * from "./type_declrations/accumulator";
+export * from "./type_declrations/proof_system";

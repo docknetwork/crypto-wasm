@@ -71,6 +71,29 @@ pub fn fr_from_jsvalue(value: JsValue) -> Result<Fr, JsValue> {
     Ok(elem)
 }
 
+pub fn fr_to_uint8_array(elem: &Fr) -> Result<js_sys::Uint8Array, JsValue> {
+    let mut bytes = vec![];
+    elem.serialize(&mut bytes).map_err(|e| {
+        JsValue::from(&format!(
+            "Cannot serialize {:?} Fr due to error: {:?}",
+            elem, e
+        ))
+    })?;
+    Ok(js_sys::Uint8Array::from(bytes.as_slice()))
+}
+
+pub fn fr_from_uint8_array(value: js_sys::Uint8Array) -> Result<Fr, JsValue> {
+    // TODO: Is there a better way to get byte slice from `value` without creating a Vec
+    let bytes: Vec<u8> = value.to_vec();
+    let elem = Fr::deserialize(&bytes[..]).map_err(|e| {
+        JsValue::from(&format!(
+            "Cannot deserialize {:?} to Fr due to error: {:?}",
+            bytes, e
+        ))
+    })?;
+    Ok(elem)
+}
+
 pub fn frs_from_jsvalue(value: JsValue) -> Result<Vec<Fr>, JsValue> {
     let bytes: Vec<u8> = serde_wasm_bindgen::from_value(value)?;
     let elem = <Vec<Fr>>::deserialize(&bytes[..]).map_err(|e| {
@@ -110,6 +133,25 @@ pub fn g1_affine_from_jsvalue(value: JsValue) -> Result<G1Affine, JsValue> {
     Ok(elem)
 }
 
+pub fn g1_affine_to_uint8_array(elem: &G1Affine) -> Result<js_sys::Uint8Array, JsValue> {
+    let mut bytes = vec![];
+    elem.serialize(&mut bytes)
+        .map_err(|e| JsValue::from(&format!("Cannot serialize G1Affine due to error: {:?}", e)))?;
+    Ok(js_sys::Uint8Array::from(bytes.as_slice()))
+}
+
+pub fn g1_affine_from_uint8_array(value: js_sys::Uint8Array) -> Result<G1Affine, JsValue> {
+    // TODO: Is there a better way to get byte slice from `value` without creating a Vec
+    let bytes: Vec<u8> = value.to_vec();
+    let elem = G1Affine::deserialize(&bytes[..]).map_err(|e| {
+        JsValue::from(&format!(
+            "Cannot deserialize to G1Affine due to error: {:?}",
+            e
+        ))
+    })?;
+    Ok(elem)
+}
+
 pub fn g2_affine_to_jsvalue(elem: &G2Affine) -> Result<JsValue, JsValue> {
     let mut bytes = vec![];
     elem.serialize(&mut bytes)
@@ -120,6 +162,24 @@ pub fn g2_affine_to_jsvalue(elem: &G2Affine) -> Result<JsValue, JsValue> {
 
 pub fn g2_affine_from_jsvalue(value: JsValue) -> Result<G2Affine, JsValue> {
     let bytes: Vec<u8> = serde_wasm_bindgen::from_value(value)?;
+    let elem = G2Affine::deserialize(&bytes[..]).map_err(|e| {
+        JsValue::from(&format!(
+            "Cannot deserialize to G2Affine due to error: {:?}",
+            e
+        ))
+    })?;
+    Ok(elem)
+}
+
+pub fn g2_affine_to_uint8_array(elem: &G2Affine) -> Result<js_sys::Uint8Array, JsValue> {
+    let mut bytes = vec![];
+    elem.serialize(&mut bytes)
+        .map_err(|e| JsValue::from(&format!("Cannot serialize G2Affine due to error: {:?}", e)))?;
+    Ok(js_sys::Uint8Array::from(bytes.as_slice()))
+}
+
+pub fn g2_affine_from_uint8_array(value: js_sys::Uint8Array) -> Result<G2Affine, JsValue> {
+    let bytes: Vec<u8> = value.to_vec();
     let elem = G2Affine::deserialize(&bytes[..]).map_err(|e| {
         JsValue::from(&format!(
             "Cannot deserialize to G2Affine due to error: {:?}",
@@ -256,9 +316,12 @@ macro_rules! obj_to_uint8array {
 macro_rules! obj_from_uint8array {
     ($obj_type:ty, $uint8array:expr) => {{
         let serz = $uint8array.to_vec();
-        // let deserz: $obj_type = CanonicalDeserialize::deserialize(&serz[..]).unwrap();
-        // let deserz: Result<$obj_type, _> = CanonicalDeserialize::deserialize(&serz[..]).map_err(|e| JsValue::from(format!("Failed to deserialize from bytes due to error: {:?}", e)));
-        let deserz: $obj_type = CanonicalDeserialize::deserialize(&serz[..]).map_err(|e| JsValue::from(format!("Failed to deserialize from bytes due to error: {:?}", e)))?;
+        let deserz: $obj_type = CanonicalDeserialize::deserialize(&serz[..]).map_err(|e| {
+            JsValue::from(format!(
+                "Failed to deserialize from bytes due to error: {:?}",
+                e
+            ))
+        })?;
         deserz
     }};
 }

@@ -282,10 +282,6 @@ pub async fn bbs_sig_and_accumulator() {
     .await
     .unwrap();
 
-    let member_1_js_value = serde_wasm_bindgen::to_value(member_1.to_vec().as_slice()).unwrap();
-    let member_2_js_value = serde_wasm_bindgen::to_value(member_2.to_vec().as_slice()).unwrap();
-    let member_3_js_value = serde_wasm_bindgen::to_value(member_3.to_vec().as_slice()).unwrap();
-
     let msg_count_1 = 5;
     let (params_1, sk_1, pk_1) = bbs_params_and_keys(msg_count_1).await;
     let mut msgs_1 = vec![];
@@ -333,19 +329,6 @@ pub async fn bbs_sig_and_accumulator() {
     assert_eq!(msgs_2[4], member_1.to_vec());
     assert_eq!(msgs_2[5], member_3.to_vec());
 
-    assert_eq!(
-        js_value_to_bytes(member_1_js_value.clone()),
-        member_1.to_vec()
-    );
-    assert_eq!(
-        js_value_to_bytes(member_2_js_value.clone()),
-        member_2.to_vec()
-    );
-    assert_eq!(
-        js_value_to_bytes(member_3_js_value.clone()),
-        member_3.to_vec()
-    );
-
     let msgs_2_jsvalue = serde_wasm_bindgen::to_value(&msgs_2).unwrap();
     let sig_2 = bbs_sign_g1(
         msgs_2_jsvalue.clone(),
@@ -385,78 +368,75 @@ pub async fn bbs_sig_and_accumulator() {
 
     let non_member = generate_random_field_element(None).await.unwrap();
 
-    pos_accumulator =
-        positive_accumulator_add(pos_accumulator, member_1_js_value.clone(), accum_sk.clone())
-            .await
-            .unwrap();
-    pos_accumulator =
-        positive_accumulator_add(pos_accumulator, member_2_js_value.clone(), accum_sk.clone())
-            .await
-            .unwrap();
-    pos_accumulator =
-        positive_accumulator_add(pos_accumulator, member_3_js_value.clone(), accum_sk.clone())
-            .await
-            .unwrap();
+    pos_accumulator = positive_accumulator_add(pos_accumulator, member_1.clone(), accum_sk.clone())
+        .await
+        .unwrap();
+    pos_accumulator = positive_accumulator_add(pos_accumulator, member_2.clone(), accum_sk.clone())
+        .await
+        .unwrap();
+    pos_accumulator = positive_accumulator_add(pos_accumulator, member_3.clone(), accum_sk.clone())
+        .await
+        .unwrap();
     let pos_witness_1 = positive_accumulator_membership_witness(
         pos_accumulator.clone(),
-        member_1_js_value.clone(),
+        member_1.clone(),
         accum_sk.clone(),
     )
     .await
     .unwrap();
     let pos_witness_2 = positive_accumulator_membership_witness(
         pos_accumulator.clone(),
-        member_2_js_value.clone(),
+        member_2.clone(),
         accum_sk.clone(),
     )
     .await
     .unwrap();
     let pos_witness_3 = positive_accumulator_membership_witness(
         pos_accumulator.clone(),
-        member_3_js_value.clone(),
+        member_3.clone(),
         accum_sk.clone(),
     )
     .await
     .unwrap();
 
     uni_accumulator =
-        universal_accumulator_add(uni_accumulator, member_1_js_value.clone(), accum_sk.clone())
+        universal_accumulator_add(uni_accumulator, member_1.clone(), accum_sk.clone())
             .await
             .unwrap();
     uni_accumulator =
-        universal_accumulator_add(uni_accumulator, member_2_js_value.clone(), accum_sk.clone())
+        universal_accumulator_add(uni_accumulator, member_2.clone(), accum_sk.clone())
             .await
             .unwrap();
     uni_accumulator =
-        universal_accumulator_add(uni_accumulator, member_3_js_value.clone(), accum_sk.clone())
+        universal_accumulator_add(uni_accumulator, member_3.clone(), accum_sk.clone())
             .await
             .unwrap();
     let uni_witness_1 = universal_accumulator_membership_witness(
         uni_accumulator.clone(),
-        member_1_js_value.clone(),
+        member_1.clone(),
         accum_sk.clone(),
     )
     .await
     .unwrap();
     let uni_witness_2 = universal_accumulator_membership_witness(
         uni_accumulator.clone(),
-        member_2_js_value.clone(),
+        member_2.clone(),
         accum_sk.clone(),
     )
     .await
     .unwrap();
     let uni_witness_3 = universal_accumulator_membership_witness(
         uni_accumulator.clone(),
-        member_3_js_value.clone(),
+        member_3.clone(),
         accum_sk.clone(),
     )
     .await
     .unwrap();
 
     let members = js_sys::Array::new();
-    members.push(&member_1_js_value);
-    members.push(&member_2_js_value);
-    members.push(&member_3_js_value);
+    members.push(&member_1);
+    members.push(&member_2);
+    members.push(&member_3);
 
     let d = universal_accumulator_compute_d(non_member.clone(), members)
         .await
@@ -603,29 +583,26 @@ pub async fn bbs_sig_and_accumulator() {
         .await
         .unwrap();
     let witness_3 =
-        generate_accumulator_membership_witness(member_1_js_value.clone(), pos_witness_1.clone())
+        generate_accumulator_membership_witness(member_1.clone(), pos_witness_1.clone())
             .await
             .unwrap();
     let witness_4 =
-        generate_accumulator_membership_witness(member_2_js_value.clone(), pos_witness_2.clone())
+        generate_accumulator_membership_witness(member_2.clone(), pos_witness_2.clone())
             .await
             .unwrap();
     let witness_5 =
-        generate_accumulator_membership_witness(member_3_js_value.clone(), pos_witness_3.clone())
+        generate_accumulator_membership_witness(member_3.clone(), pos_witness_3.clone())
             .await
             .unwrap();
-    let witness_6 =
-        generate_accumulator_membership_witness(member_1_js_value, uni_witness_1.clone())
-            .await
-            .unwrap();
-    let witness_7 =
-        generate_accumulator_membership_witness(member_2_js_value, uni_witness_2.clone())
-            .await
-            .unwrap();
-    let witness_8 =
-        generate_accumulator_membership_witness(member_3_js_value, uni_witness_3.clone())
-            .await
-            .unwrap();
+    let witness_6 = generate_accumulator_membership_witness(member_1, uni_witness_1.clone())
+        .await
+        .unwrap();
+    let witness_7 = generate_accumulator_membership_witness(member_2, uni_witness_2.clone())
+        .await
+        .unwrap();
+    let witness_8 = generate_accumulator_membership_witness(member_3, uni_witness_3.clone())
+        .await
+        .unwrap();
     let witness_9 = generate_accumulator_non_membership_witness(non_member, nm_witness.clone())
         .await
         .unwrap();

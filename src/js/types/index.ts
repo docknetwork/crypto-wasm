@@ -18,3 +18,5 @@ export { BbsPoKSigProof } from "./BbsPoKSigProof";
 export {AccumulatorParams} from "./AccumulatorParams";
 export {Keypair} from "./Keypair";
 export { VerifyResult } from "./VerifyResult";
+export { UniversalAccumulator } from "./UniversalAccumulator";
+export { NonMembershipWitness } from "./NonMembershipWitness";
