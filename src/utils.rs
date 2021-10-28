@@ -341,7 +341,7 @@ mod tests {
     use blake2::Blake2b;
 
     #[wasm_bindgen_test]
-    pub async fn to_and_from_js_value() {
+    pub fn to_and_from_js_value() {
         let seed = random_bytes();
         let f = dock_crypto_utils::hashing_utils::field_elem_from_seed::<Fr, Blake2b>(&seed, &[]);
         let jf = fr_to_jsvalue(&f).unwrap();
@@ -380,7 +380,7 @@ mod tests {
     }
 
     #[wasm_bindgen_test]
-    pub async fn fr_map() {
+    pub fn fr_map() {
         let map = js_sys::Map::new();
         let f1 = dock_crypto_utils::hashing_utils::field_elem_from_seed::<Fr, Blake2b>(
             &random_bytes(),

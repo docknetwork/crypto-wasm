@@ -8,7 +8,7 @@ module.exports = [
     entry: "./index.web-sample.js",
     output: {
       path: path.resolve(__dirname, "dist"),
-      filename: "bbs-signatures.min.js",
+      filename: "crypto.min.js",
     },
     plugins: [
       new HtmlWebpackPlugin({
@@ -17,6 +17,12 @@ module.exports = [
       new WasmPackPlugin({
         crateDirectory: path.resolve(__dirname, "../../"),
       }),
+      new webpack.ProvidePlugin({
+        Buffer: ['buffer', 'Buffer'],
+      }),
+      new webpack.ProvidePlugin({
+        process: 'process/browser',
+      }),
       // Have this example work in Edge which doesn't ship `TextEncoder` or
       // `TextDecoder` at this time.
       new webpack.ProvidePlugin({
@@ -24,6 +30,13 @@ module.exports = [
         TextEncoder: ["text-encoding", "TextEncoder"],
       }),
     ],
+    resolve: {
+      extensions: [ '.ts', '.js' ],
+      fallback: {
+        "stream": require.resolve("stream-browserify"),
+        "buffer": require.resolve("buffer")
+      }
+    },
     mode: "development",
   },
 ];

@@ -1,13 +1,34 @@
 const wasm = require("./wasm.js");
 
-let initializedModule;
+let initializedWasmModule;
 
-const initialize = async () => {
-    if (!initializedModule) {
-        initializedModule = await wasm.default();
+/**
+ * Load WASM module
+ * @returns {Promise<void>}
+ */
+const initializeWasm = async () => {
+    if (!initializedWasmModule) {
+        initializedWasmModule = await wasm.default();
+    }
+};
+
+/**
+ * Returns true if WASM module loaded, false otherwise
+ * @returns {boolean}
+ */
+const isWasmInitialized = () => {
+    return initializedWasmModule !== undefined
+};
+
+/**
+ * Throws an error if WASM module is not loaded.
+ */
+const requireWasmInitialized = () => {
+    if (!isWasmInitialized()) {
+        throw new Error('WASM module is not initialized. Call `initialize` first and wait for it to resolve')
     }
 };
 
 module.exports = {
-    wasm, initialize
+    wasm, initializeWasm, isWasmInitialized, requireWasmInitialized
 }

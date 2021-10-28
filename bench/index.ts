@@ -14,25 +14,20 @@
 /* eslint-disable @typescript-eslint/camelcase */
 import { benchmark, report } from "@stablelib/benchmark";
 import {
-  sign,
-  verify,
-  createProof,
-  verifyProof,
-  blsCreateProof,
-  blsVerify,
-  blsSign,
-  blsVerifyProof,
-  generateBls12381G2KeyPair,
-  bls12381toBbs,
+  generateSignatureParamsG1,
+  generateBBSKeyPairG2,
+  bbsSignG1,
+  bbsVerifyG1,
+  initializeWasm,
+  bbsInitializeProofOfKnowledgeOfSignature,
+  bbsChallengeContributionFromProtocol,
+  generateChallengeFromBytes,
+  bbsGenProofOfKnowledgeOfSignature,
+  bbsChallengeContributionFromProof,
+  bbsVerifyProofOfKnowledgeOfSignature
 } from "../lib";
-import { generateBbsSignRequest, generateBlsSignRequest } from "./helper";
+import {generateMessages} from "./helper";
 
-const nonce = Buffer.from("mynonce", "utf-8");
-
-report(
-  "BLS 12-381 Key Generation",
-  benchmark(async () => await generateBls12381G2KeyPair())
-);
 
 // main benchmark routine
 const runBbsBenchmark = async (
@@ -40,123 +35,67 @@ const runBbsBenchmark = async (
   messageSizeInBytes: number,
   numberRevealed: number
 ): Promise<void> => {
-  const blsKeyPair = await generateBls12381G2KeyPair();
-  const bbsKeyPair = await bls12381toBbs({
-    keyPair: blsKeyPair,
-    messageCount: numberOfMessages,
-  });
-  const messageSignRequest = await generateBbsSignRequest(
-    bbsKeyPair,
-    numberOfMessages,
-    messageSizeInBytes
+  await initializeWasm();
+
+  // Generate params
+  report(
+      `BBB+ Params generation for ${numberOfMessages} messages`,
+      benchmark(() => generateSignatureParamsG1(numberOfMessages))
   );
-  const messageSignature = await sign(messageSignRequest);
-  const messageVerifyRequest = {
-    signature: messageSignature,
-    publicKey: bbsKeyPair.publicKey,
-    messages: messageSignRequest.messages,
-  };
+  const sigParams = generateSignatureParamsG1(numberOfMessages);
+
+  // Generate a new key pair
+  report(
+      "BBB+ Key Generation",
+      benchmark(() => generateBBSKeyPairG2(sigParams))
+  );
+  const keypair = generateBBSKeyPairG2(sigParams);
+  const sk = keypair.secret_key;
+  const pk = keypair.public_key;
+
+  const messages = generateMessages(numberOfMessages, messageSizeInBytes);
 
   report(
-    `BBS Sign ${numberOfMessages}, ${messageSizeInBytes} byte message(s)`,
-    benchmark(async () => await sign(messageSignRequest))
+      `BBS Sign ${numberOfMessages}, ${messageSizeInBytes} byte message(s)`,
+      benchmark(() => bbsSignG1(messages, sk, sigParams, true))
   );
+  const signature = bbsSignG1(messages, sk, sigParams, true);
 
   report(
-    `BBS Verify ${numberOfMessages}, ${messageSizeInBytes} byte message(s)`,
-    benchmark(async () => await verify(messageVerifyRequest))
+      `BBS Verify ${numberOfMessages}, ${messageSizeInBytes} byte message(s)`,
+      benchmark(() => bbsVerifyG1(messages, signature, pk, sigParams, true))
   );
+  const isVerified = bbsVerifyG1(messages, signature, pk, sigParams, true);
 
-  const revealedNumbers = [...Array(numberRevealed).keys()];
+  const revealed: Set<number> = new Set([...Array(numberRevealed).keys()]);
+  const revealedMsgs = new Map();
+  revealed.forEach((i) => {
+    revealedMsgs.set(i, messages[i]);
+  })
 
-  const CreateProofRequest = {
-    signature: messageSignature,
-    publicKey: bbsKeyPair.publicKey,
-    messages: messageSignRequest.messages,
-    revealed: revealedNumbers,
-    nonce,
-  };
-
-  const MessageProof = await createProof(CreateProofRequest);
-
-  const VerifyProofRequest = {
-    proof: MessageProof,
-    publicKey: bbsKeyPair.publicKey,
-    messages: messageSignRequest.messages.slice(0, numberRevealed),
-    revealed: revealedNumbers,
-    messageCount: messageSignRequest.messages.length,
-    nonce,
-  };
+  function createProof() {
+    const protocol = bbsInitializeProofOfKnowledgeOfSignature(signature, sigParams, messages, new Map(), revealed, true);
+    const pBytes = bbsChallengeContributionFromProtocol(protocol, revealedMsgs, sigParams, true);
+    const proverChallenge = generateChallengeFromBytes(pBytes);
+    return bbsGenProofOfKnowledgeOfSignature(protocol, proverChallenge);
+  }
 
   report(
-    `BBS Create Proof ${numberOfMessages}, ${messageSizeInBytes} byte message(s), revealing ${numberRevealed} message(s).`,
-    benchmark(async () => await createProof(CreateProofRequest))
+      `BBS Create Proof ${numberOfMessages}, ${messageSizeInBytes} byte message(s), revealing ${numberRevealed} message(s).`,
+      benchmark(() => createProof())
   );
+  const proof = createProof();
+
+
+  function verifyProof() {
+    const vBytes = bbsChallengeContributionFromProof(proof, revealedMsgs, sigParams, true);
+    const verifierChallenge = generateChallengeFromBytes(vBytes);
+    bbsVerifyProofOfKnowledgeOfSignature(proof, revealedMsgs, verifierChallenge, pk, sigParams, true);
+  }
 
   report(
-    `BBS Verify Proof ${numberOfMessages}, ${messageSizeInBytes} byte message(s), revealing ${numberRevealed} message(s).`,
-    benchmark(async () => await verifyProof(VerifyProofRequest))
-  );
-};
-
-// main benchmark routine
-const runBlsBenchmark = async (
-  numberOfMessages: number,
-  messageSizeInBytes: number,
-  numberRevealed: number
-): Promise<void> => {
-  const blsKeyPair = await generateBls12381G2KeyPair();
-  const MessageSignRequest = await generateBlsSignRequest(
-    blsKeyPair,
-    numberOfMessages,
-    messageSizeInBytes
-  );
-  const MessageSignature = await blsSign(MessageSignRequest);
-  const MessageVerifyRequest = {
-    signature: MessageSignature,
-    publicKey: blsKeyPair.publicKey,
-    messages: MessageSignRequest.messages,
-  };
-
-  report(
-    `BLStoBBS then sign ${numberOfMessages}, ${messageSizeInBytes} byte message(s)`,
-    benchmark(async () => await blsSign(MessageSignRequest))
-  );
-
-  report(
-    `BLStoBBS then verify ${numberOfMessages}, ${messageSizeInBytes} byte message(s)`,
-    benchmark(async () => await blsVerify(MessageVerifyRequest))
-  );
-
-  const revealedNumbers = [...Array(numberRevealed).keys()];
-
-  const CreateProofRequest = {
-    signature: MessageSignature,
-    publicKey: blsKeyPair.publicKey,
-    messages: MessageSignRequest.messages,
-    revealed: revealedNumbers,
-    nonce,
-  };
-
-  const MessageProof = await blsCreateProof(CreateProofRequest);
-
-  const VerifyProofRequest = {
-    proof: MessageProof,
-    publicKey: blsKeyPair.publicKey,
-    messages: MessageSignRequest.messages.slice(0, numberRevealed),
-    revealed: revealedNumbers,
-    messageCount: MessageSignRequest.messages.length,
-    nonce,
-  };
-
-  report(
-    `BLStoBBS then create proof ${numberOfMessages}, ${messageSizeInBytes} byte message(s), revealing ${numberRevealed} message(s).`,
-    benchmark(async () => await blsCreateProof(CreateProofRequest))
-  );
-
-  report(
-    `BLStoBBS then verify proof ${numberOfMessages}, ${messageSizeInBytes} byte message(s), revealing ${numberRevealed} message(s).`,
-    benchmark(async () => await blsVerifyProof(VerifyProofRequest))
+      `BBS Verify Proof ${numberOfMessages}, ${messageSizeInBytes} byte message(s), revealing ${numberRevealed} message(s).`,
+      benchmark(() => verifyProof())
   );
 };
 
@@ -190,36 +129,4 @@ runBbsBenchmark(100, 100, 50);
 
 // ------------------------------ Sign/Verify/CreateProof/VerifyProof 100, 1000 byte messages ------------------------------
 runBbsBenchmark(100, 1000, 60);
-// -------------------------------------------------------------------------------------------------------------------------
-
-// ------------------------------ Sign/Verify/CreateProof/VerifyProof 1, 100 byte message ------------------------------
-runBlsBenchmark(1, 100, 1);
-// ---------------------------------------------------------------------------------------------------------------------
-
-// ------------------------------ Sign/Verify/CreateProof/VerifyProof 1, 1000 byte message ------------------------------
-runBlsBenchmark(1, 1000, 1);
-// ----------------------------------------------------------------------------------------------------------------------
-
-// ------------------------------ Sign/Verify/CreateProof/VerifyProof 10, 100 byte messages ------------------------------
-runBlsBenchmark(10, 100, 1);
-// -----------------------------------------------------------------------------------------------------------------------
-
-// ------------------------------ Sign/Verify/CreateProof/VerifyProof 10, 1000 byte messages ------------------------------
-runBlsBenchmark(10, 1000, 1);
-// ------------------------------------------------------------------------------------------------------------------------
-
-// ------------------------------ Sign/Verify/CreateProof/VerifyProof 100, 100 byte messages ------------------------------
-runBlsBenchmark(100, 100, 1);
-// -------------------------------------------------------------------------------------------------------------------------
-
-// ------------------------------ Sign/Verify/CreateProof/VerifyProof 100, 1000 byte messages ------------------------------
-runBlsBenchmark(100, 1000, 1);
-// -------------------------------------------------------------------------------------------------------------------------
-
-// ------------------------------ Sign/Verify/CreateProof/VerifyProof 100, 100 byte messages ------------------------------
-runBlsBenchmark(100, 100, 50);
-// -------------------------------------------------------------------------------------------------------------------------
-
-// ------------------------------ Sign/Verify/CreateProof/VerifyProof 100, 1000 byte messages ------------------------------
-runBlsBenchmark(100, 1000, 60);
 // -------------------------------------------------------------------------------------------------------------------------

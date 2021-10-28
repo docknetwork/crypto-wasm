@@ -19,7 +19,7 @@ module.exports = {
   testEnvironment: "node",
   testPathIgnorePatterns: ["/node_modules/", "/output/"],
   testRegex: [".spec.ts$"],
-  moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
+  moduleFileExtensions: ["ts", "js", "json", "node"],
   coveragePathIgnorePatterns: ["<rootDir>/__tests__", "<rootDir>/lib"],
   testTimeout: 20000,
   verbose: true,

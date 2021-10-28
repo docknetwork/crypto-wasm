@@ -106,12 +106,6 @@ To run the all test in the project run:
 yarn test
 ```
 
-To run just the tests for a node environment using the native node module of [@mattrglobal-node-bbs-signatures](https://github.com/mattrglobal/node-bbs-signatures) run:
-
-```
-yarn test:node
-```
-
 To run just the tests for a node environment using the wasm module run:
 
 ```
@@ -124,13 +118,19 @@ To run just the tests for a browser environment run:
 yarn test:browser
 ```
 
+Above runs the Rust tests [here](./tests/). To run specific modules, use following wasm-pack command and pass the test module 
+name. Eg. for running accumulator tests, run:
+
+```
+wasm-pack test --headless --chrome -- --test accumulator
+```
+
+For BBS+, run:
+```
+wasm-pack test --headless --chrome -- --test bbs_plus
+```
+
 #### Benchmark
-
-To benchmark the implementation locally in a node environment using the native node module of [@mattrglobal-node-bbs-signatures](https://github.com/mattrglobal/node-bbs-signatures) run:
-
-```
-yarn benchmark:node
-```
 
 To benchmark the implementation locally in a node environment using the wasm module run:
 
@@ -140,8 +140,8 @@ yarn benchmark:wasm
 
 ## Dependencies
 
-This library uses the [bbs](https://crates.io/crates/bbs) rust crate for the implementation of BBS+ signatures and
-BLS12-381 which is then wrapped and exposed in javascript/typescript using [Web Assembly](https://webassembly.org/).
+This library uses the creates defined in [Dock's crypto library](https://github.com/docknetwork/crypto) which is then 
+wrapped and exposed in javascript/typescript using [Web Assembly](https://webassembly.org/).
 
 ## Security Policy
 
@@ -164,6 +164,12 @@ For those interested in more details, you might find the following resources hel
 To build, use
 ```
 BUILD_MODE=DEBUG ./scripts/build-package.sh 
+```
+
+or
+
+```
+BUILD_MODE=RELEASE ./scripts/build-package.sh 
 ```
 
 To run jest tests, build with target nodejs as `wasm-pack build --out-dir lib --target nodejs` 

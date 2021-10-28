@@ -15,16 +15,12 @@
 // TODO should be able to remove this duplicate definition syntax by using ESM over index.web.js
 // in future
 
-// The functions defined in this package are async as each call has to make sure that WASM code has been loaded
-// using `WebAssembly.instantiate` which returns a promise and thus any function may need to wait for the promise to
-// resolve. Another possible approach is to have something like polkadot-js's `cryptoWaitReady` which should be called
-// before any function is called. This will simplify the Rust code.
-
 const {
-  wasm, initializedModule, initialize
+  isWasmInitialized, requireWasmInitialized, initializeWasm
 } = require('./init_wasm');
 
 module.exports = {
+  isWasmInitialized, requireWasmInitialized, initializeWasm,
   ...require('./util_wasm'),
   ...require('./bbs_plus_wasm'),
   ...require('./accumulator_wasm'),

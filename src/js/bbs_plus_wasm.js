@@ -8,311 +8,247 @@
     bbsSignG1, bbsVerifyG1, bbsCommitMsgsInG1, bbsBlindSignG1, bbsUnblindSigG1,
     bbsSignG2, bbsVerifyG2, bbsCommitMsgsInG2, bbsBlindSignG2, bbsUnblindSigG2,
     bbsInitializeProofOfKnowledgeOfSignature, bbsVerifyProofOfKnowledgeOfSignature, bbsGenProofOfKnowledgeOfSignature,
-    bbsExtendSigParamsG1ForMsgCount, bbsExtendSigParamsG22ForMsgCount, bbsChallengeContributionFromProof, bbsChallengeContributionFromProtocol,
+    bbsAdaptSigParamsG1ForMsgCount, bbsExtendSigParamsG22ForMsgCount, bbsChallengeContributionFromProof, bbsChallengeContributionFromProtocol,
 } = require("./index");*/
 
 const {
-    wasm, initialize
+    wasm, requireWasmInitialized
 } = require('./init_wasm');
 
-const {
-    throwErrorOnRejectedPromise
-} = require('./util');
+module.exports.DEFAULT_BLS12381_PRIVATE_KEY_LENGTH = 32;
 
-module.exports.generateBBSSigningKey = async (seed) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(wasm.generateBBSSigningKey(seed));
+module.exports.DEFAULT_BLS12381_G1_PUBLIC_KEY_LENGTH = 48;
+
+module.exports.DEFAULT_BLS12381_G2_PUBLIC_KEY_LENGTH = 96;
+
+module.exports.BBS_SIGNATURE_LENGTH = 112;
+
+module.exports.generateBBSSigningKey = (seed) => {
+    requireWasmInitialized();
+    return wasm.generateBBSSigningKey(seed);
 };
 
-module.exports.generateSignatureParamsG1 = async (messageCount, label) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.generateSignatureParamsG1(messageCount, label)
-    );
+module.exports.generateSignatureParamsG1 = (messageCount, label) => {
+    requireWasmInitialized();
+    return wasm.generateSignatureParamsG1(messageCount, label);
 };
 
-module.exports.isSignatureParamsG1Valid = async (params) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.isSignatureParamsG1Valid(params)
-    );
+module.exports.isSignatureParamsG1Valid = (params) => {
+    requireWasmInitialized();
+    return wasm.isSignatureParamsG1Valid(params);
 };
 
-module.exports.bbsSignatureParamsG1MaxSupportedMsgs = async (params) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.bbsSignatureParamsG1MaxSupportedMsgs(params)
-    );
+module.exports.bbsSignatureParamsG1MaxSupportedMsgs = (params) => {
+    requireWasmInitialized();
+    return wasm.bbsSignatureParamsG1MaxSupportedMsgs(params);
 };
 
-module.exports.generateSignatureParamsG2 = async (messageCount, label) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.generateSignatureParamsG2(messageCount, label)
-    );
+module.exports.generateSignatureParamsG2 = (messageCount, label) => {
+    requireWasmInitialized();
+    return wasm.generateSignatureParamsG2(messageCount, label);
 };
 
-module.exports.isSignatureParamsG2Valid = async (params) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.isSignatureParamsG2Valid(params)
-    );
+module.exports.isSignatureParamsG2Valid = (params) => {
+    requireWasmInitialized();
+    return wasm.isSignatureParamsG2Valid(params);
 };
 
-module.exports.bbsSignatureParamsG2MaxSupportedMsgs = async (params) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.bbsSignatureParamsG2MaxSupportedMsgs(params)
-    );
+module.exports.bbsSignatureParamsG2MaxSupportedMsgs = (params) => {
+    requireWasmInitialized();
+    return wasm.bbsSignatureParamsG2MaxSupportedMsgs(params);
 };
 
-module.exports.bbsSignatureParamsG1ToBytes = async (params) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.bbsSignatureParamsG1ToBytes(params)
-    );
+module.exports.bbsSignatureParamsG1ToBytes = (params) => {
+    requireWasmInitialized();
+    return wasm.bbsSignatureParamsG1ToBytes(params);
 };
 
-module.exports.bbsSignatureParamsG1FromBytes = async (bytes) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.bbsSignatureParamsG1FromBytes(bytes)
-    );
+module.exports.bbsSignatureParamsG1FromBytes = (bytes) => {
+    requireWasmInitialized();
+    return wasm.bbsSignatureParamsG1FromBytes(bytes);
 };
 
-module.exports.bbsSignatureParamsG2ToBytes = async (params) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.bbsSignatureParamsG2ToBytes(params)
-    );
+module.exports.bbsSignatureParamsG2ToBytes = (params) => {
+    requireWasmInitialized();
+    return wasm.bbsSignatureParamsG2ToBytes(params);
 };
 
-module.exports.bbsSignatureParamsG2FromBytes = async (bytes) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.bbsSignatureParamsG2FromBytes(bytes)
-    );
+module.exports.bbsSignatureParamsG2FromBytes = (bytes) => {
+    requireWasmInitialized();
+    return wasm.bbsSignatureParamsG2FromBytes(bytes);
 };
 
-module.exports.generateBBSPublicKeyG1 = async (secretKey, params) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.generateBBSPublicKeyG1(secretKey, params)
-    );
+module.exports.generateBBSPublicKeyG1 = (secretKey, params) => {
+    requireWasmInitialized();
+    return wasm.generateBBSPublicKeyG1(secretKey, params);
 };
 
-module.exports.isBBSPublicKeyG1Valid = async (publicKey) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.isBBSPublicKeyG1Valid(publicKey)
-    );
+module.exports.isBBSPublicKeyG1Valid = (publicKey) => {
+    requireWasmInitialized();
+    return wasm.isBBSPublicKeyG1Valid(publicKey);
 };
 
-module.exports.generateBBSPublicKeyG2 = async (secretKey, params) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.generateBBSPublicKeyG2(secretKey, params)
-    );
+module.exports.generateBBSPublicKeyG2 = (secretKey, params) => {
+    requireWasmInitialized();
+    return wasm.generateBBSPublicKeyG2(secretKey, params);
 };
 
-module.exports.isBBSPublicKeyG2Valid = async (publicKey) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.isBBSPublicKeyG2Valid(publicKey)
-    );
+module.exports.isBBSPublicKeyG2Valid = (publicKey) => {
+    requireWasmInitialized();
+    return wasm.isBBSPublicKeyG2Valid(publicKey);
 };
 
-module.exports.bbsPublicKeyG1ToBytes = async (pk) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.bbsPublicKeyG1ToBytes(pk)
-    );
+module.exports.bbsPublicKeyG1ToBytes = (pk) => {
+    requireWasmInitialized();
+    return wasm.bbsPublicKeyG1ToBytes(pk);
 };
 
-module.exports.bbsPublicKeyG1FromBytes = async (bytes) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.bbsPublicKeyG1FromBytes(bytes)
-    );
+module.exports.bbsPublicKeyG1FromBytes = (bytes) => {
+    requireWasmInitialized();
+    return wasm.bbsPublicKeyG1FromBytes(bytes);
 };
 
-module.exports.bbsPublicKeyG2ToBytes = async (pk) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.bbsPublicKeyG2ToBytes(pk)
-    );
+module.exports.bbsPublicKeyG2ToBytes = (pk) => {
+    requireWasmInitialized();
+    return wasm.bbsPublicKeyG2ToBytes(pk);
 };
 
-module.exports.bbsPublicKeyG2FromBytes = async (bytes) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.bbsPublicKeyG2FromBytes(bytes)
-    );
+module.exports.bbsPublicKeyG2FromBytes = (bytes) => {
+    requireWasmInitialized();
+    return wasm.bbsPublicKeyG2FromBytes(bytes);
 };
 
-module.exports.generateBBSKeyPairG1 = async (params, seed) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.generateBBSKeyPairG1(params, seed)
-    );
+module.exports.generateBBSKeyPairG1 = (params, seed) => {
+    requireWasmInitialized();
+    return wasm.generateBBSKeyPairG1(params, seed);
 };
 
-module.exports.generateBBSKeyPairG2 = async (params, seed) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.generateBBSKeyPairG2(params, seed)
-    );
+module.exports.generateBBSKeyPairG2 = (params, seed) => {
+    requireWasmInitialized();
+    return wasm.generateBBSKeyPairG2(params, seed);
 };
 
-module.exports.bbsEncodeMessageForSigning = async (message) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.bbsEncodeMessageForSigning(message)
-    );
+module.exports.bbsEncodeMessageForSigning = (message) => {
+    requireWasmInitialized();
+    return wasm.bbsEncodeMessageForSigning(message);
 };
 
-module.exports.bbsEncodeMessagesForSigning = async (messages, indicesToEncode) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.bbsEncodeMessagesForSigning(messages, indicesToEncode)
-    );
+module.exports.bbsEncodeMessagesForSigning = (messages, indicesToEncode) => {
+    requireWasmInitialized();
+    return wasm.bbsEncodeMessagesForSigning(messages, indicesToEncode);
 };
 
-module.exports.bbsGetBasesForCommitmentG1 = async (params, indicesToCommit) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.bbsGetBasesForCommitmentG1(params, indicesToCommit)
-    );
+module.exports.bbsGetBasesForCommitmentG1 = (params, indicesToCommit) => {
+    requireWasmInitialized();
+    return wasm.bbsGetBasesForCommitmentG1(params, indicesToCommit);
 };
 
-module.exports.bbsGetBasesForCommitmentG2 = async (params, indicesToCommit) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.bbsGetBasesForCommitmentG2(params, indicesToCommit)
-    );
+module.exports.bbsGetBasesForCommitmentG2 = (params, indicesToCommit) => {
+    requireWasmInitialized();
+    return wasm.bbsGetBasesForCommitmentG2(params, indicesToCommit);
 };
 
-module.exports.bbsSignG1 = async (
+module.exports.bbsSignG1 = (
     messages,
     secretKey,
     params,
     encodeMessages
 ) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.bbsSignG1(messages, secretKey, params, encodeMessages)
-    );
+    requireWasmInitialized();
+    return wasm.bbsSignG1(messages, secretKey, params, encodeMessages);
 };
 
-module.exports.bbsSignG2 = async (
+module.exports.bbsSignG2 = (
     messages,
     secretKey,
     params,
     encodeMessages
 ) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.bbsSignG2(messages, secretKey, params, encodeMessages)
-    );
+    requireWasmInitialized();
+    return wasm.bbsSignG2(messages, secretKey, params, encodeMessages);
 };
 
-module.exports.bbsVerfiyG1 = async (
+module.exports.bbsVerfiyG1 = (
     messages,
     signature,
     publicKey,
     params,
     encodeMessages
 ) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.bbsVerfiyG1(messages, signature, publicKey, params, encodeMessages)
-    );
+    requireWasmInitialized();
+    return wasm.bbsVerfiyG1(messages, signature, publicKey, params, encodeMessages);
 };
 
-module.exports.bbsVerfiyG2 = async (
+module.exports.bbsVerfiyG2 = (
     messages,
     signature,
     publicKey,
     params,
     encodeMessages
 ) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.bbsVerfiyG2(messages, signature, publicKey, params, encodeMessages)
-    );
+    requireWasmInitialized();
+    return wasm.bbsVerfiyG2(messages, signature, publicKey, params, encodeMessages);
 };
 
-module.exports.bbsCommitMsgsInG1 = async (
+module.exports.bbsCommitMsgsInG1 = (
     messages,
     blinding,
     params,
     encodeMessages
 ) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.bbsCommitMsgsInG1(messages, blinding, params, encodeMessages)
-    );
+    requireWasmInitialized();
+    return wasm.bbsCommitMsgsInG1(messages, blinding, params, encodeMessages);
 };
 
-module.exports.bbsCommitMsgsInG2 = async (
+module.exports.bbsCommitMsgsInG2 = (
     messages,
     blinding,
     params,
     encodeMessages
 ) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.bbsCommitMsgsInG2(messages, blinding, params, encodeMessages)
-    );
+    requireWasmInitialized();
+    return wasm.bbsCommitMsgsInG2(messages, blinding, params, encodeMessages);
 };
 
-module.exports.bbsBlindSignG1 = async (
+module.exports.bbsBlindSignG1 = (
     commitment,
     uncommittedMessages,
     secretKey,
     params,
     encodeMessages
 ) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.bbsBlindSignG1(commitment, uncommittedMessages, secretKey, params, encodeMessages)
-    );
+    requireWasmInitialized();
+    return wasm.bbsBlindSignG1(commitment, uncommittedMessages, secretKey, params, encodeMessages);
 };
 
-module.exports.bbsBlindSignG2 = async (
+module.exports.bbsBlindSignG2 = (
     commitment,
     uncommittedMessages,
     secretKey,
     params,
     encodeMessages
 ) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.bbsBlindSignG2(commitment, uncommittedMessages, secretKey, params, encodeMessages)
-    );
+    requireWasmInitialized();
+    return wasm.bbsBlindSignG2(commitment, uncommittedMessages, secretKey, params, encodeMessages);
 };
 
-module.exports.bbsUnblindSigG1 = async (
+module.exports.bbsUnblindSigG1 = (
     signature,
     blinding,
 ) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.bbsUnblindSigG1(signature, blinding)
-    );
+    requireWasmInitialized();
+    return wasm.bbsUnblindSigG1(signature, blinding);
 };
 
-module.exports.bbsUnblindSigG2 = async (
+module.exports.bbsUnblindSigG2 = (
     signature,
     blinding,
 ) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.bbsUnblindSigG2(signature, blinding)
-    );
+    requireWasmInitialized();
+    return wasm.bbsUnblindSigG2(signature, blinding);
 };
 
-module.exports.bbsInitializeProofOfKnowledgeOfSignature = async (
+module.exports.bbsInitializeProofOfKnowledgeOfSignature = (
     signature,
     params,
     messages,
@@ -320,23 +256,19 @@ module.exports.bbsInitializeProofOfKnowledgeOfSignature = async (
     revealedIndices,
     encodeMessages
 ) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.bbsInitializeProofOfKnowledgeOfSignature(signature, params, messages, blindings, revealedIndices, encodeMessages)
-    );
+    requireWasmInitialized();
+    return wasm.bbsInitializeProofOfKnowledgeOfSignature(signature, params, messages, blindings, revealedIndices, encodeMessages);
 };
 
-module.exports.bbsGenProofOfKnowledgeOfSignature = async (
+module.exports.bbsGenProofOfKnowledgeOfSignature = (
     protocol,
     challenge
 ) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.bbsGenProofOfKnowledgeOfSignature(protocol, challenge)
-    );
+    requireWasmInitialized();
+    return wasm.bbsGenProofOfKnowledgeOfSignature(protocol, challenge);
 };
 
-module.exports.bbsVerifyProofOfKnowledgeOfSignature = async (
+module.exports.bbsVerifyProofOfKnowledgeOfSignature = (
     proof,
     revealedMessages,
     challenge,
@@ -344,42 +276,36 @@ module.exports.bbsVerifyProofOfKnowledgeOfSignature = async (
     params,
     encodeMessages
 ) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.bbsVerifyProofOfKnowledgeOfSignature(proof, revealedMessages, challenge, publicKey, params, encodeMessages)
-    );
+    requireWasmInitialized();
+    return wasm.bbsVerifyProofOfKnowledgeOfSignature(proof, revealedMessages, challenge, publicKey, params, encodeMessages);
 };
 
-module.exports.bbsChallengeContributionFromProtocol = async (
+module.exports.bbsChallengeContributionFromProtocol = (
     protocol,
     revealedMessages,
     params,
     encodeMessages
 ) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.bbsChallengeContributionFromProtocol(protocol, revealedMessages, params, encodeMessages)
-    );
+    requireWasmInitialized();
+    return wasm.bbsChallengeContributionFromProtocol(protocol, revealedMessages, params, encodeMessages);
 };
 
-module.exports.bbsChallengeContributionFromProof = async (
+module.exports.bbsChallengeContributionFromProof = (
     proof,
     revealedMessages,
     params,
     encodeMessages
 ) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.bbsChallengeContributionFromProof(proof, revealedMessages, params, encodeMessages)
-    );
+    requireWasmInitialized();
+    return wasm.bbsChallengeContributionFromProof(proof, revealedMessages, params, encodeMessages);
 };
 
-module.exports.bbsExtendSigParamsG1ForMsgCount = async (params, generating_label, new_count) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(wasm.bbsExtendSigParamsG1ForMsgCount(params, generating_label, new_count));
+module.exports.bbsAdaptSigParamsG1ForMsgCount = (params, generating_label, new_count) => {
+    requireWasmInitialized();
+    return wasm.bbsAdaptSigParamsG1ForMsgCount(params, generating_label, new_count);
 };
 
-module.exports.bbsExtendSigParamsG2ForMsgCount = async (params, generating_label, new_count) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(wasm.bbsExtendSigParamsG2ForMsgCount(params, generating_label, new_count));
+module.exports.bbsAdaptSigParamsG2ForMsgCount = (params, generating_label, new_count) => {
+    requireWasmInitialized();
+    return wasm.bbsAdaptSigParamsG2ForMsgCount(params, generating_label, new_count);
 };

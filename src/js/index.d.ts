@@ -11,9 +11,9 @@
  * limitations under the License.
  */
 
-export * from "./types";
+export function initializeWasm(): Promise<void>;
+export function isWasmInitialized(): boolean;
+export function requireWasmInitialized(): void;
 
-export * from "./type_declrations/util";
-export * from "./type_declrations/bbs_plus";
-export * from "./type_declrations/accumulator";
-export * from "./type_declrations/proof_system";
+export * from "./types";
+export * from "./type_declarations";

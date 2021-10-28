@@ -58,11 +58,12 @@ import {
     accumulatorChallengeContributionFromMembershipProof,
     accumulatorChallengeContributionFromNonMembershipProtocol,
     accumulatorChallengeContributionFromNonMembershipProof,
-    AccumulatorParams, UniversalAccumulator,
+    AccumulatorParams, IUniversalAccumulator,
     accumulatorParamsFromBytes,
     accumulatorParamsToBytes,
     accumulatorPublicKeyFromBytes,
-    accumulatorPublicKeyToBytes
+    accumulatorPublicKeyToBytes,
+    initializeWasm
 } from "../../lib";
 
 import {stringToBytes} from "../utilities";
@@ -72,38 +73,42 @@ describe("For Positive accumulator", () => {
 
     const seed = new Uint8Array([0, 2, 3, 4, 5]);
 
-    it("generate params", async () => {
-        const params0 = await generateAccumulatorParams();
+    beforeAll(async () => {
+        await initializeWasm();
+    });
+
+    it("generate params", () => {
+        const params0 = generateAccumulatorParams();
         expect(params0).toBeInstanceOf(Object);
-        expect(await isAccumulatorParamsValid(params0)).toBe(true);
+        expect(isAccumulatorParamsValid(params0)).toBe(true);
 
         const label = stringToBytes("Accumulator params");
 
-        const params1 = await generateAccumulatorParams(label);
+        const params1 = generateAccumulatorParams(label);
         expect(params1).toBeInstanceOf(Object);
-        expect(await isAccumulatorParamsValid(params1)).toBe(true);
+        expect(isAccumulatorParamsValid(params1)).toBe(true);
 
-        const params2 = await generateAccumulatorParams(label);
+        const params2 = generateAccumulatorParams(label);
         expect(params2).toBeInstanceOf(Object);
-        expect(await isAccumulatorParamsValid(params2)).toBe(true);
+        expect(isAccumulatorParamsValid(params2)).toBe(true);
 
         expect(params1).toEqual(params2);
 
-        const bytes = await accumulatorParamsToBytes(params1);
-        const deserzParams = await accumulatorParamsFromBytes(bytes);
+        const bytes = accumulatorParamsToBytes(params1);
+        const deserzParams = accumulatorParamsFromBytes(bytes);
         expect(params1).toEqual(deserzParams);
 
         params = params1;
     });
 
-    it("generate secret key", async () => {
-        const sk_ = await generateAccumulatorSecretKey();
+    it("generate secret key", () => {
+        const sk_ = generateAccumulatorSecretKey();
         expect(sk_).toBeInstanceOf(Uint8Array);
 
-        const sk1 = await generateAccumulatorSecretKey(seed);
+        const sk1 = generateAccumulatorSecretKey(seed);
         expect(sk1).toBeInstanceOf(Uint8Array);
 
-        const sk2 = await generateAccumulatorSecretKey(seed);
+        const sk2 = generateAccumulatorSecretKey(seed);
         expect(sk2).toBeInstanceOf(Uint8Array);
 
         expect(sk1).toEqual(sk2);
@@ -111,581 +116,590 @@ describe("For Positive accumulator", () => {
         sk = sk1;
     });
 
-    it("generate public key from secret key", async () => {
-        pk = await generateAccumulatorPublicKey(sk, params);
+    it("generate public key from secret key", () => {
+        pk = generateAccumulatorPublicKey(sk, params);
         expect(pk).toBeInstanceOf(Uint8Array);
-        expect(await isAccumulatorPublicKeyValid(pk)).toBe(true);
+        expect(isAccumulatorPublicKeyValid(pk)).toBe(true);
 
-        const bytes = await accumulatorPublicKeyToBytes(pk);
-        const deserzPk = await accumulatorPublicKeyFromBytes(bytes);
+        const bytes = accumulatorPublicKeyToBytes(pk);
+        const deserzPk = accumulatorPublicKeyFromBytes(bytes);
         expect(pk).toEqual(deserzPk);
     });
 
-    it("initialize", async () => {
-        accumulator = await positiveAccumulatorInitialize(params);
+    it("initialize", () => {
+        accumulator = positiveAccumulatorInitialize(params);
         expect(accumulator).toBeInstanceOf(Uint8Array);
     });
 
-    it("add an element", async () => {
-        const e1 = await generateFieldElementFromNumber(1);
-        accumulator = await positiveAccumulatorAdd(accumulator, e1, sk);
+    it("add an element", () => {
+        const e1 = generateFieldElementFromNumber(1);
+        accumulator = positiveAccumulatorAdd(accumulator, e1, sk);
         expect(accumulator).toBeInstanceOf(Uint8Array);
-        const e2 = await generateFieldElementFromNumber(2);
-        accumulator = await positiveAccumulatorAdd(accumulator, e2, sk);
-        expect(accumulator).toBeInstanceOf(Uint8Array);
-
-        const e3 = await accumulatorGetElementFromBytes(stringToBytes("user-id:1"));
-        accumulator = await positiveAccumulatorAdd(accumulator, e3, sk);
+        const e2 = generateFieldElementFromNumber(2);
+        accumulator = positiveAccumulatorAdd(accumulator, e2, sk);
         expect(accumulator).toBeInstanceOf(Uint8Array);
 
-        const e4 = await generateRandomFieldElement();
-        accumulator = await positiveAccumulatorAdd(accumulator, e4, sk);
+        const e3 = accumulatorGetElementFromBytes(stringToBytes("user-id:1"));
+        accumulator = positiveAccumulatorAdd(accumulator, e3, sk);
+        expect(accumulator).toBeInstanceOf(Uint8Array);
+
+        const e4 = generateRandomFieldElement();
+        accumulator = positiveAccumulatorAdd(accumulator, e4, sk);
         expect(accumulator).toBeInstanceOf(Uint8Array);
     });
 
-    it("membership after single element updates", async () => {
-        const e1 = await generateFieldElementFromNumber(101);
-        const e2 = await generateFieldElementFromNumber(102);
+    it("membership after single element updates", () => {
+        const e1 = generateFieldElementFromNumber(101);
+        const e2 = generateFieldElementFromNumber(102);
 
-        const accumulator1 = await positiveAccumulatorAdd(accumulator, e1, sk);
-        const witness1 = await positiveAccumulatorMembershipWitness(accumulator1, e1, sk);
-        expect(await positiveAccumulatorVerifyMembership(await positiveAccumulatorGetAccumulated(accumulator1), e1, witness1, pk, params)).toBe(true);
+        const accumulator1 = positiveAccumulatorAdd(accumulator, e1, sk);
+        const witness1 = positiveAccumulatorMembershipWitness(accumulator1, e1, sk);
+        expect(positiveAccumulatorVerifyMembership(positiveAccumulatorGetAccumulated(accumulator1), e1, witness1, pk, params)).toBe(true);
 
-        const accumulator2 = await positiveAccumulatorAdd(accumulator1, e2, sk);
-        const witness2 = await positiveAccumulatorMembershipWitness(accumulator2, e2, sk);
-        expect(await positiveAccumulatorVerifyMembership(await positiveAccumulatorGetAccumulated(accumulator2), e2, witness2, pk, params)).toBe(true);
-        expect(await positiveAccumulatorVerifyMembership(await positiveAccumulatorGetAccumulated(accumulator2), e1, witness1, pk, params)).toBe(false);
+        const accumulator2 = positiveAccumulatorAdd(accumulator1, e2, sk);
+        const witness2 = positiveAccumulatorMembershipWitness(accumulator2, e2, sk);
+        expect(positiveAccumulatorVerifyMembership(positiveAccumulatorGetAccumulated(accumulator2), e2, witness2, pk, params)).toBe(true);
+        expect(positiveAccumulatorVerifyMembership(positiveAccumulatorGetAccumulated(accumulator2), e1, witness1, pk, params)).toBe(false);
 
-        const accumulator3 = await positiveAccumulatorRemove(accumulator2, e2, sk);
+        const accumulator3 = positiveAccumulatorRemove(accumulator2, e2, sk);
         // e2 was added and removed so the accumulator becomes same as before
         expect(accumulator1).toEqual(accumulator3);
 
-        const witness11 = await positiveAccumulatorMembershipWitness(accumulator3, e1, sk);
-        expect(await positiveAccumulatorVerifyMembership(await positiveAccumulatorGetAccumulated(accumulator3), e1, witness11, pk, params)).toBe(true);
+        const witness11 = positiveAccumulatorMembershipWitness(accumulator3, e1, sk);
+        expect(positiveAccumulatorVerifyMembership(positiveAccumulatorGetAccumulated(accumulator3), e1, witness11, pk, params)).toBe(true);
 
-        expect(await positiveAccumulatorVerifyMembership(await positiveAccumulatorGetAccumulated(accumulator3), e1, witness1, pk, params)).toBe(true);
+        expect(positiveAccumulatorVerifyMembership(positiveAccumulatorGetAccumulated(accumulator3), e1, witness1, pk, params)).toBe(true);
     });
 
-    it("membership after batch updates", async () => {
-        const e1 = await generateFieldElementFromNumber(101);
-        const e2 = await generateFieldElementFromNumber(102);
-        const e3 = await generateFieldElementFromNumber(103);
-        const e4 = await generateFieldElementFromNumber(104);
-        const e5 = await generateFieldElementFromNumber(105);
-        const e6 = await generateFieldElementFromNumber(106);
+    it("membership after batch updates", () => {
+        const e1 = generateFieldElementFromNumber(101);
+        const e2 = generateFieldElementFromNumber(102);
+        const e3 = generateFieldElementFromNumber(103);
+        const e4 = generateFieldElementFromNumber(104);
+        const e5 = generateFieldElementFromNumber(105);
+        const e6 = generateFieldElementFromNumber(106);
 
         // Add a batch to `accumulator`
         const addBatch = [e1, e2, e3, e4];
-        const accumulator1 = await positiveAccumulatorAddBatch(accumulator, addBatch, sk);
+        const accumulator1 = positiveAccumulatorAddBatch(accumulator, addBatch, sk);
 
-        const witness1 = await positiveAccumulatorMembershipWitness(accumulator1, e1, sk);
-        expect(await positiveAccumulatorVerifyMembership(await positiveAccumulatorGetAccumulated(accumulator1), e1, witness1, pk, params)).toBe(true);
-        const witness2 = await positiveAccumulatorMembershipWitness(accumulator1, e2, sk);
-        expect(await positiveAccumulatorVerifyMembership(await positiveAccumulatorGetAccumulated(accumulator1), e2, witness2, pk, params)).toBe(true);
-        const witness3 = await positiveAccumulatorMembershipWitness(accumulator1, e3, sk);
-        expect(await positiveAccumulatorVerifyMembership(await positiveAccumulatorGetAccumulated(accumulator1), e3, witness3, pk, params)).toBe(true);
-        const witness4 = await positiveAccumulatorMembershipWitness(accumulator1, e4, sk);
-        expect(await positiveAccumulatorVerifyMembership(await positiveAccumulatorGetAccumulated(accumulator1), e4, witness4, pk, params)).toBe(true);
+        const witness1 = positiveAccumulatorMembershipWitness(accumulator1, e1, sk);
+        expect(positiveAccumulatorVerifyMembership(positiveAccumulatorGetAccumulated(accumulator1), e1, witness1, pk, params)).toBe(true);
+        const witness2 = positiveAccumulatorMembershipWitness(accumulator1, e2, sk);
+        expect(positiveAccumulatorVerifyMembership(positiveAccumulatorGetAccumulated(accumulator1), e2, witness2, pk, params)).toBe(true);
+        const witness3 = positiveAccumulatorMembershipWitness(accumulator1, e3, sk);
+        expect(positiveAccumulatorVerifyMembership(positiveAccumulatorGetAccumulated(accumulator1), e3, witness3, pk, params)).toBe(true);
+        const witness4 = positiveAccumulatorMembershipWitness(accumulator1, e4, sk);
+        expect(positiveAccumulatorVerifyMembership(positiveAccumulatorGetAccumulated(accumulator1), e4, witness4, pk, params)).toBe(true);
 
         // Then remove a batch from new `accumulator1`
         const removeBatch = [e1, e3];
-        const accumulator2 = await positiveAccumulatorRemoveBatch(accumulator1, removeBatch, sk);
+        const accumulator2 = positiveAccumulatorRemoveBatch(accumulator1, removeBatch, sk);
 
-        expect(await positiveAccumulatorVerifyMembership(await positiveAccumulatorGetAccumulated(accumulator2), e1, witness1, pk, params)).toBe(false);
-        expect(await positiveAccumulatorVerifyMembership(await positiveAccumulatorGetAccumulated(accumulator2), e2, witness2, pk, params)).toBe(false);
-        expect(await positiveAccumulatorVerifyMembership(await positiveAccumulatorGetAccumulated(accumulator2), e3, witness3, pk, params)).toBe(false);
-        expect(await positiveAccumulatorVerifyMembership(await positiveAccumulatorGetAccumulated(accumulator2), e4, witness4, pk, params)).toBe(false);
+        expect(positiveAccumulatorVerifyMembership(positiveAccumulatorGetAccumulated(accumulator2), e1, witness1, pk, params)).toBe(false);
+        expect(positiveAccumulatorVerifyMembership(positiveAccumulatorGetAccumulated(accumulator2), e2, witness2, pk, params)).toBe(false);
+        expect(positiveAccumulatorVerifyMembership(positiveAccumulatorGetAccumulated(accumulator2), e3, witness3, pk, params)).toBe(false);
+        expect(positiveAccumulatorVerifyMembership(positiveAccumulatorGetAccumulated(accumulator2), e4, witness4, pk, params)).toBe(false);
 
-        const witness22 = await positiveAccumulatorMembershipWitness(accumulator2, e2, sk);
-        expect(await positiveAccumulatorVerifyMembership(await positiveAccumulatorGetAccumulated(accumulator2), e2, witness22, pk, params)).toBe(true);
-        const witness42 = await positiveAccumulatorMembershipWitness(accumulator2, e4, sk);
-        expect(await positiveAccumulatorVerifyMembership(await positiveAccumulatorGetAccumulated(accumulator2), e4, witness42, pk, params)).toBe(true);
+        const witness22 = positiveAccumulatorMembershipWitness(accumulator2, e2, sk);
+        expect(positiveAccumulatorVerifyMembership(positiveAccumulatorGetAccumulated(accumulator2), e2, witness22, pk, params)).toBe(true);
+        const witness42 = positiveAccumulatorMembershipWitness(accumulator2, e4, sk);
+        expect(positiveAccumulatorVerifyMembership(positiveAccumulatorGetAccumulated(accumulator2), e4, witness42, pk, params)).toBe(true);
 
         // Then add and remove a batch from new `accumulator2`
         const addNewBatch = [e5, e6];
         const removeNewBatch = [e2, e4];
-        const accumulator3 = await positiveAccumulatorBatchUpdates(accumulator2, addNewBatch, removeNewBatch, sk);
+        const accumulator3 = positiveAccumulatorBatchUpdates(accumulator2, addNewBatch, removeNewBatch, sk);
 
-        const witness5 = await positiveAccumulatorMembershipWitness(accumulator3, e5, sk);
-        expect(await positiveAccumulatorVerifyMembership(await positiveAccumulatorGetAccumulated(accumulator3), e5, witness5, pk, params)).toBe(true);
-        const witness6 = await positiveAccumulatorMembershipWitness(accumulator3, e6, sk);
-        expect(await positiveAccumulatorVerifyMembership(await positiveAccumulatorGetAccumulated(accumulator3), e6, witness6, pk, params)).toBe(true);
+        const witness5 = positiveAccumulatorMembershipWitness(accumulator3, e5, sk);
+        expect(positiveAccumulatorVerifyMembership(positiveAccumulatorGetAccumulated(accumulator3), e5, witness5, pk, params)).toBe(true);
+        const witness6 = positiveAccumulatorMembershipWitness(accumulator3, e6, sk);
+        expect(positiveAccumulatorVerifyMembership(positiveAccumulatorGetAccumulated(accumulator3), e6, witness6, pk, params)).toBe(true);
 
         // Add a batch to `accumulator`, remove a batch from `accumulator`, then add a batch and then remove
-        let accumulator4 = await positiveAccumulatorAddBatch(accumulator, addBatch, sk);
-        accumulator4 = await positiveAccumulatorRemoveBatch(accumulator4, removeBatch, sk);
-        accumulator4 = await positiveAccumulatorAddBatch(accumulator4, addNewBatch, sk);
-        accumulator4 = await positiveAccumulatorRemoveBatch(accumulator4, removeNewBatch, sk);
+        let accumulator4 = positiveAccumulatorAddBatch(accumulator, addBatch, sk);
+        accumulator4 = positiveAccumulatorRemoveBatch(accumulator4, removeBatch, sk);
+        accumulator4 = positiveAccumulatorAddBatch(accumulator4, addNewBatch, sk);
+        accumulator4 = positiveAccumulatorRemoveBatch(accumulator4, removeNewBatch, sk);
         expect(accumulator4).toEqual(accumulator3);
     });
 
-    it("membership witnesses for multiple members", async () => {
-        const e1 = await generateFieldElementFromNumber(101);
-        const e2 = await generateFieldElementFromNumber(102);
-        const e3 = await generateFieldElementFromNumber(103);
+    it("membership witnesses for multiple members", () => {
+        const e1 = generateFieldElementFromNumber(101);
+        const e2 = generateFieldElementFromNumber(102);
+        const e3 = generateFieldElementFromNumber(103);
 
         const batch = [e1, e2, e3];
-        const accumulator1 = await positiveAccumulatorAddBatch(accumulator, batch, sk);
-        const witnesses = await positiveAccumulatorMembershipWitnessesForBatch(accumulator1, batch, sk);
-        expect(await positiveAccumulatorVerifyMembership(await positiveAccumulatorGetAccumulated(accumulator1), batch[0], witnesses[0], pk, params)).toBe(true);
-        expect(await positiveAccumulatorVerifyMembership(await positiveAccumulatorGetAccumulated(accumulator1), batch[1], witnesses[1], pk, params)).toBe(true);
-        expect(await positiveAccumulatorVerifyMembership(await positiveAccumulatorGetAccumulated(accumulator1), batch[2], witnesses[2], pk, params)).toBe(true);
+        const accumulator1 = positiveAccumulatorAddBatch(accumulator, batch, sk);
+        const witnesses = positiveAccumulatorMembershipWitnessesForBatch(accumulator1, batch, sk);
+        expect(positiveAccumulatorVerifyMembership(positiveAccumulatorGetAccumulated(accumulator1), batch[0], witnesses[0], pk, params)).toBe(true);
+        expect(positiveAccumulatorVerifyMembership(positiveAccumulatorGetAccumulated(accumulator1), batch[1], witnesses[1], pk, params)).toBe(true);
+        expect(positiveAccumulatorVerifyMembership(positiveAccumulatorGetAccumulated(accumulator1), batch[2], witnesses[2], pk, params)).toBe(true);
     });
 });
 
 describe("For Universal accumulator", () => {
-    let params: AccumulatorParams, sk: Uint8Array, pk: Uint8Array, accumulator: UniversalAccumulator;
+    let params: AccumulatorParams, sk: Uint8Array, pk: Uint8Array, accumulator: IUniversalAccumulator;
 
     const seed = new Uint8Array([0, 2, 3, 4, 5]);
     const maxSize = 20;
 
-    it("initialize", async () => {
-        params = await generateAccumulatorParams();
-        sk = await generateAccumulatorSecretKey(seed);
-        pk = await generateAccumulatorPublicKey(sk, params);
+    beforeAll(async () => {
+        await initializeWasm();
+    });
+
+    it("initialize accumulator", () => {
+        params = generateAccumulatorParams();
+        sk = generateAccumulatorSecretKey(seed);
+        pk = generateAccumulatorPublicKey(sk, params);
 
         const initialElements = [
-            await generateFieldElementFromNumber(101),
-            await generateFieldElementFromNumber(102),
-            await generateFieldElementFromNumber(103),
-            await generateFieldElementFromNumber(104),
-            await generateFieldElementFromNumber(105),
+            generateFieldElementFromNumber(101),
+            generateFieldElementFromNumber(102),
+            generateFieldElementFromNumber(103),
+            generateFieldElementFromNumber(104),
+            generateFieldElementFromNumber(105),
         ];
 
-        const fV = await universalAccumulatorComputeInitialFv(initialElements, sk);
+        const fV = universalAccumulatorComputeInitialFv(initialElements, sk);
 
-        const fV1 = await universalAccumulatorComputeInitialFv(initialElements.slice(0, 2), sk);
-        const fV2 = await universalAccumulatorComputeInitialFv(initialElements.slice(2), sk);
-        const combinedFV = await universalAccumulatorCombineMultipleInitialFv([fV1, fV2]);
+        const fV1 = universalAccumulatorComputeInitialFv(initialElements.slice(0, 2), sk);
+        const fV2 = universalAccumulatorComputeInitialFv(initialElements.slice(2), sk);
+        const combinedFV = universalAccumulatorCombineMultipleInitialFv([fV1, fV2]);
 
         expect(combinedFV).toEqual(fV);
 
-        accumulator = await universalAccumulatorInitialiseGivenFv(fV, params, maxSize);
+        accumulator = universalAccumulatorInitialiseGivenFv(fV, params, maxSize);
         expect(accumulator).toBeInstanceOf(Object);
     });
 
-    it("add an element", async () => {
-        const e1 = await generateFieldElementFromNumber(1);
-        let accumulator1 = await universalAccumulatorAdd(accumulator, e1, sk);
+    it("add an element", () => {
+        const e1 = generateFieldElementFromNumber(1);
+        let accumulator1 = universalAccumulatorAdd(accumulator, e1, sk);
         expect(accumulator1).toBeInstanceOf(Object);
-        const e2 = await generateFieldElementFromNumber(2);
-        accumulator1 = await universalAccumulatorAdd(accumulator1, e2, sk);
-        expect(accumulator1).toBeInstanceOf(Object);
-
-        const e3 = await accumulatorGetElementFromBytes(stringToBytes("user-id:1"));
-        accumulator1 = await universalAccumulatorAdd(accumulator1, e3, sk);
+        const e2 = generateFieldElementFromNumber(2);
+        accumulator1 = universalAccumulatorAdd(accumulator1, e2, sk);
         expect(accumulator1).toBeInstanceOf(Object);
 
-        const e4 = await generateRandomFieldElement();
-        accumulator1 = await universalAccumulatorAdd(accumulator1, e4, sk);
+        const e3 = accumulatorGetElementFromBytes(stringToBytes("user-id:1"));
+        accumulator1 = universalAccumulatorAdd(accumulator1, e3, sk);
+        expect(accumulator1).toBeInstanceOf(Object);
+
+        const e4 = generateRandomFieldElement();
+        accumulator1 = universalAccumulatorAdd(accumulator1, e4, sk);
         expect(accumulator1).toBeInstanceOf(Object);
     });
 
-    it("membership and non-membership after single element updates", async () => {
-        const nonMember = await generateFieldElementFromNumber(100);
+    it("membership and non-membership after single element updates", () => {
+        const nonMember = generateFieldElementFromNumber(100);
 
-        const e1 = await generateFieldElementFromNumber(101);
-        const e2 = await generateFieldElementFromNumber(102);
+        const e1 = generateFieldElementFromNumber(101);
+        const e2 = generateFieldElementFromNumber(102);
 
-        const accumulator1 = await universalAccumulatorAdd(accumulator, e1, sk);
-        const witness1 = await universalAccumulatorMembershipWitness(accumulator1, e1, sk);
-        expect(await universalAccumulatorVerifyMembership(await universalAccumulatorGetAccumulated(accumulator1), e1, witness1, pk, params)).toBe(true);
+        const accumulator1 = universalAccumulatorAdd(accumulator, e1, sk);
+        const witness1 = universalAccumulatorMembershipWitness(accumulator1, e1, sk);
+        expect(universalAccumulatorVerifyMembership(universalAccumulatorGetAccumulated(accumulator1), e1, witness1, pk, params)).toBe(true);
 
-        const accumulator2 = await universalAccumulatorAdd(accumulator1, e2, sk);
-        const witness2 = await universalAccumulatorMembershipWitness(accumulator2, e2, sk);
-        expect(await universalAccumulatorVerifyMembership(await universalAccumulatorGetAccumulated(accumulator2), e2, witness2, pk, params)).toBe(true);
-        expect(await universalAccumulatorVerifyMembership(await universalAccumulatorGetAccumulated(accumulator2), e1, witness1, pk, params)).toBe(false);
+        const accumulator2 = universalAccumulatorAdd(accumulator1, e2, sk);
+        const witness2 = universalAccumulatorMembershipWitness(accumulator2, e2, sk);
+        expect(universalAccumulatorVerifyMembership(universalAccumulatorGetAccumulated(accumulator2), e2, witness2, pk, params)).toBe(true);
+        expect(universalAccumulatorVerifyMembership(universalAccumulatorGetAccumulated(accumulator2), e1, witness1, pk, params)).toBe(false);
 
-        let accumulator3 = await universalAccumulatorRemove(accumulator2, e2, sk);
+        let accumulator3 = universalAccumulatorRemove(accumulator2, e2, sk);
         // e2 was added and removed so the accumulator becomes same as before
         expect(accumulator1).toEqual(accumulator3);
 
-        const witness11 = await universalAccumulatorMembershipWitness(accumulator3, e1, sk);
-        expect(await universalAccumulatorVerifyMembership(await universalAccumulatorGetAccumulated(accumulator3), e1, witness11, pk, params)).toBe(true);
+        const witness11 = universalAccumulatorMembershipWitness(accumulator3, e1, sk);
+        expect(universalAccumulatorVerifyMembership(universalAccumulatorGetAccumulated(accumulator3), e1, witness11, pk, params)).toBe(true);
 
-        expect(await universalAccumulatorVerifyMembership(await universalAccumulatorGetAccumulated(accumulator3), e1, witness1, pk, params)).toBe(true);
+        expect(universalAccumulatorVerifyMembership(universalAccumulatorGetAccumulated(accumulator3), e1, witness1, pk, params)).toBe(true);
 
-        const e3 = await generateFieldElementFromNumber(103);
-        const e4 = await generateFieldElementFromNumber(104);
-        accumulator3 = await universalAccumulatorAdd(accumulator3, e3, sk);
-        accumulator3 = await universalAccumulatorAdd(accumulator3, e4, sk);
+        const e3 = generateFieldElementFromNumber(103);
+        const e4 = generateFieldElementFromNumber(104);
+        accumulator3 = universalAccumulatorAdd(accumulator3, e3, sk);
+        accumulator3 = universalAccumulatorAdd(accumulator3, e4, sk);
 
-        const d = await universalAccumulatorComputeD(nonMember, [e1, e3, e4]);
-        const witness = await universalAccumulatorNonMembershipWitness(accumulator3, d, nonMember, sk, params);
-        expect(await universalAccumulatorVerifyNonMembership(await universalAccumulatorGetAccumulated(accumulator3), nonMember, witness, pk, params)).toBe(true);
+        const d = universalAccumulatorComputeD(nonMember, [e1, e3, e4]);
+        const witness = universalAccumulatorNonMembershipWitness(accumulator3, d, nonMember, sk, params);
+        expect(universalAccumulatorVerifyNonMembership(universalAccumulatorGetAccumulated(accumulator3), nonMember, witness, pk, params)).toBe(true);
 
-        const d1 = await universalAccumulatorComputeD(nonMember, [e1, e3]);
-        const d2 = await universalAccumulatorComputeD(nonMember, [e4]);
-        const combinedD = await universalAccumulatorCombineMultipleD([d1, d2]);
+        const d1 = universalAccumulatorComputeD(nonMember, [e1, e3]);
+        const d2 = universalAccumulatorComputeD(nonMember, [e4]);
+        const combinedD = universalAccumulatorCombineMultipleD([d1, d2]);
         expect(combinedD).toEqual(d);
     });
 
-    it("membership and non-membership after batch updates", async () => {
-        const nonMember = await generateFieldElementFromNumber(100);
-        let d = await universalAccumulatorComputeD(nonMember, []);
-        let nmWitness = await universalAccumulatorNonMembershipWitness(accumulator, d, nonMember, sk, params);
-        expect(await universalAccumulatorVerifyNonMembership(await universalAccumulatorGetAccumulated(accumulator), nonMember, nmWitness, pk, params)).toBe(true);
+    it("membership and non-membership after batch updates", () => {
+        const nonMember = generateFieldElementFromNumber(100);
+        let d = universalAccumulatorComputeD(nonMember, []);
+        let nmWitness = universalAccumulatorNonMembershipWitness(accumulator, d, nonMember, sk, params);
+        expect(universalAccumulatorVerifyNonMembership(universalAccumulatorGetAccumulated(accumulator), nonMember, nmWitness, pk, params)).toBe(true);
 
-        const e1 = await generateFieldElementFromNumber(101);
-        const e2 = await generateFieldElementFromNumber(102);
-        const e3 = await generateFieldElementFromNumber(103);
-        const e4 = await generateFieldElementFromNumber(104);
-        const e5 = await generateFieldElementFromNumber(105);
-        const e6 = await generateFieldElementFromNumber(106);
+        const e1 = generateFieldElementFromNumber(101);
+        const e2 = generateFieldElementFromNumber(102);
+        const e3 = generateFieldElementFromNumber(103);
+        const e4 = generateFieldElementFromNumber(104);
+        const e5 = generateFieldElementFromNumber(105);
+        const e6 = generateFieldElementFromNumber(106);
 
         // Add a batch to `accumulator`
         const addBatch = [e1, e2, e3, e4];
-        const accumulator1 = await universalAccumulatorAddBatch(accumulator, addBatch, sk);
+        const accumulator1 = universalAccumulatorAddBatch(accumulator, addBatch, sk);
 
-        const witness1 = await universalAccumulatorMembershipWitness(accumulator1, e1, sk);
-        expect(await universalAccumulatorVerifyMembership(await universalAccumulatorGetAccumulated(accumulator1), e1, witness1, pk, params)).toBe(true);
-        const witness2 = await universalAccumulatorMembershipWitness(accumulator1, e2, sk);
-        expect(await universalAccumulatorVerifyMembership(await universalAccumulatorGetAccumulated(accumulator1), e2, witness2, pk, params)).toBe(true);
-        const witness3 = await universalAccumulatorMembershipWitness(accumulator1, e3, sk);
-        expect(await universalAccumulatorVerifyMembership(await universalAccumulatorGetAccumulated(accumulator1), e3, witness3, pk, params)).toBe(true);
-        const witness4 = await universalAccumulatorMembershipWitness(accumulator1, e4, sk);
-        expect(await universalAccumulatorVerifyMembership(await universalAccumulatorGetAccumulated(accumulator1), e4, witness4, pk, params)).toBe(true);
+        const witness1 = universalAccumulatorMembershipWitness(accumulator1, e1, sk);
+        expect(universalAccumulatorVerifyMembership(universalAccumulatorGetAccumulated(accumulator1), e1, witness1, pk, params)).toBe(true);
+        const witness2 = universalAccumulatorMembershipWitness(accumulator1, e2, sk);
+        expect(universalAccumulatorVerifyMembership(universalAccumulatorGetAccumulated(accumulator1), e2, witness2, pk, params)).toBe(true);
+        const witness3 = universalAccumulatorMembershipWitness(accumulator1, e3, sk);
+        expect(universalAccumulatorVerifyMembership(universalAccumulatorGetAccumulated(accumulator1), e3, witness3, pk, params)).toBe(true);
+        const witness4 = universalAccumulatorMembershipWitness(accumulator1, e4, sk);
+        expect(universalAccumulatorVerifyMembership(universalAccumulatorGetAccumulated(accumulator1), e4, witness4, pk, params)).toBe(true);
 
-        d = await universalAccumulatorComputeD(nonMember, addBatch);
-        nmWitness = await universalAccumulatorNonMembershipWitness(accumulator1, d, nonMember, sk, params);
-        expect(await universalAccumulatorVerifyNonMembership(await universalAccumulatorGetAccumulated(accumulator1), nonMember, nmWitness, pk, params)).toBe(true);
+        d = universalAccumulatorComputeD(nonMember, addBatch);
+        nmWitness = universalAccumulatorNonMembershipWitness(accumulator1, d, nonMember, sk, params);
+        expect(universalAccumulatorVerifyNonMembership(universalAccumulatorGetAccumulated(accumulator1), nonMember, nmWitness, pk, params)).toBe(true);
 
         // Then remove a batch from new `accumulator1`
         const removeBatch = [e1, e3];
-        const accumulator2 = await universalAccumulatorRemoveBatch(accumulator1, removeBatch, sk);
+        const accumulator2 = universalAccumulatorRemoveBatch(accumulator1, removeBatch, sk);
 
-        expect(await universalAccumulatorVerifyMembership(await universalAccumulatorGetAccumulated(accumulator2), e1, witness1, pk, params)).toBe(false);
-        expect(await universalAccumulatorVerifyMembership(await universalAccumulatorGetAccumulated(accumulator2), e2, witness2, pk, params)).toBe(false);
-        expect(await universalAccumulatorVerifyMembership(await universalAccumulatorGetAccumulated(accumulator2), e3, witness3, pk, params)).toBe(false);
-        expect(await universalAccumulatorVerifyMembership(await universalAccumulatorGetAccumulated(accumulator2), e4, witness4, pk, params)).toBe(false);
+        expect(universalAccumulatorVerifyMembership(universalAccumulatorGetAccumulated(accumulator2), e1, witness1, pk, params)).toBe(false);
+        expect(universalAccumulatorVerifyMembership(universalAccumulatorGetAccumulated(accumulator2), e2, witness2, pk, params)).toBe(false);
+        expect(universalAccumulatorVerifyMembership(universalAccumulatorGetAccumulated(accumulator2), e3, witness3, pk, params)).toBe(false);
+        expect(universalAccumulatorVerifyMembership(universalAccumulatorGetAccumulated(accumulator2), e4, witness4, pk, params)).toBe(false);
 
-        const witness22 = await universalAccumulatorMembershipWitness(accumulator2, e2, sk);
-        expect(await universalAccumulatorVerifyMembership(await universalAccumulatorGetAccumulated(accumulator2), e2, witness22, pk, params)).toBe(true);
-        const witness42 = await universalAccumulatorMembershipWitness(accumulator2, e4, sk);
-        expect(await universalAccumulatorVerifyMembership(await universalAccumulatorGetAccumulated(accumulator2), e4, witness42, pk, params)).toBe(true);
+        const witness22 = universalAccumulatorMembershipWitness(accumulator2, e2, sk);
+        expect(universalAccumulatorVerifyMembership(universalAccumulatorGetAccumulated(accumulator2), e2, witness22, pk, params)).toBe(true);
+        const witness42 = universalAccumulatorMembershipWitness(accumulator2, e4, sk);
+        expect(universalAccumulatorVerifyMembership(universalAccumulatorGetAccumulated(accumulator2), e4, witness42, pk, params)).toBe(true);
 
-        d = await universalAccumulatorComputeD(nonMember, [e2, e4]);
-        nmWitness = await universalAccumulatorNonMembershipWitness(accumulator2, d, nonMember, sk, params);
-        expect(await universalAccumulatorVerifyNonMembership(await universalAccumulatorGetAccumulated(accumulator2), nonMember, nmWitness, pk, params)).toBe(true);
+        d = universalAccumulatorComputeD(nonMember, [e2, e4]);
+        nmWitness = universalAccumulatorNonMembershipWitness(accumulator2, d, nonMember, sk, params);
+        expect(universalAccumulatorVerifyNonMembership(universalAccumulatorGetAccumulated(accumulator2), nonMember, nmWitness, pk, params)).toBe(true);
 
         // Then add and remove a batch from new `accumulator2`
         const addNewBatch = [e5, e6];
         const removeNewBatch = [e2, e4];
-        const accumulator3 = await universalAccumulatorBatchUpdates(accumulator2, addNewBatch, removeNewBatch, sk);
+        const accumulator3 = universalAccumulatorBatchUpdates(accumulator2, addNewBatch, removeNewBatch, sk);
 
-        const witness5 = await universalAccumulatorMembershipWitness(accumulator3, e5, sk);
-        expect(await universalAccumulatorVerifyMembership(await universalAccumulatorGetAccumulated(accumulator3), e5, witness5, pk, params)).toBe(true);
-        const witness6 = await universalAccumulatorMembershipWitness(accumulator3, e6, sk);
-        expect(await universalAccumulatorVerifyMembership(await universalAccumulatorGetAccumulated(accumulator3), e6, witness6, pk, params)).toBe(true);
+        const witness5 = universalAccumulatorMembershipWitness(accumulator3, e5, sk);
+        expect(universalAccumulatorVerifyMembership(universalAccumulatorGetAccumulated(accumulator3), e5, witness5, pk, params)).toBe(true);
+        const witness6 = universalAccumulatorMembershipWitness(accumulator3, e6, sk);
+        expect(universalAccumulatorVerifyMembership(universalAccumulatorGetAccumulated(accumulator3), e6, witness6, pk, params)).toBe(true);
 
-        d = await universalAccumulatorComputeD(nonMember, [e5, e6]);
-        nmWitness = await universalAccumulatorNonMembershipWitness(accumulator3, d, nonMember, sk, params);
-        expect(await universalAccumulatorVerifyNonMembership(await universalAccumulatorGetAccumulated(accumulator3), nonMember, nmWitness, pk, params)).toBe(true);
+        d = universalAccumulatorComputeD(nonMember, [e5, e6]);
+        nmWitness = universalAccumulatorNonMembershipWitness(accumulator3, d, nonMember, sk, params);
+        expect(universalAccumulatorVerifyNonMembership(universalAccumulatorGetAccumulated(accumulator3), nonMember, nmWitness, pk, params)).toBe(true);
 
         // Add a batch to `accumulator`, remove a batch from `accumulator`, then add a batch and then remove
-        let accumulator4 = await universalAccumulatorAddBatch(accumulator, addBatch, sk);
-        accumulator4 = await universalAccumulatorRemoveBatch(accumulator4, removeBatch, sk);
-        accumulator4 = await universalAccumulatorAddBatch(accumulator4, addNewBatch, sk);
-        accumulator4 = await universalAccumulatorRemoveBatch(accumulator4, removeNewBatch, sk);
+        let accumulator4 = universalAccumulatorAddBatch(accumulator, addBatch, sk);
+        accumulator4 = universalAccumulatorRemoveBatch(accumulator4, removeBatch, sk);
+        accumulator4 = universalAccumulatorAddBatch(accumulator4, addNewBatch, sk);
+        accumulator4 = universalAccumulatorRemoveBatch(accumulator4, removeNewBatch, sk);
         expect(accumulator4).toEqual(accumulator3);
     });
 
-    it("membership and non-membership witnesses for multiple members", async () => {
-        const e1 = await generateFieldElementFromNumber(101);
-        const e2 = await generateFieldElementFromNumber(102);
-        const e3 = await generateFieldElementFromNumber(103);
+    it("membership and non-membership witnesses for multiple members", () => {
+        const e1 = generateFieldElementFromNumber(101);
+        const e2 = generateFieldElementFromNumber(102);
+        const e3 = generateFieldElementFromNumber(103);
 
         const batch = [e1, e2, e3];
-        const accumulator1 = await universalAccumulatorAddBatch(accumulator, batch, sk);
+        const accumulator1 = universalAccumulatorAddBatch(accumulator, batch, sk);
 
-        const witnesses = await universalAccumulatorMembershipWitnessesForBatch(accumulator1, batch, sk);
-        expect(await universalAccumulatorVerifyMembership(await universalAccumulatorGetAccumulated(accumulator1), batch[0], witnesses[0], pk, params)).toBe(true);
-        expect(await universalAccumulatorVerifyMembership(await universalAccumulatorGetAccumulated(accumulator1), batch[1], witnesses[1], pk, params)).toBe(true);
-        expect(await universalAccumulatorVerifyMembership(await universalAccumulatorGetAccumulated(accumulator1), batch[2], witnesses[2], pk, params)).toBe(true);
+        const witnesses = universalAccumulatorMembershipWitnessesForBatch(accumulator1, batch, sk);
+        expect(universalAccumulatorVerifyMembership(universalAccumulatorGetAccumulated(accumulator1), batch[0], witnesses[0], pk, params)).toBe(true);
+        expect(universalAccumulatorVerifyMembership(universalAccumulatorGetAccumulated(accumulator1), batch[1], witnesses[1], pk, params)).toBe(true);
+        expect(universalAccumulatorVerifyMembership(universalAccumulatorGetAccumulated(accumulator1), batch[2], witnesses[2], pk, params)).toBe(true);
 
         let nonMembers = [
-            await generateFieldElementFromNumber(104),
-            await generateFieldElementFromNumber(105),
-            await generateFieldElementFromNumber(106),
+            generateFieldElementFromNumber(104),
+            generateFieldElementFromNumber(105),
+            generateFieldElementFromNumber(106),
         ];
-        const d = await universalAccumulatorComputeDForBatch(nonMembers, batch);
-        const nmWitnesses = await universalAccumulatorNonMembershipWitnessesForBatch(accumulator1, d, nonMembers, sk, params);
-        expect(await universalAccumulatorVerifyNonMembership(await universalAccumulatorGetAccumulated(accumulator1), nonMembers[0], nmWitnesses[0], pk, params)).toBe(true);
-        expect(await universalAccumulatorVerifyNonMembership(await universalAccumulatorGetAccumulated(accumulator1), nonMembers[1], nmWitnesses[1], pk, params)).toBe(true);
-        expect(await universalAccumulatorVerifyNonMembership(await universalAccumulatorGetAccumulated(accumulator1), nonMembers[2], nmWitnesses[2], pk, params)).toBe(true);
+        const d = universalAccumulatorComputeDForBatch(nonMembers, batch);
+        const nmWitnesses = universalAccumulatorNonMembershipWitnessesForBatch(accumulator1, d, nonMembers, sk, params);
+        expect(universalAccumulatorVerifyNonMembership(universalAccumulatorGetAccumulated(accumulator1), nonMembers[0], nmWitnesses[0], pk, params)).toBe(true);
+        expect(universalAccumulatorVerifyNonMembership(universalAccumulatorGetAccumulated(accumulator1), nonMembers[1], nmWitnesses[1], pk, params)).toBe(true);
+        expect(universalAccumulatorVerifyNonMembership(universalAccumulatorGetAccumulated(accumulator1), nonMembers[2], nmWitnesses[2], pk, params)).toBe(true);
 
-        const d1 = await universalAccumulatorComputeDForBatch(nonMembers, [e1, e2]);
-        const d2 = await universalAccumulatorComputeDForBatch(nonMembers, [e3]);
-        const combinedD = await universalAccumulatorCombineMultipleDForBatch([d1, d2]);
+        const d1 = universalAccumulatorComputeDForBatch(nonMembers, [e1, e2]);
+        const d2 = universalAccumulatorComputeDForBatch(nonMembers, [e3]);
+        const combinedD = universalAccumulatorCombineMultipleDForBatch([d1, d2]);
         expect(combinedD).toEqual(d);
     });
 });
 
 describe("Witness update", () => {
     let params: AccumulatorParams, sk: Uint8Array, pk: Uint8Array, posAccumulator: Uint8Array,
-        uniAccumulator: UniversalAccumulator;
+        uniAccumulator: IUniversalAccumulator;
 
-    beforeEach(async () => {
-        params = await generateAccumulatorParams();
-        sk = await generateAccumulatorSecretKey();
-        pk = await generateAccumulatorPublicKey(sk, params);
+    beforeAll(async () => {
+        await initializeWasm();
+    });
 
-        posAccumulator = await positiveAccumulatorInitialize(params);
+    beforeEach(() => {
+        params = generateAccumulatorParams();
+        sk = generateAccumulatorSecretKey();
+        pk = generateAccumulatorPublicKey(sk, params);
+
+        posAccumulator = positiveAccumulatorInitialize(params);
 
         const initialElements = [
-            await generateFieldElementFromNumber(101),
-            await generateFieldElementFromNumber(102),
-            await generateFieldElementFromNumber(103),
-            await generateFieldElementFromNumber(104),
-            await generateFieldElementFromNumber(105),
-            await generateFieldElementFromNumber(106),
-            await generateFieldElementFromNumber(107),
-            await generateFieldElementFromNumber(108),
-            await generateFieldElementFromNumber(109),
-            await generateFieldElementFromNumber(110),
+            generateFieldElementFromNumber(101),
+            generateFieldElementFromNumber(102),
+            generateFieldElementFromNumber(103),
+            generateFieldElementFromNumber(104),
+            generateFieldElementFromNumber(105),
+            generateFieldElementFromNumber(106),
+            generateFieldElementFromNumber(107),
+            generateFieldElementFromNumber(108),
+            generateFieldElementFromNumber(109),
+            generateFieldElementFromNumber(110),
         ];
-        const fV = await universalAccumulatorComputeInitialFv(initialElements, sk);
-        uniAccumulator = await universalAccumulatorInitialiseGivenFv(fV, params, initialElements.length - 1);
+        const fV = universalAccumulatorComputeInitialFv(initialElements, sk);
+        uniAccumulator = universalAccumulatorInitialiseGivenFv(fV, params, initialElements.length - 1);
     });
 
-    it("after single update", async () => {
-        const nonMember = await generateRandomFieldElement();
+    it("after single update", () => {
+        const nonMember = generateRandomFieldElement();
 
-        const e1 = await generateFieldElementFromNumber(1);
-        posAccumulator = await positiveAccumulatorAdd(posAccumulator, e1, sk);
-        uniAccumulator = await universalAccumulatorAdd(uniAccumulator, e1, sk);
+        const e1 = generateFieldElementFromNumber(1);
+        posAccumulator = positiveAccumulatorAdd(posAccumulator, e1, sk);
+        uniAccumulator = universalAccumulatorAdd(uniAccumulator, e1, sk);
 
-        let posMemWit = await positiveAccumulatorMembershipWitness(posAccumulator, e1, sk);
-        expect(await positiveAccumulatorVerifyMembership(await positiveAccumulatorGetAccumulated(posAccumulator), e1, posMemWit, pk, params)).toBe(true);
+        let posMemWit = positiveAccumulatorMembershipWitness(posAccumulator, e1, sk);
+        expect(positiveAccumulatorVerifyMembership(positiveAccumulatorGetAccumulated(posAccumulator), e1, posMemWit, pk, params)).toBe(true);
 
-        let uniMemWit = await universalAccumulatorMembershipWitness(uniAccumulator, e1, sk);
-        expect(await universalAccumulatorVerifyMembership(await universalAccumulatorGetAccumulated(uniAccumulator), e1, uniMemWit, pk, params)).toBe(true);
+        let uniMemWit = universalAccumulatorMembershipWitness(uniAccumulator, e1, sk);
+        expect(universalAccumulatorVerifyMembership(universalAccumulatorGetAccumulated(uniAccumulator), e1, uniMemWit, pk, params)).toBe(true);
 
-        const d = await universalAccumulatorComputeD(nonMember, [e1]);
-        let nonMemWit = await universalAccumulatorNonMembershipWitness(uniAccumulator, d, nonMember, sk, params);
-        expect(await universalAccumulatorVerifyNonMembership(await universalAccumulatorGetAccumulated(uniAccumulator), nonMember, nonMemWit, pk, params)).toBe(true);
+        const d = universalAccumulatorComputeD(nonMember, [e1]);
+        let nonMemWit = universalAccumulatorNonMembershipWitness(uniAccumulator, d, nonMember, sk, params);
+        expect(universalAccumulatorVerifyNonMembership(universalAccumulatorGetAccumulated(uniAccumulator), nonMember, nonMemWit, pk, params)).toBe(true);
 
-        const e2 = await generateFieldElementFromNumber(2);
+        const e2 = generateFieldElementFromNumber(2);
 
-        const posAccumulator1 = await positiveAccumulatorAdd(posAccumulator, e2, sk);
-        const uniAccumulator1 = await universalAccumulatorAdd(uniAccumulator, e2, sk);
+        const posAccumulator1 = positiveAccumulatorAdd(posAccumulator, e2, sk);
+        const uniAccumulator1 = universalAccumulatorAdd(uniAccumulator, e2, sk);
 
-        posMemWit = await updateMembershipWitnessPostAdd(posMemWit, e1, e2, await positiveAccumulatorGetAccumulated(posAccumulator));
-        expect(await positiveAccumulatorVerifyMembership(await positiveAccumulatorGetAccumulated(posAccumulator1), e1, posMemWit, pk, params)).toBe(true);
+        posMemWit = updateMembershipWitnessPostAdd(posMemWit, e1, e2, positiveAccumulatorGetAccumulated(posAccumulator));
+        expect(positiveAccumulatorVerifyMembership(positiveAccumulatorGetAccumulated(posAccumulator1), e1, posMemWit, pk, params)).toBe(true);
 
-        uniMemWit = await updateMembershipWitnessPostAdd(uniMemWit, e1, e2, await universalAccumulatorGetAccumulated(uniAccumulator));
-        expect(await universalAccumulatorVerifyMembership(await universalAccumulatorGetAccumulated(uniAccumulator1), e1, uniMemWit, pk, params)).toBe(true);
+        uniMemWit = updateMembershipWitnessPostAdd(uniMemWit, e1, e2, universalAccumulatorGetAccumulated(uniAccumulator));
+        expect(universalAccumulatorVerifyMembership(universalAccumulatorGetAccumulated(uniAccumulator1), e1, uniMemWit, pk, params)).toBe(true);
 
-        nonMemWit = await updateNonMembershipWitnessPostAdd(nonMemWit, nonMember, e2, await universalAccumulatorGetAccumulated(uniAccumulator));
-        expect(await universalAccumulatorVerifyNonMembership(await universalAccumulatorGetAccumulated(uniAccumulator1), nonMember, nonMemWit, pk, params)).toBe(true);
+        nonMemWit = updateNonMembershipWitnessPostAdd(nonMemWit, nonMember, e2, universalAccumulatorGetAccumulated(uniAccumulator));
+        expect(universalAccumulatorVerifyNonMembership(universalAccumulatorGetAccumulated(uniAccumulator1), nonMember, nonMemWit, pk, params)).toBe(true);
 
-        const posAccumulator2 = await positiveAccumulatorRemove(posAccumulator1, e2, sk);
-        const uniAccumulator2 = await universalAccumulatorRemove(uniAccumulator1, e2, sk);
+        const posAccumulator2 = positiveAccumulatorRemove(posAccumulator1, e2, sk);
+        const uniAccumulator2 = universalAccumulatorRemove(uniAccumulator1, e2, sk);
 
-        posMemWit = await updateMembershipWitnessPostRemove(posMemWit, e1, e2, await positiveAccumulatorGetAccumulated(posAccumulator2));
-        expect(await positiveAccumulatorVerifyMembership(await positiveAccumulatorGetAccumulated(posAccumulator2), e1, posMemWit, pk, params)).toBe(true);
+        posMemWit = updateMembershipWitnessPostRemove(posMemWit, e1, e2, positiveAccumulatorGetAccumulated(posAccumulator2));
+        expect(positiveAccumulatorVerifyMembership(positiveAccumulatorGetAccumulated(posAccumulator2), e1, posMemWit, pk, params)).toBe(true);
 
-        uniMemWit = await updateMembershipWitnessPostRemove(uniMemWit, e1, e2, await universalAccumulatorGetAccumulated(uniAccumulator2));
-        expect(await universalAccumulatorVerifyMembership(await universalAccumulatorGetAccumulated(uniAccumulator2), e1, uniMemWit, pk, params)).toBe(true);
+        uniMemWit = updateMembershipWitnessPostRemove(uniMemWit, e1, e2, universalAccumulatorGetAccumulated(uniAccumulator2));
+        expect(universalAccumulatorVerifyMembership(universalAccumulatorGetAccumulated(uniAccumulator2), e1, uniMemWit, pk, params)).toBe(true);
 
-        nonMemWit = await updateNonMembershipWitnessPostRemove(nonMemWit, nonMember, e2, await universalAccumulatorGetAccumulated(uniAccumulator2));
-        expect(await universalAccumulatorVerifyNonMembership(await universalAccumulatorGetAccumulated(uniAccumulator2), nonMember, nonMemWit, pk, params)).toBe(true);
+        nonMemWit = updateNonMembershipWitnessPostRemove(nonMemWit, nonMember, e2, universalAccumulatorGetAccumulated(uniAccumulator2));
+        expect(universalAccumulatorVerifyNonMembership(universalAccumulatorGetAccumulated(uniAccumulator2), nonMember, nonMemWit, pk, params)).toBe(true);
     });
 
-    it("after batch updates", async () => {
-        const member = await generateRandomFieldElement();
-        const nonMember = await generateRandomFieldElement();
+    it("after batch updates", () => {
+        const member = generateRandomFieldElement();
+        const nonMember = generateRandomFieldElement();
 
-        posAccumulator = await positiveAccumulatorAdd(posAccumulator, member, sk);
-        uniAccumulator = await universalAccumulatorAdd(uniAccumulator, member, sk);
+        posAccumulator = positiveAccumulatorAdd(posAccumulator, member, sk);
+        uniAccumulator = universalAccumulatorAdd(uniAccumulator, member, sk);
 
-        let posMemWitInitial = await positiveAccumulatorMembershipWitness(posAccumulator, member, sk);
-        expect(await positiveAccumulatorVerifyMembership(await positiveAccumulatorGetAccumulated(posAccumulator), member, posMemWitInitial, pk, params)).toBe(true);
+        let posMemWitInitial = positiveAccumulatorMembershipWitness(posAccumulator, member, sk);
+        expect(positiveAccumulatorVerifyMembership(positiveAccumulatorGetAccumulated(posAccumulator), member, posMemWitInitial, pk, params)).toBe(true);
 
-        const uniMemWitInitial = await universalAccumulatorMembershipWitness(uniAccumulator, member, sk);
-        expect(await universalAccumulatorVerifyMembership(await universalAccumulatorGetAccumulated(uniAccumulator), member, uniMemWitInitial, pk, params)).toBe(true);
+        const uniMemWitInitial = universalAccumulatorMembershipWitness(uniAccumulator, member, sk);
+        expect(universalAccumulatorVerifyMembership(universalAccumulatorGetAccumulated(uniAccumulator), member, uniMemWitInitial, pk, params)).toBe(true);
 
-        const d = await universalAccumulatorComputeD(nonMember, [member]);
-        const nonMemWitInitial = await universalAccumulatorNonMembershipWitness(uniAccumulator, d, nonMember, sk, params);
-        expect(await universalAccumulatorVerifyNonMembership(await universalAccumulatorGetAccumulated(uniAccumulator), nonMember, nonMemWitInitial, pk, params)).toBe(true);
+        const d = universalAccumulatorComputeD(nonMember, [member]);
+        const nonMemWitInitial = universalAccumulatorNonMembershipWitness(uniAccumulator, d, nonMember, sk, params);
+        expect(universalAccumulatorVerifyNonMembership(universalAccumulatorGetAccumulated(uniAccumulator), nonMember, nonMemWitInitial, pk, params)).toBe(true);
 
         const addBatch0 = [
-            await generateRandomFieldElement(),
-            await generateRandomFieldElement()
+            generateRandomFieldElement(),
+            generateRandomFieldElement()
         ];
 
-        const posPublicInfo0 = await publicInfoForWitnessUpdate(await positiveAccumulatorGetAccumulated(posAccumulator), addBatch0, [], sk);
-        const uniPublicInfo0 = await publicInfoForWitnessUpdate(await universalAccumulatorGetAccumulated(uniAccumulator), addBatch0, [], sk);
+        const posPublicInfo0 = publicInfoForWitnessUpdate(positiveAccumulatorGetAccumulated(posAccumulator), addBatch0, [], sk);
+        const uniPublicInfo0 = publicInfoForWitnessUpdate(universalAccumulatorGetAccumulated(uniAccumulator), addBatch0, [], sk);
 
-        posAccumulator = await positiveAccumulatorAddBatch(posAccumulator, addBatch0, sk);
-        uniAccumulator = await universalAccumulatorAddBatch(uniAccumulator, addBatch0, sk);
+        posAccumulator = positiveAccumulatorAddBatch(posAccumulator, addBatch0, sk);
+        uniAccumulator = universalAccumulatorAddBatch(uniAccumulator, addBatch0, sk);
 
-        let posMemWit = await updateMembershipWitnessUsingPublicInfoAfterBatchUpdate(posMemWitInitial, member, addBatch0, [], posPublicInfo0);
-        expect(await positiveAccumulatorVerifyMembership(await positiveAccumulatorGetAccumulated(posAccumulator), member, posMemWit, pk, params)).toBe(true);
+        let posMemWit = updateMembershipWitnessUsingPublicInfoAfterBatchUpdate(posMemWitInitial, member, addBatch0, [], posPublicInfo0);
+        expect(positiveAccumulatorVerifyMembership(positiveAccumulatorGetAccumulated(posAccumulator), member, posMemWit, pk, params)).toBe(true);
 
-        let uniMemWit = await updateMembershipWitnessUsingPublicInfoAfterBatchUpdate(uniMemWitInitial, member, addBatch0, [], uniPublicInfo0);
-        expect(await universalAccumulatorVerifyMembership(await universalAccumulatorGetAccumulated(uniAccumulator), member, uniMemWit, pk, params)).toBe(true);
+        let uniMemWit = updateMembershipWitnessUsingPublicInfoAfterBatchUpdate(uniMemWitInitial, member, addBatch0, [], uniPublicInfo0);
+        expect(universalAccumulatorVerifyMembership(universalAccumulatorGetAccumulated(uniAccumulator), member, uniMemWit, pk, params)).toBe(true);
 
-        let nonMemWit = await updateNonMembershipWitnessUsingPublicInfoAfterBatchUpdate(nonMemWitInitial, nonMember, addBatch0, [], uniPublicInfo0);
-        expect(await universalAccumulatorVerifyNonMembership(await universalAccumulatorGetAccumulated(uniAccumulator), nonMember, nonMemWit, pk, params)).toBe(true);
+        let nonMemWit = updateNonMembershipWitnessUsingPublicInfoAfterBatchUpdate(nonMemWitInitial, nonMember, addBatch0, [], uniPublicInfo0);
+        expect(universalAccumulatorVerifyNonMembership(universalAccumulatorGetAccumulated(uniAccumulator), nonMember, nonMemWit, pk, params)).toBe(true);
 
         const addBatch1 = [
-            await generateRandomFieldElement(),
-            await generateRandomFieldElement()
+            generateRandomFieldElement(),
+            generateRandomFieldElement()
         ];
         const remBatch1 = addBatch0;
 
-        const posPublicInfo1 = await publicInfoForWitnessUpdate(await positiveAccumulatorGetAccumulated(posAccumulator), addBatch1, remBatch1, sk);
-        const uniPublicInfo1 = await publicInfoForWitnessUpdate(await universalAccumulatorGetAccumulated(uniAccumulator), addBatch1, remBatch1, sk);
+        const posPublicInfo1 = publicInfoForWitnessUpdate(positiveAccumulatorGetAccumulated(posAccumulator), addBatch1, remBatch1, sk);
+        const uniPublicInfo1 = publicInfoForWitnessUpdate(universalAccumulatorGetAccumulated(uniAccumulator), addBatch1, remBatch1, sk);
 
-        posAccumulator = await positiveAccumulatorBatchUpdates(posAccumulator, addBatch1, remBatch1, sk);
-        uniAccumulator = await universalAccumulatorBatchUpdates(uniAccumulator, addBatch1, remBatch1, sk);
+        posAccumulator = positiveAccumulatorBatchUpdates(posAccumulator, addBatch1, remBatch1, sk);
+        uniAccumulator = universalAccumulatorBatchUpdates(uniAccumulator, addBatch1, remBatch1, sk);
 
-        posMemWit = await updateMembershipWitnessUsingPublicInfoAfterBatchUpdate(posMemWit, member, addBatch1, remBatch1, posPublicInfo1);
-        expect(await positiveAccumulatorVerifyMembership(await positiveAccumulatorGetAccumulated(posAccumulator), member, posMemWit, pk, params)).toBe(true);
+        posMemWit = updateMembershipWitnessUsingPublicInfoAfterBatchUpdate(posMemWit, member, addBatch1, remBatch1, posPublicInfo1);
+        expect(positiveAccumulatorVerifyMembership(positiveAccumulatorGetAccumulated(posAccumulator), member, posMemWit, pk, params)).toBe(true);
 
-        uniMemWit = await updateMembershipWitnessUsingPublicInfoAfterBatchUpdate(uniMemWit, member, addBatch1, remBatch1, uniPublicInfo1);
-        expect(await universalAccumulatorVerifyMembership(await universalAccumulatorGetAccumulated(uniAccumulator), member, uniMemWit, pk, params)).toBe(true);
+        uniMemWit = updateMembershipWitnessUsingPublicInfoAfterBatchUpdate(uniMemWit, member, addBatch1, remBatch1, uniPublicInfo1);
+        expect(universalAccumulatorVerifyMembership(universalAccumulatorGetAccumulated(uniAccumulator), member, uniMemWit, pk, params)).toBe(true);
 
-        nonMemWit = await updateNonMembershipWitnessUsingPublicInfoAfterBatchUpdate(nonMemWit, nonMember, addBatch1, remBatch1, uniPublicInfo1);
-        expect(await universalAccumulatorVerifyNonMembership(await universalAccumulatorGetAccumulated(uniAccumulator), nonMember, nonMemWit, pk, params)).toBe(true);
+        nonMemWit = updateNonMembershipWitnessUsingPublicInfoAfterBatchUpdate(nonMemWit, nonMember, addBatch1, remBatch1, uniPublicInfo1);
+        expect(universalAccumulatorVerifyNonMembership(universalAccumulatorGetAccumulated(uniAccumulator), nonMember, nonMemWit, pk, params)).toBe(true);
 
         const addBatch2 = [
-            await generateRandomFieldElement(),
-            await generateRandomFieldElement()
+            generateRandomFieldElement(),
+            generateRandomFieldElement()
         ];
         const remBatch2 = addBatch1;
 
-        const posPublicInfo2 = await publicInfoForWitnessUpdate(await positiveAccumulatorGetAccumulated(posAccumulator), addBatch2, remBatch2, sk);
-        const uniPublicInfo2 = await publicInfoForWitnessUpdate(await universalAccumulatorGetAccumulated(uniAccumulator), addBatch2, remBatch2, sk);
+        const posPublicInfo2 = publicInfoForWitnessUpdate(positiveAccumulatorGetAccumulated(posAccumulator), addBatch2, remBatch2, sk);
+        const uniPublicInfo2 = publicInfoForWitnessUpdate(universalAccumulatorGetAccumulated(uniAccumulator), addBatch2, remBatch2, sk);
 
-        posAccumulator = await positiveAccumulatorBatchUpdates(posAccumulator, addBatch2, remBatch2, sk);
-        uniAccumulator = await universalAccumulatorBatchUpdates(uniAccumulator, addBatch2, remBatch2, sk);
+        posAccumulator = positiveAccumulatorBatchUpdates(posAccumulator, addBatch2, remBatch2, sk);
+        uniAccumulator = universalAccumulatorBatchUpdates(uniAccumulator, addBatch2, remBatch2, sk);
 
-        posMemWit = await updateMembershipWitnessUsingPublicInfoAfterBatchUpdate(posMemWit, member, addBatch2, remBatch2, posPublicInfo2);
-        expect(await positiveAccumulatorVerifyMembership(await positiveAccumulatorGetAccumulated(posAccumulator), member, posMemWit, pk, params)).toBe(true);
+        posMemWit = updateMembershipWitnessUsingPublicInfoAfterBatchUpdate(posMemWit, member, addBatch2, remBatch2, posPublicInfo2);
+        expect(positiveAccumulatorVerifyMembership(positiveAccumulatorGetAccumulated(posAccumulator), member, posMemWit, pk, params)).toBe(true);
 
-        uniMemWit = await updateMembershipWitnessUsingPublicInfoAfterBatchUpdate(uniMemWit, member, addBatch2, remBatch2, uniPublicInfo2);
-        expect(await universalAccumulatorVerifyMembership(await universalAccumulatorGetAccumulated(uniAccumulator), member, uniMemWit, pk, params)).toBe(true);
+        uniMemWit = updateMembershipWitnessUsingPublicInfoAfterBatchUpdate(uniMemWit, member, addBatch2, remBatch2, uniPublicInfo2);
+        expect(universalAccumulatorVerifyMembership(universalAccumulatorGetAccumulated(uniAccumulator), member, uniMemWit, pk, params)).toBe(true);
 
-        nonMemWit = await updateNonMembershipWitnessUsingPublicInfoAfterBatchUpdate(nonMemWit, nonMember, addBatch2, remBatch2, uniPublicInfo2);
-        expect(await universalAccumulatorVerifyNonMembership(await universalAccumulatorGetAccumulated(uniAccumulator), nonMember, nonMemWit, pk, params)).toBe(true);
+        nonMemWit = updateNonMembershipWitnessUsingPublicInfoAfterBatchUpdate(nonMemWit, nonMember, addBatch2, remBatch2, uniPublicInfo2);
+        expect(universalAccumulatorVerifyNonMembership(universalAccumulatorGetAccumulated(uniAccumulator), nonMember, nonMemWit, pk, params)).toBe(true);
 
-        posMemWit = await updateMembershipWitnessUsingPublicInfoAfterMultipleBatchUpdates(posMemWitInitial, member, [addBatch0, addBatch1, addBatch2], [[], remBatch1, remBatch2], [posPublicInfo0, posPublicInfo1, posPublicInfo2]);
-        expect(await positiveAccumulatorVerifyMembership(await positiveAccumulatorGetAccumulated(posAccumulator), member, posMemWit, pk, params)).toBe(true);
+        posMemWit = updateMembershipWitnessUsingPublicInfoAfterMultipleBatchUpdates(posMemWitInitial, member, [addBatch0, addBatch1, addBatch2], [[], remBatch1, remBatch2], [posPublicInfo0, posPublicInfo1, posPublicInfo2]);
+        expect(positiveAccumulatorVerifyMembership(positiveAccumulatorGetAccumulated(posAccumulator), member, posMemWit, pk, params)).toBe(true);
 
-        uniMemWit = await updateMembershipWitnessUsingPublicInfoAfterMultipleBatchUpdates(uniMemWitInitial, member, [addBatch0, addBatch1, addBatch2], [[], remBatch1, remBatch2], [uniPublicInfo0, uniPublicInfo1, uniPublicInfo2]);
-        expect(await universalAccumulatorVerifyMembership(await universalAccumulatorGetAccumulated(uniAccumulator), member, uniMemWit, pk, params)).toBe(true);
+        uniMemWit = updateMembershipWitnessUsingPublicInfoAfterMultipleBatchUpdates(uniMemWitInitial, member, [addBatch0, addBatch1, addBatch2], [[], remBatch1, remBatch2], [uniPublicInfo0, uniPublicInfo1, uniPublicInfo2]);
+        expect(universalAccumulatorVerifyMembership(universalAccumulatorGetAccumulated(uniAccumulator), member, uniMemWit, pk, params)).toBe(true);
 
-        nonMemWit = await updateNonMembershipWitnessUsingPublicInfoAfterMultipleBatchUpdates(nonMemWitInitial, nonMember, [addBatch0, addBatch1, addBatch2], [[], remBatch1, remBatch2], [uniPublicInfo0, uniPublicInfo1, uniPublicInfo2]);
-        expect(await universalAccumulatorVerifyNonMembership(await universalAccumulatorGetAccumulated(uniAccumulator), nonMember, nonMemWit, pk, params)).toBe(true);
+        nonMemWit = updateNonMembershipWitnessUsingPublicInfoAfterMultipleBatchUpdates(nonMemWitInitial, nonMember, [addBatch0, addBatch1, addBatch2], [[], remBatch1, remBatch2], [uniPublicInfo0, uniPublicInfo1, uniPublicInfo2]);
+        expect(universalAccumulatorVerifyNonMembership(universalAccumulatorGetAccumulated(uniAccumulator), nonMember, nonMemWit, pk, params)).toBe(true);
     });
 });
 
 describe("Proofs ", () => {
     let params: AccumulatorParams, sk: Uint8Array, pk: Uint8Array, posAccumulator: Uint8Array,
-        accumulator: UniversalAccumulator;
+        accumulator: IUniversalAccumulator;
 
     beforeAll(async () => {
-        params = await generateAccumulatorParams();
-        sk = await generateAccumulatorSecretKey();
-        pk = await generateAccumulatorPublicKey(sk, params);
+        await initializeWasm();
+        params = generateAccumulatorParams();
+        sk = generateAccumulatorSecretKey();
+        pk = generateAccumulatorPublicKey(sk, params);
 
-        posAccumulator = await positiveAccumulatorInitialize(params);
+        posAccumulator = positiveAccumulatorInitialize(params);
 
         const initialElements = [
-            await generateFieldElementFromNumber(101),
-            await generateFieldElementFromNumber(102),
-            await generateFieldElementFromNumber(103),
-            await generateFieldElementFromNumber(104),
-            await generateFieldElementFromNumber(105),
-            await generateFieldElementFromNumber(106),
-            await generateFieldElementFromNumber(107),
-            await generateFieldElementFromNumber(108),
-            await generateFieldElementFromNumber(109),
-            await generateFieldElementFromNumber(110),
+            generateFieldElementFromNumber(101),
+            generateFieldElementFromNumber(102),
+            generateFieldElementFromNumber(103),
+            generateFieldElementFromNumber(104),
+            generateFieldElementFromNumber(105),
+            generateFieldElementFromNumber(106),
+            generateFieldElementFromNumber(107),
+            generateFieldElementFromNumber(108),
+            generateFieldElementFromNumber(109),
+            generateFieldElementFromNumber(110),
         ];
-        const fV = await universalAccumulatorComputeInitialFv(initialElements, sk);
-        accumulator = await universalAccumulatorInitialiseGivenFv(fV, params, initialElements.length - 1);
+        const fV = universalAccumulatorComputeInitialFv(initialElements, sk);
+        accumulator = universalAccumulatorInitialiseGivenFv(fV, params, initialElements.length - 1);
     });
 
-    it("for membership", async () => {
-        const prk = await generateMembershipProvingKey();
-        const member = await generateFieldElementFromNumber(1);
+    it("for membership", () => {
+        const prk = generateMembershipProvingKey();
+        const member = generateFieldElementFromNumber(1);
 
-        posAccumulator = await positiveAccumulatorAdd(posAccumulator, member, sk);
-        accumulator = await universalAccumulatorAdd(accumulator, member, sk);
+        posAccumulator = positiveAccumulatorAdd(posAccumulator, member, sk);
+        accumulator = universalAccumulatorAdd(accumulator, member, sk);
 
-        const posMemWit = await positiveAccumulatorMembershipWitness(posAccumulator, member, sk);
-        expect(await positiveAccumulatorVerifyMembership(await positiveAccumulatorGetAccumulated(posAccumulator), member, posMemWit, pk, params)).toBe(true);
+        const posMemWit = positiveAccumulatorMembershipWitness(posAccumulator, member, sk);
+        expect(positiveAccumulatorVerifyMembership(positiveAccumulatorGetAccumulated(posAccumulator), member, posMemWit, pk, params)).toBe(true);
 
-        const uniMemWit = await universalAccumulatorMembershipWitness(accumulator, member, sk);
-        expect(await universalAccumulatorVerifyMembership(await universalAccumulatorGetAccumulated(accumulator), member, uniMemWit, pk, params)).toBe(true);
+        const uniMemWit = universalAccumulatorMembershipWitness(accumulator, member, sk);
+        expect(universalAccumulatorVerifyMembership(universalAccumulatorGetAccumulated(accumulator), member, uniMemWit, pk, params)).toBe(true);
 
-        let blinding = await generateRandomFieldElement();
-        let protocol = await accumulatorInitializeMembershipProof(member, blinding, posMemWit, pk, params, prk);
+        let blinding = generateRandomFieldElement();
+        let protocol = accumulatorInitializeMembershipProof(member, blinding, posMemWit, pk, params, prk);
 
-        let pBytes = await accumulatorChallengeContributionFromMembershipProtocol(protocol, await positiveAccumulatorGetAccumulated(posAccumulator) , pk, params, prk);
+        let pBytes = accumulatorChallengeContributionFromMembershipProtocol(protocol, positiveAccumulatorGetAccumulated(posAccumulator) , pk, params, prk);
         expect(pBytes).toBeInstanceOf(Uint8Array);
-        let proverChallenge = await generateChallengeFromBytes(pBytes);
+        let proverChallenge = generateChallengeFromBytes(pBytes);
 
-        let proof = await accumulatorGenMembershipProof(protocol, proverChallenge);
+        let proof = accumulatorGenMembershipProof(protocol, proverChallenge);
 
-        let vBytes = await accumulatorChallengeContributionFromMembershipProof(proof, await positiveAccumulatorGetAccumulated(posAccumulator) , pk, params, prk) ;
+        let vBytes = accumulatorChallengeContributionFromMembershipProof(proof, positiveAccumulatorGetAccumulated(posAccumulator) , pk, params, prk) ;
         expect(vBytes).toBeInstanceOf(Uint8Array);
         expect(pBytes).toEqual(vBytes);
-        let verifierChallenge = await generateChallengeFromBytes(vBytes);
+        let verifierChallenge = generateChallengeFromBytes(vBytes);
         expect(proverChallenge).toEqual(verifierChallenge);
 
-        let result = await accumulatorVerifyMembershipProof(proof, await positiveAccumulatorGetAccumulated(posAccumulator), verifierChallenge, pk, params, prk);
+        let result = accumulatorVerifyMembershipProof(proof, positiveAccumulatorGetAccumulated(posAccumulator), verifierChallenge, pk, params, prk);
         expect(result.verified).toBe(true);
 
-        blinding = await generateRandomFieldElement();
-        protocol = await accumulatorInitializeMembershipProof(member, blinding, uniMemWit, pk, params, prk);
+        blinding = generateRandomFieldElement();
+        protocol = accumulatorInitializeMembershipProof(member, blinding, uniMemWit, pk, params, prk);
 
-        pBytes = await accumulatorChallengeContributionFromMembershipProtocol(protocol, await universalAccumulatorGetAccumulated(accumulator) , pk, params, prk);
+        pBytes = accumulatorChallengeContributionFromMembershipProtocol(protocol, universalAccumulatorGetAccumulated(accumulator) , pk, params, prk);
         expect(pBytes).toBeInstanceOf(Uint8Array);
-        proverChallenge = await generateChallengeFromBytes(pBytes);
+        proverChallenge = generateChallengeFromBytes(pBytes);
 
-        proof = await accumulatorGenMembershipProof(protocol, proverChallenge);
+        proof = accumulatorGenMembershipProof(protocol, proverChallenge);
 
-        vBytes = await accumulatorChallengeContributionFromMembershipProof(proof, await universalAccumulatorGetAccumulated(accumulator) , pk, params, prk) ;
+        vBytes = accumulatorChallengeContributionFromMembershipProof(proof, universalAccumulatorGetAccumulated(accumulator) , pk, params, prk) ;
         expect(vBytes).toBeInstanceOf(Uint8Array);
         expect(pBytes).toEqual(vBytes);
-        verifierChallenge = await generateChallengeFromBytes(vBytes);
+        verifierChallenge = generateChallengeFromBytes(vBytes);
         expect(proverChallenge).toEqual(verifierChallenge);
 
-        result = await accumulatorVerifyMembershipProof(proof, await universalAccumulatorGetAccumulated(accumulator), verifierChallenge, pk, params, prk);
+        result = accumulatorVerifyMembershipProof(proof, universalAccumulatorGetAccumulated(accumulator), verifierChallenge, pk, params, prk);
         expect(result.verified).toBe(true);
     });
 
-    it("for non-membership", async () => {
-        const prk = await generateNonMembershipProvingKey();
-        const nonMember = await generateRandomFieldElement();
-        const member = await generateRandomFieldElement();
+    it("for non-membership", () => {
+        const prk = generateNonMembershipProvingKey();
+        const nonMember = generateRandomFieldElement();
+        const member = generateRandomFieldElement();
 
-        accumulator = await universalAccumulatorAdd(accumulator, member, sk);
+        accumulator = universalAccumulatorAdd(accumulator, member, sk);
 
-        const d = await universalAccumulatorComputeD(nonMember, [member]);
-        const nonMemWit = await universalAccumulatorNonMembershipWitness(accumulator, d, nonMember, sk, params);
-        expect(await universalAccumulatorVerifyNonMembership(await universalAccumulatorGetAccumulated(accumulator), nonMember, nonMemWit, pk, params)).toBe(true);
+        const d = universalAccumulatorComputeD(nonMember, [member]);
+        const nonMemWit = universalAccumulatorNonMembershipWitness(accumulator, d, nonMember, sk, params);
+        expect(universalAccumulatorVerifyNonMembership(universalAccumulatorGetAccumulated(accumulator), nonMember, nonMemWit, pk, params)).toBe(true);
 
-        const blinding = await generateRandomFieldElement();
-        const protocol = await accumulatorInitializeNonMembershipProof(nonMember, blinding, nonMemWit, pk, params, prk);
+        const blinding = generateRandomFieldElement();
+        const protocol = accumulatorInitializeNonMembershipProof(nonMember, blinding, nonMemWit, pk, params, prk);
 
-        const pBytes = await accumulatorChallengeContributionFromNonMembershipProtocol(protocol, await universalAccumulatorGetAccumulated(accumulator) , pk, params, prk);
+        const pBytes = accumulatorChallengeContributionFromNonMembershipProtocol(protocol, universalAccumulatorGetAccumulated(accumulator) , pk, params, prk);
         expect(pBytes).toBeInstanceOf(Uint8Array);
-        const proverChallenge = await generateChallengeFromBytes(pBytes);
+        const proverChallenge = generateChallengeFromBytes(pBytes);
 
-        const proof = await accumulatorGenNonMembershipProof(protocol, proverChallenge);
+        const proof = accumulatorGenNonMembershipProof(protocol, proverChallenge);
 
-        const vBytes = await accumulatorChallengeContributionFromNonMembershipProof(proof, await universalAccumulatorGetAccumulated(accumulator) , pk, params, prk) ;
+        const vBytes = accumulatorChallengeContributionFromNonMembershipProof(proof, universalAccumulatorGetAccumulated(accumulator) , pk, params, prk) ;
         expect(vBytes).toBeInstanceOf(Uint8Array);
         expect(pBytes).toEqual(vBytes);
-        const verifierChallenge = await generateChallengeFromBytes(vBytes);
+        const verifierChallenge = generateChallengeFromBytes(vBytes);
         expect(proverChallenge).toEqual(verifierChallenge);
 
-        const result = await accumulatorVerifyNonMembershipProof(proof, await universalAccumulatorGetAccumulated(accumulator), verifierChallenge, pk, params, prk);
+        const result = accumulatorVerifyNonMembershipProof(proof, universalAccumulatorGetAccumulated(accumulator), verifierChallenge, pk, params, prk);
         expect(result.verified).toBe(true);
     });
 });

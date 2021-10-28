@@ -5,10 +5,10 @@
   "license": "Apache-2.0",
   "private": false,
   "description": "An implementation of BBS+ signatures, bilinear map accumulators and composite proof using rust compiled to wasm. This project started as fork of @mattrglobal/bbs-signatures",
-  "homepage": "https://github.com/docknetwork/wasm-crypto",
+  "homepage": "https://github.com/docknetwork/crypto-wasm",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
-  "repository": "https://github.com/docknetwork/wasm-crypto",
+  "repository": "https://github.com/docknetwork/crypto-wasm",
   "browser": {
     "index.js": "lib/index.web.js"
   },

@@ -1,9 +1,9 @@
 {
-  "name": "bbs-signatures-sample",
-  "version": "1.0.0",
-  "description": "A sample for using bbs-signatures",
-  "repository": "https://github.com/mattrglobal/bbs-signatures",
-  "author": "Mattr Limited",
+  "name": "crypto-wasm-sample",
+  "version": "0.1.0",
+  "description": "A sample for using crypto-wasm",
+  "repository": "https://github.com/docknetwork/crypto-wasm",
+  "author": "Mattr Limited & Dock.io",
   "license": "Apache-2.0",
   "private": false,
   "scripts": {
