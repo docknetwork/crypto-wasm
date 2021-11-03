@@ -27,7 +27,7 @@
     "clean": "rm -rf target && rm -rf lib",
     "build": "./scripts/build-package.sh DEBUG",
     "build:release": "./scripts/build-package.sh RELEASE",
-    "test": "yarn test:browser && yarn test:node && yarn test:wasm",
+    "test": "yarn test:browser && yarn test:wasm",
     "test:browser": "./scripts/test-browser.sh",
     "test:wasm": "yarn jest",
     "benchmark:wasm": "ts-node ./bench/index.ts",
