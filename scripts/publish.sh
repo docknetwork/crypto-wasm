@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# This script handles the publishing of the current 
+# This script handles the publishing of the current
 # commits as an npm based package
 
-# Example if the current package.json version reads 0.1.0 
+# Example if the current package.json version reads 0.1.0
 # then the release will be tagged with 0.1.0
 
 # Add dev dependencies to current path
@@ -16,7 +16,7 @@ node scripts/remove-install-script.js
 new_version=$(node -pe "require('./package.json').version")
 
 # Version to this new unstable version
-yarn publish --no-git-tag-version --new-version $new_version
+npm publish --no-git-tag-version --new-version $new_version --access public
 
 # Reset changes to the package.json
 git checkout -- package.json

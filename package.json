@@ -1,6 +1,6 @@
 {
   "name": "@docknetwork/crypto-wasm",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "author": "Dock.io",
   "license": "Apache-2.0",
   "private": false,
@@ -22,7 +22,7 @@
     "node": ">=11.0.0"
   },
   "scripts": {
-    "install": "./scripts/install-dependencies.sh",
+    "install:deps": "./scripts/install-dependencies.sh",
     "uninstall": "rm -rf node_modules && yarn clean",
     "clean": "rm -rf target && rm -rf lib",
     "build": "./scripts/build-package.sh DEBUG",
