@@ -410,7 +410,7 @@ pub fn bbs_unblind_sig_g1(
     Ok(obj_to_uint8array!(&signature.unblind(&blinding)))
 }
 
-#[wasm_bindgen(js_name = bbsVerfiyG1)]
+#[wasm_bindgen(js_name = bbsVerifyG1)]
 pub fn bbs_verify_g1(
     messages: JsValue,
     signature: js_sys::Uint8Array,
@@ -502,7 +502,7 @@ pub fn bbs_unblind_sig_g2(
     Ok(obj_to_uint8array!(&signature.unblind(&blinding)))
 }
 
-#[wasm_bindgen(js_name = bbsVerfiyG2)]
+#[wasm_bindgen(js_name = bbsVerifyG2)]
 pub fn bbs_verify_g2(
     messages: JsValue,
     signature: js_sys::Uint8Array,

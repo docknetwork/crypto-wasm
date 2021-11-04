@@ -168,7 +168,7 @@ module.exports.bbsSignG2 = (
     return wasm.bbsSignG2(messages, secretKey, params, encodeMessages);
 };
 
-module.exports.bbsVerfiyG1 = (
+module.exports.bbsVerifyG1 = (
     messages,
     signature,
     publicKey,
@@ -176,10 +176,10 @@ module.exports.bbsVerfiyG1 = (
     encodeMessages
 ) => {
     requireWasmInitialized();
-    return wasm.bbsVerfiyG1(messages, signature, publicKey, params, encodeMessages);
+    return wasm.bbsVerifyG1(messages, signature, publicKey, params, encodeMessages);
 };
 
-module.exports.bbsVerfiyG2 = (
+module.exports.bbsVerifyG2 = (
     messages,
     signature,
     publicKey,
@@ -187,7 +187,7 @@ module.exports.bbsVerfiyG2 = (
     encodeMessages
 ) => {
     requireWasmInitialized();
-    return wasm.bbsVerfiyG2(messages, signature, publicKey, params, encodeMessages);
+    return wasm.bbsVerifyG2(messages, signature, publicKey, params, encodeMessages);
 };
 
 module.exports.bbsCommitMsgsInG1 = (

@@ -2,7 +2,7 @@ import { stringToBytes } from "../utilities";
 import {
     BbsSigParams, accumulatorDeriveMembershipProvingKeyFromNonMembershipKey, bbsBlindSignG1, bbsCommitMsgsInG1,
     bbsEncodeMessageForSigning, bbsEncodeMessagesForSigning, bbsGetBasesForCommitmentG1,
-    bbsSignG1, bbsUnblindSigG1, bbsVerfiyG1,
+    bbsSignG1, bbsUnblindSigG1, bbsVerifyG1,
     generateAccumulatorMembershipStatement,
     generateAccumulatorMembershipWitness,
     generateAccumulatorNonMembershipStatement,

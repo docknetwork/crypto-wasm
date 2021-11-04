@@ -22,7 +22,7 @@
     generateChallengeFromBytes, bbsChallengeContributionFromProof, accumulatorChallengeContributionFromMembershipProtocol,
     accumulatorChallengeContributionFromNonMembershipProtocol, accumulatorChallengeContributionFromNonMembershipProof,
     accumulatorDeriveMembershipProvingKeyFromNonMembershipKey, updateMembershipWitnessesPostBatchUpdates, updateNonMembershipWitnessesPostBatchUpdates,
-    accumulatorParamsToBytes, accumulatorParamsFromBytes, accumulatorPublicKeyFromBytes, accumulatorPublicKeyToBytes
+    accumulatorParamsToBytes, accumulatorParamsFromBytes, accumulatorPublicKeyFromBytes, accumulatorPublicKeyToBytes, updateMembershipWitnessesPostBatchUpdates
 } = require("./index");*/
 
 const {
@@ -251,12 +251,12 @@ module.exports.updateNonMembershipWitnessPostRemove = (witness, member, removal,
 
 module.exports.updateMembershipWitnessesPostBatchUpdates = (witnesses, members, additions, removals, oldAccumulated, secretKey) => {
     requireWasmInitialized();
-    return wasm.updateMembershipWitnessUsingPublicInfoAfterBatchUpdate(witnesses, members, additions, removals, oldAccumulated, secretKey)
+    return wasm.updateMembershipWitnessesPostBatchUpdates(witnesses, members, additions, removals, oldAccumulated, secretKey)
 };
 
 module.exports.updateNonMembershipWitnessesPostBatchUpdates = (witnesses, nonMembers, additions, removals, oldAccumulated, secretKey) => {
     requireWasmInitialized();
-    return wasm.updateMembershipWitnessUsingPublicInfoAfterBatchUpdate(witnesses, nonMembers, additions, removals, oldAccumulated, secretKey)
+    return wasm.updateNonMembershipWitnessesPostBatchUpdates(witnesses, nonMembers, additions, removals, oldAccumulated, secretKey)
 };
 
 module.exports.publicInfoForWitnessUpdate = (oldAccumulated, additions, removals, secretKey) => {

@@ -129,7 +129,7 @@ export function bbsSignG2(
     encodeMessages: boolean
 ): Uint8Array;
 
-export function bbsVerfiyG1(
+export function bbsVerifyG1(
     messages: Uint8Array[],
     signature: Uint8Array,
     publicKey: Uint8Array,
@@ -137,7 +137,7 @@ export function bbsVerfiyG1(
     encodeMessages: boolean
 ): Required<VerifyResult>;
 
-export function bbsVerfiyG2(
+export function bbsVerifyG2(
     messages: Uint8Array[],
     signature: Uint8Array,
     publicKey: Uint8Array,

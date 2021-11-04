@@ -40,15 +40,7 @@ module.exports.generateChallengeFromBytes = (bytes) => {
     return wasm.generateChallengeFromBytes(bytes);
 };
 
-<<<<<<< HEAD
-module.exports.generateFieldElementFromNumber = async (num) => {
-    await initialize();
-    return throwErrorOnRejectedPromise(
-        wasm.generateFieldElementFromNumber(num)
-    );
-=======
 module.exports.generateFieldElementFromNumber = (num) => {
     requireWasmInitialized();
     return wasm.generateFieldElementFromNumber(num);
->>>>>>> a4eaa46 (convert to sync functions)
 };

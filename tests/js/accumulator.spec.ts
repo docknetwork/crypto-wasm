@@ -63,7 +63,7 @@ import {
     accumulatorParamsToBytes,
     accumulatorPublicKeyFromBytes,
     accumulatorPublicKeyToBytes,
-    initializeWasm
+    initializeWasm, updateMembershipWitnessesPostBatchUpdates
 } from "../../lib";
 
 import {stringToBytes} from "../utilities";
@@ -503,6 +503,25 @@ describe("Witness update", () => {
 
         nonMemWit = updateNonMembershipWitnessPostRemove(nonMemWit, nonMember, e2, universalAccumulatorGetAccumulated(uniAccumulator2));
         expect(universalAccumulatorVerifyNonMembership(universalAccumulatorGetAccumulated(uniAccumulator2), nonMember, nonMemWit, pk, params)).toBe(true);
+    });
+
+    it("by manager after batch updates", () => {
+        const member1 = generateRandomFieldElement();
+        const member2 = generateRandomFieldElement();
+
+        posAccumulator = positiveAccumulatorAddBatch(posAccumulator, [member1, member2], sk);
+        const wits = positiveAccumulatorMembershipWitnessesForBatch(posAccumulator, [member1, member2], sk);
+
+        const member3 = generateRandomFieldElement();
+        const member4 = generateRandomFieldElement();
+
+        const posAccumulator1 = positiveAccumulatorAddBatch(posAccumulator, [member3, member4], sk);
+
+        const newWits = updateMembershipWitnessesPostBatchUpdates(wits, [member1, member2], [member3, member4], [], positiveAccumulatorGetAccumulated(posAccumulator), sk);
+        expect(positiveAccumulatorVerifyMembership(positiveAccumulatorGetAccumulated(posAccumulator1), member1, newWits[0], pk, params)).toBe(true);
+        expect(positiveAccumulatorVerifyMembership(positiveAccumulatorGetAccumulated(posAccumulator1), member2, newWits[1], pk, params)).toBe(true);
+
+        posAccumulator = posAccumulator1;
     });
 
     it("after batch updates", () => {
