@@ -1,5 +1,4 @@
-# wasm-crypto
-
+# crypto-wasm
 
 This repository is a WASM wrapper over [Dock's Rust crypto library](https://github.com/docknetwork/crypto) and is home to 
 - BBS+, a performant multi-message digital signature algorithm implementation which supports
@@ -7,21 +6,75 @@ deriving zero knowledge proofs that enable selective disclosure from the origina
 - bilinear map, positive and universal accumulators supporting single and batch updates to the accumulator and witness
 - composite proof system that lets you combine BBS+ signatures, accumulators and Schnorr protocols
 
-This project started as fork of [@mattrglobal/bbs-signatures](https://github.com/mattrglobal/bbs-signatures) but now only borrows the WASM setup; the API is quite different.
+This project started as fork of [@mattrglobal/bbs-signatures](https://github.com/mattrglobal/bbs-signatures) but now only borrows the 
+WASM setup; the API is quite different.
 
-[BBS+ Signatures](https://github.com/mattrglobal/bbs-signatures-spec) are a digital signature algorithm originally born from the work on
-[Short group signatures](https://crypto.stanford.edu/~xb/crypto04a/groupsigs.pdf) by Boneh, Boyen, and Shachum which was
-later improved on in [Constant-Size Dynamic k-TAA](http://web.cs.iastate.edu/~wzhang/teach-552/ReadingList/552-14.pdf)
-as BBS+ and touched on again in section 4.3 in
-[Anonymous Attestation Using the Strong Diffie Hellman Assumption Revisited ](https://www.researchgate.net/publication/306347781_Anonymous_Attestation_Using_the_Strong_Diffie_Hellman_Assumption_Revisited).
+This repo contains a thin wrapper over the Rust code and exposes free floating JS functions. For a Typescript wrapper with better 
+abstractions, check [this](https://github.com/docknetwork/crypto-wasm-ts). 
 
-BBS+ signatures require a
-[pairing-friendly curve](https://tools.ietf.org/html/draft-irtf-cfrg-pairing-friendly-curves-03), this library includes
-support for [BLS12-381](https://tools.ietf.org/html/draft-irtf-cfrg-pairing-friendly-curves-03#section-2.4).
+## Overview
+Following is a conceptual explanation of the primitives. For the API, check the [tests](./tests/js).  
 
-BBS+ Signatures allow for multi-message signing whilst producing a single output signature. With a BBS signature, a
-[proof of knowledge](https://en.wikipedia.org/wiki/Proof_of_knowledge) based proof can be produced where only some of
-the originally signed messages are revealed at the discretion of the prover.
+### BBS+ Signatures
+BBS+ signature allow for signing an ordered list of messages, producing a signature of constant size independent of the number 
+of messages. The signer needs to have a public-private keypair and signature parameters which are public values whose size 
+depends on the number of messages being signed. A verifier who needs to verify the signature needs to know the 
+signature parameters used to sign the messages and the public key of the signer.  
+BBS+ signature also allow a user to request a blind signature from a signer where the signer does not know 1 or more messages 
+from the list. The user can then unblind the blind signature to get a regular signature which can be verified by a verifier in 
+the usual way. Such blind signatures can be used to hide a user specific secret like a private key or some unique identifier 
+as a message in the message list and the signer does not become aware of the hidden message.     
+With a BBS signature, a user in possession of the signature and messages and create a [zero-knowledge proof of knowledge](https://en.wikipedia.org/wiki/Proof_of_knowledge) 
+of the signature and the corresponding signed messages such that he can prove to a verifier that he knows a signature and the 
+messages and optionally reveal one or more of the messages.  
+A typical use of BBS+ signatures looks like:
+  - Signature parameters of the required size are assumed to exist and published at a public location. The signer can create 
+    his own or reuse parameters created by another party.
+  - Signer public-private keypair and publishes the public key. The keypair can be reused for signing other messages as well. 
+  - User requests a signature from the signer.
+  - Signer signs the message list using the signature parameters and his private key.
+  - User verifies the signature on the  message list using the signature parameters and signer's public key
+  - User creates a proof of knowledge of the signature and message list and optionally reveals 1 or more messages to the verifier.
+  - The verifier uses the signature parameters and signer's public key to verify this proof. If successful, the verifier is 
+    convinced that the user does have a signature from the signer and any messages revealed were part of the message list 
+    signed by the signer.
+
+### Accumulator
+An accumulator is a "set like" data-structure in which elements can be added or removed but the size of the accumulator remains 
+constant. But an accumulator cannot be directly checked for presence of an element, an element needs to have accompanying data called 
+the witness (its the manager's signature on the element), the element and the witness and these together can be used to check the presence 
+or absence of the element. An accumulator can be considered similar to the root of the merkle tree where the inclusion proof is the witness 
+of the element (non-membership proofs aren't possible with simple merkle trees). As with merkle trees, as elements are added or 
+removed from the accumulator, the witness (inclusion proof) needs to be updated for the current accumulated value (root).  
+2 kinds of accumulators are provided, positive and universal. Positive support only membership witnesses while universal support both 
+membership and non-membership witnesses. Creating non-membership witnesses is expensive however and the cost depends on the 
+number of members present in the accumulator. Both accumulators are owned by an accumulator manager who has the private key to the accumulator 
+and only the owner can add or remove elements or create witnesses using the accumulator.    
+Accumulator allows proving membership of the member (or non-member) and the corresponding witness in zero knowledge meaning 
+a user in possession of an accumulator member (or non-member) and the witness can convince a verifier that he knows of an 
+element present (or absent) in the accumulator without revealing the element or the witness. Note, the like merkle trees, 
+witnesses (inclusion proof) are tied to the accumulated value (root) and need to be updated as accumulator changes.  
+Witnesses can be updated either by the accumulator manager using his private key or the manager can publish witness update 
+information and the updates (additions and removals) and users can update their witnesses. 
+A typical use of accumulator looks like:
+  - Accumulator parameters are assumed to exist and published at a public location. The manager can create his own params or 
+    reuse existing ones.
+  - Accumulator manager creates a keypair and publishes the public key.
+  - Accumulator manager initializes the accumulator and publishes the accumulator.
+  - User requests an element to be added to the accumulator and the membership witness from the manager. The user could have 
+    also requested a non-membership witness for an absent element.
+  - Signer checks whether requested element is not already present (in his database) and adds the element to the 
+    accumulator if not already present. He publishes the new accumulator and creates a (non)membership witness and sends to the user.
+  - User verifies the (non)membership using the element, the witness, the new accumulated value and the accumulator params and signer's public key.
+  - To prove knowledge of (non)membership in zero knowledge, user and verifier agree on a proving key. Anyone can generate this. 
+  - User can create a proof of knowledge of the element and the witness corresponding to the accumulator.
+  - Verifier can verify above proof using the current accumulator, the parameters and signer's public key and is convinced 
+    that the user knows of an element and its witness and the (non)-membership.
+
+### Composite proofs
+The above primitives can be combined using the composite proof system. An example is (in zero knowledge) proving knowledge of 2 
+different signatures and the message lists. Another example is proving knowledge of the signature and messages and certain message's presence (absence) 
+in an accumulator. Or the knowledge of 5 signatures and proving certain message is the same in the 5 message lists. 
 
 ## Getting started
 
@@ -112,6 +165,8 @@ To run just the tests for a node environment using the wasm module run:
 yarn test:wasm
 ```
 
+Before running the JS tests, build the project with `yarn build`.
+
 To run just the tests for a browser environment run:
 
 ```
@@ -130,6 +185,11 @@ For BBS+, run:
 wasm-pack test --headless --chrome -- --test bbs_plus
 ```
 
+For accumulator, run:
+```
+wasm-pack test --headless --chrome -- --test accumulator
+```
+
 #### Benchmark
 
 To benchmark the implementation locally in a node environment using the wasm module run:
@@ -137,6 +197,103 @@ To benchmark the implementation locally in a node environment using the wasm mod
 ```
 yarn benchmark:wasm
 ```
+
+## Usage
+
+Since loading WASM is an async process, before any function can be used `initializeWasm` should be called and resolved which 
+loads WASM.
+
+Example of using BBS+ signature
+
+```js
+import {
+  generateSignatureParamsG1, generateBBSPublicKeyG2, generateBBSSigningKey, bbsSignG1, bbsVerifyG1, 
+  bbsInitializeProofOfKnowledgeOfSignature, bbsGenProofOfKnowledgeOfSignature, bbsVerifyProofOfKnowledgeOfSignature, 
+  bbsChallengeContributionFromProtocol, bbsChallengeContributionFromProof, generateChallengeFromBytes, 
+  initializeWasm
+} from "../../../lib";
+
+const stringToBytes = (str: string) => Uint8Array.from(Buffer.from(str, "utf-8"));
+
+const main = async () => {
+    // Load the WASM module
+    await initializeWasm();
+
+    // Generate some random messages
+    const messages = [
+        Uint8Array.from(Buffer.from("message1", "utf8")),
+        Uint8Array.from(Buffer.from("message2", "utf8")),
+        Uint8Array.from(Buffer.from("message3", "utf8")),
+    ];
+
+  const label = stringToBytes("test-params");
+  const messageCount = messages.length;
+
+  // Generate params deterministically using a label
+  const sigParams = generateSignatureParamsG1(messageCount, label);
+  console.log('params is', sigParams);
+
+  // Generate a new key pair
+  const sk = generateBBSSigningKey();
+  const pk = generateBBSPublicKeyG2(sk, sigParams);
+  console.log("Key pair generated");
+  console.log(
+    `Public key base64 = ${Buffer.from(pk).toString("base64")}`
+  );
+
+  console.log("Signing a message set of " + messages);
+
+  // Create the signature
+  const signature = bbsSignG1(messages, sk, sigParams, true);
+  console.log(
+    `Output signature base64 = ${Buffer.from(signature).toString("base64")}`
+  );
+
+  // Verify the signature
+  const isVerified = bbsVerifyG1(messages, signature, pk, sigParams, true);
+  const isVerifiedString = JSON.stringify(isVerified);
+  console.log(`Signature verified ? ${isVerifiedString}`);
+
+  // Derive a proof from the signature revealing the first message
+  const revealed = new Set<number>();
+  revealed.add(0);
+  const revealedMsgs = new Map();
+  revealedMsgs.set(0, messages[0]);
+  
+  const protocol = bbsInitializeProofOfKnowledgeOfSignature(
+      signature,
+      sigParams,
+      messages,
+    new Map(),
+      revealed,
+      true
+  );
+
+  const challengeProver = generateChallengeFromBytes(bbsChallengeContributionFromProtocol(protocol, revealedMsgs, sigParams, true));
+  const proof = bbsGenProofOfKnowledgeOfSignature(protocol, challengeProver);
+
+  console.log(`Output proof base64 = ${Buffer.from(proof).toString("base64")}`);
+
+  // Verify the created proof
+  const challengeVerifier = generateChallengeFromBytes(bbsChallengeContributionFromProof(proof, revealedMsgs, sigParams, true));
+  const isProofVerified = bbsVerifyProofOfKnowledgeOfSignature(
+    proof,
+      revealedMsgs,
+    challengeVerifier,
+    pk,
+    sigParams,
+    true,
+  );
+  const isProofVerifiedString = JSON.stringify(isProofVerified);
+  console.log(`Proof verified ? ${isProofVerifiedString}`);
+};
+
+main();
+
+```
+
+See the [tests](./tests/js) for more thorough examples.
+
 
 ## Dependencies
 
@@ -156,9 +313,8 @@ For those interested in more details, you might find the following resources hel
 - [Exploring Elliptic Curve Pairings](https://vitalik.ca/general/2017/01/14/exploring_ecp.html)
 - [Anonymous Attestation Using the Strong Diffie Hellman Assumption Revisited](https://www.researchgate.net/publication/306347781_Anonymous_Attestation_Using_the_Strong_Diffie_Hellman_Assumption_Revisited)
 - [Pairing Friendly Curves](https://tools.ietf.org/html/draft-irtf-cfrg-pairing-friendly-curves-01)
-- [BLS Signatures](https://tools.ietf.org/html/draft-irtf-cfrg-bls-signature-02)
-
----
+- BBS+ signature defined in [Anonymous Attestation Using the Strong Diffie Hellman Assumption Revisited](https://eprint.iacr.org/2016/663)
+- Dynamic accumulator defined in [Dynamic Universal Accumulator with Batch Update over Bilinear Groups](https://eprint.iacr.org/2020/777)
 
 
 To build, use

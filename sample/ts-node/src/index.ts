@@ -11,27 +11,36 @@
  * limitations under the License.
  */
 
-import {generateSignatureParamsG1, generateBBSPublicKeyG2, generateBBSSigningKey, bbsSignG1, bbsVerifyG1, bbsInitializeProofOfKnowledgeOfSignature, bbsGenProofOfKnowledgeOfSignature, bbsVerifyProofOfKnowledgeOfSignature, bbsChallengeContributionFromProtocol, bbsChallengeContributionFromProof, generateChallengeFromBytes, initializeWasm} from "../../../lib";
+import {
+  generateSignatureParamsG1, generateBBSPublicKeyG2, generateBBSSigningKey, bbsSignG1, bbsVerifyG1,
+  bbsInitializeProofOfKnowledgeOfSignature, bbsGenProofOfKnowledgeOfSignature, bbsVerifyProofOfKnowledgeOfSignature,
+  bbsChallengeContributionFromProtocol, bbsChallengeContributionFromProof, generateChallengeFromBytes,
+  initializeWasm
+} from "../../../lib";
 
 const stringToBytes = (str: string) => Uint8Array.from(Buffer.from(str, "utf-8"));
 
 const main = async () => {
+  // Load the WASM module
   await initializeWasm();
+
+  // Generate some random messages
   const messages = [
     Uint8Array.from(Buffer.from("message1", "utf8")),
     Uint8Array.from(Buffer.from("message2", "utf8")),
     Uint8Array.from(Buffer.from("message3", "utf8")),
   ];
 
-  const label = stringToBytes("test");
+  const label = stringToBytes("test-params");
   const messageCount = messages.length;
-  // Generate params
+
+  // Generate params deterministically using a label
   const sigParams = generateSignatureParamsG1(messageCount, label);
   console.log('params is', sigParams);
+
   // Generate a new key pair
   const sk = generateBBSSigningKey();
   const pk = generateBBSPublicKeyG2(sk, sigParams);
-
   console.log("Key pair generated");
   console.log(
     `Public key base64 = ${Buffer.from(pk).toString("base64")}`
@@ -39,16 +48,14 @@ const main = async () => {
 
   console.log("Signing a message set of " + messages);
 
-  //Create the signature
+  // Create the signature
   const signature = bbsSignG1(messages, sk, sigParams, true);
-
   console.log(
     `Output signature base64 = ${Buffer.from(signature).toString("base64")}`
   );
 
-  //Verify the signature
+  // Verify the signature
   const isVerified = bbsVerifyG1(messages, signature, pk, sigParams, true);
-
   const isVerifiedString = JSON.stringify(isVerified);
   console.log(`Signature verified ? ${isVerifiedString}`);
 
@@ -57,9 +64,6 @@ const main = async () => {
   revealed.add(0);
   const revealedMsgs = new Map();
   revealedMsgs.set(0, messages[0]);
-  const unrevealedMsgs = new Map();
-  unrevealedMsgs.set(1, messages[1]);
-  unrevealedMsgs.set(2, messages[2]);
 
   const protocol = bbsInitializeProofOfKnowledgeOfSignature(
       signature,
@@ -85,7 +89,6 @@ const main = async () => {
     sigParams,
     true,
   );
-
   const isProofVerifiedString = JSON.stringify(isProofVerified);
   console.log(`Proof verified ? ${isProofVerifiedString}`);
 };

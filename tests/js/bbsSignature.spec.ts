@@ -178,10 +178,12 @@ describe("For BBS+ signatures", () => {
 
     const params1 = bbsAdaptSigParamsG1ForMsgCount(params0, label, 5);
     expect(bbsSignatureParamsG1MaxSupportedMsgs(params1)).toBe(5);
+    expect(isSignatureParamsG1Valid(params1)).toBe(true);
     expect(params0.h[0]).toEqual(params1.h[0]);
 
     const params2 = bbsAdaptSigParamsG1ForMsgCount(params1, label, 2);
     expect(bbsSignatureParamsG1MaxSupportedMsgs(params2)).toBe(2);
+    expect(isSignatureParamsG1Valid(params2)).toBe(true);
     expect(params1.h[0]).toEqual(params2.h[0])
     expect(params1.h[1]).toEqual(params2.h[1])
   });
@@ -193,10 +195,12 @@ describe("For BBS+ signatures", () => {
 
     const params1 = bbsAdaptSigParamsG2ForMsgCount(params0, label, 5);
     expect(bbsSignatureParamsG2MaxSupportedMsgs(params1)).toBe(5);
+    expect(isSignatureParamsG2Valid(params1)).toBe(true);
     expect(params0.h[0]).toEqual(params1.h[0]);
 
     const params2 = bbsAdaptSigParamsG2ForMsgCount(params1, label, 2);
     expect(bbsSignatureParamsG2MaxSupportedMsgs(params2)).toBe(2);
+    expect(isSignatureParamsG2Valid(params2)).toBe(true);
     expect(params1.h[0]).toEqual(params2.h[0])
     expect(params1.h[1]).toEqual(params2.h[1])
   });

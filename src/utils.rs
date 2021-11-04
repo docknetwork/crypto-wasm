@@ -189,17 +189,23 @@ pub fn g2_affine_from_uint8_array(value: js_sys::Uint8Array) -> Result<G2Affine,
     Ok(elem)
 }
 
-pub fn message_bytes_to_messages(messages_as_bytes: &[Vec<u8>], encode_messages: bool) -> Vec<Fr> {
-    messages_as_bytes
-        .iter()
-        .map(|m| {
+pub fn message_bytes_to_messages(
+    messages_as_bytes: &[Vec<u8>],
+    encode_messages: bool,
+) -> Result<Vec<Fr>, JsValue> {
+    let mut result = vec![];
+    for m in messages_as_bytes {
+        result.push({
             if encode_messages {
                 encode_message_for_signing(m)
             } else {
-                Fr::deserialize(m.as_slice()).unwrap()
+                Fr::deserialize(m.as_slice()).map_err(|e| {
+                    JsValue::from(&format!("Cannot deserialize to Fr due to error: {:?}", e))
+                })?
             }
-        })
-        .collect::<Vec<_>>()
+        });
+    }
+    Ok(result)
 }
 
 pub fn msgs_bytes_map_to_fr_btreemap(

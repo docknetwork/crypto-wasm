@@ -197,9 +197,7 @@ pub fn generate_proof_spec(
 }
 
 #[wasm_bindgen(js_name = getProofSpecAsJson)]
-pub fn get_proof_spec_as_json(
-    proof_spec: JsValue
-) -> Result<js_sys::JsString, JsValue> {
+pub fn get_proof_spec_as_json(proof_spec: JsValue) -> Result<js_sys::JsString, JsValue> {
     set_panic_hook();
     let proof_spec: ProofSpec = serde_wasm_bindgen::from_value(proof_spec)?;
     let ser = serde_json::to_string(&proof_spec).unwrap();
@@ -207,9 +205,7 @@ pub fn get_proof_spec_as_json(
 }
 
 #[wasm_bindgen(js_name = getProofSpecFromJson)]
-pub fn get_proof_spec_from_json(
-    proof_spec: js_sys::JsString
-) -> Result<JsValue, JsValue> {
+pub fn get_proof_spec_from_json(proof_spec: js_sys::JsString) -> Result<JsValue, JsValue> {
     set_panic_hook();
     let proof_spec: ProofSpec = serde_json::from_str(&String::from(proof_spec)).unwrap();
     serde_wasm_bindgen::to_value(&proof_spec).map_err(|e| JsValue::from(e))

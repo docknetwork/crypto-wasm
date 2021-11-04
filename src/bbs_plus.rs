@@ -361,7 +361,7 @@ pub fn bbs_sign_g1(
     let sk: BBSPlusSk = serde_wasm_bindgen::from_value(secret_key)?;
     let params: SigParamsG1 = serde_wasm_bindgen::from_value(params)?;
 
-    let messages = message_bytes_to_messages(&messages_as_bytes, encode_messages);
+    let messages = message_bytes_to_messages(&messages_as_bytes, encode_messages)?;
 
     let mut rng = get_seeded_rng();
     match SigG1::new(&mut rng, &messages, &sk, &params) {
@@ -425,7 +425,7 @@ pub fn bbs_verify_g1(
     let params: SigParamsG1 = serde_wasm_bindgen::from_value(params)?;
 
     let messages_as_bytes: Vec<Vec<u8>> = serde_wasm_bindgen::from_value(messages)?;
-    let messages = message_bytes_to_messages(&messages_as_bytes, encode_messages);
+    let messages = message_bytes_to_messages(&messages_as_bytes, encode_messages)?;
 
     match signature.verify(messages.as_slice(), &pk, &params) {
         Ok(_) => Ok(serde_wasm_bindgen::to_value(&VerifyResponse {
@@ -453,7 +453,7 @@ pub fn bbs_sign_g2(
     let sk: BBSPlusSk = serde_wasm_bindgen::from_value(secret_key)?;
     let params: SigParamsG2 = serde_wasm_bindgen::from_value(params)?;
 
-    let messages = message_bytes_to_messages(&messages_as_bytes, encode_messages);
+    let messages = message_bytes_to_messages(&messages_as_bytes, encode_messages)?;
 
     let mut rng = get_seeded_rng();
     match SigG2::new(&mut rng, &messages, &sk, &params) {
@@ -518,7 +518,7 @@ pub fn bbs_verify_g2(
     let params: SigParamsG2 = serde_wasm_bindgen::from_value(params)?;
 
     let messages_as_bytes: Vec<Vec<u8>> = serde_wasm_bindgen::from_value(messages)?;
-    let messages = message_bytes_to_messages(&messages_as_bytes, encode_messages);
+    let messages = message_bytes_to_messages(&messages_as_bytes, encode_messages)?;
 
     match signature.verify(messages.as_slice(), &pk, &params) {
         Ok(_) => Ok(serde_wasm_bindgen::to_value(&VerifyResponse {
@@ -552,7 +552,7 @@ pub fn bbs_initialize_proof_of_knowledge_of_signature(
     let blindings = msgs_bytes_map_to_fr_btreemap(&blindings, false)?;
 
     let messages_as_bytes: Vec<Vec<u8>> = serde_wasm_bindgen::from_value(messages)?;
-    let messages = message_bytes_to_messages(&messages_as_bytes, encode_messages);
+    let messages = message_bytes_to_messages(&messages_as_bytes, encode_messages)?;
 
     let mut indices = BTreeSet::new();
     for i in revealed_indices.values() {
