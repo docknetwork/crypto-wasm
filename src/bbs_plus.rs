@@ -96,7 +96,7 @@ pub fn bbs_params_g1_from_bytes(bytes: js_sys::Uint8Array) -> Result<JsValue, Js
     let params: SigParamsG1 =
         CanonicalDeserialize::deserialize(&bytes.to_vec()[..]).map_err(|e| {
             JsValue::from(&format!(
-                "Failed to deserialize from bytes due to error: {:?}",
+                "Failed to deserialize signature params from bytes due to error: {:?}",
                 e
             ))
         })?;
@@ -118,7 +118,7 @@ pub fn bbs_params_g2_from_bytes(bytes: js_sys::Uint8Array) -> Result<JsValue, Js
     let params: SigParamsG2 =
         CanonicalDeserialize::deserialize(&bytes.to_vec()[..]).map_err(|e| {
             JsValue::from(&format!(
-                "Failed to deserialize from bytes due to error: {:?}",
+                "Failed to deserialize signature params from bytes due to error: {:?}",
                 e
             ))
         })?;

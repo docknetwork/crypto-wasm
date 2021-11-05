@@ -85,14 +85,14 @@ fn get_witness_equality_statement(witness_refs: Vec<(u32, u32)>) -> JsValue {
     generate_witness_equality_meta_statement(equality).unwrap()
 }
 
-fn get_params_and_keys() -> (JsValue, JsValue, JsValue) {
+fn get_params_and_keys() -> (js_sys::Uint8Array, JsValue, js_sys::Uint8Array) {
     let params = generate_accumulator_params(None).unwrap();
     let sk = accumulator_generate_secret_key(None).unwrap();
     let pk = accumulator_generate_public_key(sk.clone(), params.clone()).unwrap();
     (params, sk, pk)
 }
 
-fn get_universal_accum(sk: JsValue, params: JsValue, max_size: u32) -> JsValue {
+fn get_universal_accum(sk: JsValue, params: js_sys::Uint8Array, max_size: u32) -> JsValue {
     let initial_elements = (0..max_size + 1)
         .map(|_| random_ff(None))
         .collect::<Vec<_>>();

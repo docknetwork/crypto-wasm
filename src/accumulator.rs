@@ -42,42 +42,22 @@ use crate::common::VerifyResponse;
 /// Generate accumulator parameters. They are needed to generate public key and initialize the accumulator.
 /// Pass the `label` argument to generate parameters deterministically.
 #[wasm_bindgen(js_name = generateAccumulatorParams)]
-pub fn generate_accumulator_params(label: Option<Vec<u8>>) -> Result<JsValue, JsValue> {
+pub fn generate_accumulator_params(label: Option<Vec<u8>>) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let label = label.unwrap_or_else(|| random_bytes());
     let params = AccumSetupParams::new::<Blake2b>(&label);
-    serde_wasm_bindgen::to_value(&params).map_err(|e| JsValue::from(e))
-}
-
-/// Check if parameters are valid. Before verifying witness or using for proof verification,
-/// make sure the params are valid.
-#[wasm_bindgen(js_name = isAccumulatorParamsValid)]
-pub fn accumulator_is_params_valid(params: JsValue) -> Result<bool, JsValue> {
-    set_panic_hook();
-    let params: AccumSetupParams = serde_wasm_bindgen::from_value(params)?;
-    Ok(params.is_valid())
-}
-
-#[wasm_bindgen(js_name = accumulatorParamsToBytes)]
-pub fn accumulator_params_to_bytes(params: JsValue) -> Result<js_sys::Uint8Array, JsValue> {
-    set_panic_hook();
-    let params: AccumSetupParams = serde_wasm_bindgen::from_value(params)?;
     let mut bytes = vec![];
     CanonicalSerialize::serialize(&params, &mut bytes).unwrap();
     Ok(js_sys::Uint8Array::from(bytes.as_slice()))
 }
 
-#[wasm_bindgen(js_name = accumulatorParamsFromBytes)]
-pub fn accumulator_params_from_bytes(bytes: js_sys::Uint8Array) -> Result<JsValue, JsValue> {
+/// Check if parameters are valid. Before verifying witness or using for proof verification,
+/// make sure the params are valid.
+#[wasm_bindgen(js_name = isAccumulatorParamsValid)]
+pub fn accumulator_is_params_valid(params: js_sys::Uint8Array) -> Result<bool, JsValue> {
     set_panic_hook();
-    let params: AccumSetupParams =
-        CanonicalDeserialize::deserialize(&bytes.to_vec()[..]).map_err(|e| {
-            JsValue::from(&format!(
-                "Failed to deserialize from bytes due to error: {:?}",
-                e
-            ))
-        })?;
-    serde_wasm_bindgen::to_value(&params).map_err(|e| JsValue::from(e))
+    let params = deserialize_params(params)?;
+    Ok(params.is_valid())
 }
 
 /// Generate secret key for the accumulator manager who updates the accumulator and creates witnesses.
@@ -94,54 +74,35 @@ pub fn accumulator_generate_secret_key(seed: Option<Vec<u8>>) -> Result<JsValue,
 #[wasm_bindgen(js_name = generateAccumulatorPublicKey)]
 pub fn accumulator_generate_public_key(
     secret_key: JsValue,
-    params: JsValue,
-) -> Result<JsValue, JsValue> {
+    params: js_sys::Uint8Array,
+) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let sk: AccumSk = serde_wasm_bindgen::from_value(secret_key)?;
-    let params: AccumSetupParams = serde_wasm_bindgen::from_value(params)?;
-    serde_wasm_bindgen::to_value(&AccumKeypair::public_key_from_secret_key(&sk, &params))
-        .map_err(|e| JsValue::from(e))
+    let params = deserialize_params(params)?;
+    let pk = AccumKeypair::public_key_from_secret_key(&sk, &params);
+    let mut bytes = vec![];
+    CanonicalSerialize::serialize(&pk, &mut bytes).unwrap();
+    Ok(js_sys::Uint8Array::from(bytes.as_slice()))
 }
 
 /// Check if public key is valid. Before verifying witness or using for proof verification,
 /// make sure the public key is valid.
 #[wasm_bindgen(js_name = isAccumulatorPublicKeyValid)]
-pub fn accumulator_is_pubkey_valid(public_key: JsValue) -> Result<bool, JsValue> {
+pub fn accumulator_is_pubkey_valid(public_key: js_sys::Uint8Array) -> Result<bool, JsValue> {
     set_panic_hook();
-    let pk: AccumPk = serde_wasm_bindgen::from_value(public_key)?;
+    let pk = deserialize_public_key(public_key)?;
     Ok(pk.is_valid())
-}
-
-#[wasm_bindgen(js_name = accumulatorPublicKeyToBytes)]
-pub fn accumulator_public_key_to_bytes(public_key: JsValue) -> Result<js_sys::Uint8Array, JsValue> {
-    set_panic_hook();
-    let public_key: AccumPk = serde_wasm_bindgen::from_value(public_key)?;
-    let mut bytes = vec![];
-    CanonicalSerialize::serialize(&public_key, &mut bytes).unwrap();
-    Ok(js_sys::Uint8Array::from(bytes.as_slice()))
-}
-
-#[wasm_bindgen(js_name = accumulatorPublicKeyFromBytes)]
-pub fn accumulator_public_key_from_bytes(bytes: js_sys::Uint8Array) -> Result<JsValue, JsValue> {
-    set_panic_hook();
-    let pk: AccumPk = CanonicalDeserialize::deserialize(&bytes.to_vec()[..]).map_err(|e| {
-        JsValue::from(&format!(
-            "Failed to deserialize from bytes due to error: {:?}",
-            e
-        ))
-    })?;
-    serde_wasm_bindgen::to_value(&pk).map_err(|e| JsValue::from(e))
 }
 
 /// Generate private and public key from given params and optional `seed`.
 /// Pass the `seed` argument to generate keys deterministically.
 #[wasm_bindgen(js_name = generateAccumulatorKeyPair)]
 pub fn accumulator_generate_keypair(
-    params: JsValue,
+    params: js_sys::Uint8Array,
     seed: Option<Vec<u8>>,
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
-    let params: AccumSetupParams = serde_wasm_bindgen::from_value(params)?;
+    let params = deserialize_params(params)?;
     let seed = seed.unwrap_or(random_bytes());
     let keypair = AccumKeypair::generate_using_seed::<Blake2b>(&seed, &params);
     serde_wasm_bindgen::to_value(&keypair).map_err(|e| JsValue::from(e))
@@ -159,9 +120,9 @@ pub fn accumulator_get_element_from_bytes(bytes: Vec<u8>) -> Result<JsValue, JsV
 
 /// Initialize a positive accumulator
 #[wasm_bindgen(js_name = positiveAccumulatorInitialize)]
-pub fn positive_accumulator_initialize(params: JsValue) -> Result<JsValue, JsValue> {
+pub fn positive_accumulator_initialize(params: js_sys::Uint8Array) -> Result<JsValue, JsValue> {
     set_panic_hook();
-    let params: AccumSetupParams = serde_wasm_bindgen::from_value(params)?;
+    let params = deserialize_params(params)?;
     let accum = PositiveAccum::initialize(&params);
     serde_wasm_bindgen::to_value(&accum).map_err(|e| JsValue::from(e))
 }
@@ -223,8 +184,8 @@ pub fn positive_accumulator_verify_membership(
     accumulated: js_sys::Uint8Array,
     element: js_sys::Uint8Array,
     witness: JsValue,
-    public_key: JsValue,
-    params: JsValue,
+    public_key: js_sys::Uint8Array,
+    params: js_sys::Uint8Array,
 ) -> Result<bool, JsValue> {
     set_panic_hook();
     let accumulated = g1_affine_from_uint8_array(accumulated)?;
@@ -260,12 +221,12 @@ pub fn universal_accumulator_combine_multiple_initial_fv(
 #[wasm_bindgen(js_name = universalAccumulatorInitialiseGivenFv)]
 pub fn universal_accumulator_initialize_given_f_v(
     f_v: js_sys::Uint8Array,
-    params: JsValue,
+    params: js_sys::Uint8Array,
     max_size: u32,
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
     let f_v = fr_from_uint8_array(f_v)?;
-    let params: AccumSetupParams = serde_wasm_bindgen::from_value(params)?;
+    let params = deserialize_params(params)?;
     let accum = UniversalAccum::initialize_given_f_V(f_v, &params, max_size as u64);
     serde_wasm_bindgen::to_value(&accum).map_err(|e| JsValue::from(e))
 }
@@ -324,8 +285,8 @@ pub fn universal_accumulator_verify_membership(
     accumulated: js_sys::Uint8Array,
     member: js_sys::Uint8Array,
     witness: JsValue,
-    public_key: JsValue,
-    params: JsValue,
+    public_key: js_sys::Uint8Array,
+    params: js_sys::Uint8Array,
 ) -> Result<bool, JsValue> {
     set_panic_hook();
     let accumulated = g1_affine_from_uint8_array(accumulated)?;
@@ -367,14 +328,14 @@ pub fn universal_accumulator_non_membership_witness(
     d: js_sys::Uint8Array,
     non_member: js_sys::Uint8Array,
     secret_key: JsValue,
-    params: JsValue,
+    params: js_sys::Uint8Array,
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
     let accum: UniversalAccum = serde_wasm_bindgen::from_value(accum)?;
     let element = fr_from_uint8_array(non_member)?;
     let d = fr_from_uint8_array(d)?;
     let sk: AccumSk = serde_wasm_bindgen::from_value(secret_key)?;
-    let params: AccumSetupParams = serde_wasm_bindgen::from_value(params)?;
+    let params = deserialize_params(params)?;
     serde_wasm_bindgen::to_value(
         &accum
             .compute_non_membership_witness_given_d(d, &element, &sk, &params)
@@ -393,8 +354,8 @@ pub fn universal_accumulator_verify_non_membership(
     accumulated: js_sys::Uint8Array,
     non_member: js_sys::Uint8Array,
     witness: JsValue,
-    public_key: JsValue,
-    params: JsValue,
+    public_key: js_sys::Uint8Array,
+    params: js_sys::Uint8Array,
 ) -> Result<bool, JsValue> {
     set_panic_hook();
     let accumulated = g1_affine_from_uint8_array(accumulated)?;
@@ -402,8 +363,8 @@ pub fn universal_accumulator_verify_non_membership(
     let accum = UniversalAccum::from_accumulated(accumulated);
     let non_member = fr_from_uint8_array(non_member)?;
     let witness: NonMembershipWit = serde_wasm_bindgen::from_value(witness)?;
-    let pk: AccumPk = serde_wasm_bindgen::from_value(public_key)?;
-    let params: AccumSetupParams = serde_wasm_bindgen::from_value(params)?;
+    let pk = deserialize_public_key(public_key)?;
+    let params = deserialize_params(params)?;
     Ok(accum.verify_non_membership(&non_member, &witness, &pk, &params))
 }
 
@@ -571,14 +532,14 @@ pub fn universal_accumulator_non_membership_witnesses_for_batch(
     d: js_sys::Array,
     non_members: js_sys::Array,
     secret_key: JsValue,
-    params: JsValue,
+    params: js_sys::Uint8Array,
 ) -> Result<js_sys::Array, JsValue> {
     set_panic_hook();
     let accum: UniversalAccum = serde_wasm_bindgen::from_value(accum)?;
     let d = js_array_to_fr_vec(&d)?;
     let non_members = js_array_to_fr_vec(&non_members)?;
     let sk: AccumSk = serde_wasm_bindgen::from_value(secret_key)?;
-    let params: AccumSetupParams = serde_wasm_bindgen::from_value(params)?;
+    let params = deserialize_params(params)?;
     let witnesses = accum
         .compute_non_membership_witness_for_batch_given_d(d, &non_members, &sk, &params)
         .map_err(|e| {
@@ -781,8 +742,8 @@ pub fn accumulator_initialize_membership_proof(
     member: js_sys::Uint8Array,
     blinding: js_sys::Uint8Array,
     witness: JsValue,
-    public_key: JsValue,
-    params: JsValue,
+    public_key: js_sys::Uint8Array,
+    params: js_sys::Uint8Array,
     proving_key: JsValue,
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
@@ -816,8 +777,8 @@ pub fn accumulator_verify_membership_proof(
     proof: JsValue,
     accumulated: js_sys::Uint8Array,
     challenge: js_sys::Uint8Array,
-    public_key: JsValue,
-    params: JsValue,
+    public_key: js_sys::Uint8Array,
+    params: js_sys::Uint8Array,
     proving_key: JsValue,
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
@@ -830,16 +791,16 @@ pub fn accumulator_verify_membership_proof(
 pub fn accumulator_challenge_contribution_from_membership_protocol(
     protocol: JsValue,
     accumulated: js_sys::Uint8Array,
-    public_key: JsValue,
-    params: JsValue,
+    public_key: js_sys::Uint8Array,
+    params: js_sys::Uint8Array,
     proving_key: JsValue,
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let protocol: MemProtocol = serde_wasm_bindgen::from_value(protocol)?;
     let prk: MembershipPrk = serde_wasm_bindgen::from_value(proving_key)?;
     let accumulated = g1_affine_from_uint8_array(accumulated)?;
-    let pk: AccumPk = serde_wasm_bindgen::from_value(public_key)?;
-    let params: AccumSetupParams = serde_wasm_bindgen::from_value(params)?;
+    let pk = deserialize_public_key(public_key)?;
+    let params = deserialize_params(params)?;
     let mut bytes = vec![];
     protocol
         .challenge_contribution(&accumulated, &pk, &params, &prk, &mut bytes)
@@ -856,16 +817,16 @@ pub fn accumulator_challenge_contribution_from_membership_protocol(
 pub fn accumulator_challenge_contribution_from_membership_proof(
     proof: JsValue,
     accumulated: js_sys::Uint8Array,
-    public_key: JsValue,
-    params: JsValue,
+    public_key: js_sys::Uint8Array,
+    params: js_sys::Uint8Array,
     proving_key: JsValue,
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let proof: MemProof = serde_wasm_bindgen::from_value(proof)?;
     let prk: MembershipPrk = serde_wasm_bindgen::from_value(proving_key)?;
     let accumulated = g1_affine_from_uint8_array(accumulated)?;
-    let pk: AccumPk = serde_wasm_bindgen::from_value(public_key)?;
-    let params: AccumSetupParams = serde_wasm_bindgen::from_value(params)?;
+    let pk = deserialize_public_key(public_key)?;
+    let params = deserialize_params(params)?;
     let mut bytes = vec![];
     proof
         .challenge_contribution(&accumulated, &pk, &params, &prk, &mut bytes)
@@ -883,8 +844,8 @@ pub fn accumulator_initialize_non_membership_proof(
     non_member: js_sys::Uint8Array,
     blinding: js_sys::Uint8Array,
     witness: JsValue,
-    public_key: JsValue,
-    params: JsValue,
+    public_key: js_sys::Uint8Array,
+    params: js_sys::Uint8Array,
     proving_key: JsValue,
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
@@ -918,8 +879,8 @@ pub fn accumulator_verify_non_membership_proof(
     proof: JsValue,
     accumulated: js_sys::Uint8Array,
     challenge: js_sys::Uint8Array,
-    public_key: JsValue,
-    params: JsValue,
+    public_key: js_sys::Uint8Array,
+    params: js_sys::Uint8Array,
     proving_key: JsValue,
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
@@ -932,16 +893,16 @@ pub fn accumulator_verify_non_membership_proof(
 pub fn accumulator_challenge_contribution_from_non_membership_protocol(
     protocol: JsValue,
     accumulated: js_sys::Uint8Array,
-    public_key: JsValue,
-    params: JsValue,
+    public_key: js_sys::Uint8Array,
+    params: js_sys::Uint8Array,
     proving_key: JsValue,
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let protocol: NonMemProtocol = serde_wasm_bindgen::from_value(protocol)?;
     let prk: NonMembershipPrk = serde_wasm_bindgen::from_value(proving_key)?;
     let accumulated = g1_affine_from_uint8_array(accumulated)?;
-    let pk: AccumPk = serde_wasm_bindgen::from_value(public_key)?;
-    let params: AccumSetupParams = serde_wasm_bindgen::from_value(params)?;
+    let pk = deserialize_public_key(public_key)?;
+    let params = deserialize_params(params)?;
     let mut bytes = vec![];
     protocol
         .challenge_contribution(&accumulated, &pk, &params, &prk, &mut bytes)
@@ -958,16 +919,16 @@ pub fn accumulator_challenge_contribution_from_non_membership_protocol(
 pub fn accumulator_challenge_contribution_from_non_membership_proof(
     proof: JsValue,
     accumulated: js_sys::Uint8Array,
-    public_key: JsValue,
-    params: JsValue,
+    public_key: js_sys::Uint8Array,
+    params: js_sys::Uint8Array,
     proving_key: JsValue,
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let proof: NonMemProof = serde_wasm_bindgen::from_value(proof)?;
     let prk: NonMembershipPrk = serde_wasm_bindgen::from_value(proving_key)?;
     let accumulated = g1_affine_from_uint8_array(accumulated)?;
-    let pk: AccumPk = serde_wasm_bindgen::from_value(public_key)?;
-    let params: AccumSetupParams = serde_wasm_bindgen::from_value(params)?;
+    let pk = deserialize_public_key(public_key)?;
+    let params = deserialize_params(params)?;
     let mut bytes = vec![];
     proof
         .challenge_contribution(&accumulated, &pk, &params, &prk, &mut bytes)
@@ -978,6 +939,24 @@ pub fn accumulator_challenge_contribution_from_non_membership_proof(
             ))
         })?;
     Ok(js_sys::Uint8Array::from(bytes.as_slice()))
+}
+
+pub(crate) fn deserialize_params(bytes: js_sys::Uint8Array) -> Result<AccumSetupParams, JsValue> {
+    CanonicalDeserialize::deserialize(&bytes.to_vec()[..]).map_err(|e| {
+        JsValue::from(&format!(
+            "Failed to deserialize accumulator params from bytes due to error: {:?}",
+            e
+        ))
+    })
+}
+
+pub(crate) fn deserialize_public_key(bytes: js_sys::Uint8Array) -> Result<AccumPk, JsValue> {
+    CanonicalDeserialize::deserialize(&bytes.to_vec()[..]).map_err(|e| {
+        JsValue::from(&format!(
+            "Failed to deserialize accumulator public key from bytes due to error: {:?}",
+            e
+        ))
+    })
 }
 
 #[macro_use]
@@ -1012,8 +991,8 @@ mod macros {
         ($accum: ident, $element: ident, $witness: ident, $pk: ident, $params: ident) => {{
             let element = fr_from_uint8_array($element)?;
             let witness: MembershipWit = serde_wasm_bindgen::from_value($witness)?;
-            let pk: AccumPk = serde_wasm_bindgen::from_value($pk)?;
-            let params: AccumSetupParams = serde_wasm_bindgen::from_value($params)?;
+            let pk = deserialize_public_key($pk)?;
+            let params = deserialize_params($params)?;
             Ok($accum.verify_membership(&element, &witness, &pk, &params))
         }};
     }
@@ -1108,8 +1087,8 @@ mod macros {
         ($protocol:ident, $witness:ident, $element: ident, $blinding: ident, $public_key: ident, $params: ident, $prk: ident) => {{
             let element = fr_from_uint8_array($element)?;
             let blinding = fr_from_uint8_array($blinding)?;
-            let pk: AccumPk = serde_wasm_bindgen::from_value($public_key)?;
-            let params: AccumSetupParams = serde_wasm_bindgen::from_value($params)?;
+            let pk = deserialize_public_key($public_key)?;
+            let params = deserialize_params($params)?;
 
             let mut rng = get_seeded_rng();
             let protocol = $protocol::init(
@@ -1130,8 +1109,8 @@ mod macros {
         ($proof: ident, $accumulated:ident, $challenge: ident, $public_key: ident, $params: ident, $prk: ident) => {{
             let accumulated = g1_affine_from_uint8_array($accumulated)?;
             let challenge = fr_from_uint8_array($challenge)?;
-            let pk: AccumPk = serde_wasm_bindgen::from_value($public_key)?;
-            let params: AccumSetupParams = serde_wasm_bindgen::from_value($params)?;
+            let pk = deserialize_public_key($public_key)?;
+            let params = deserialize_params($params)?;
 
             match $proof.verify(&accumulated, &challenge, &pk, &params, &$prk) {
                 Ok(_) => Ok(serde_wasm_bindgen::to_value(&VerifyResponse {

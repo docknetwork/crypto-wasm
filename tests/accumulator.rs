@@ -17,7 +17,9 @@ fn js_value_to_bytes(js_value: JsValue) -> Vec<u8> {
     serde_wasm_bindgen::from_value::<Vec<u8>>(js_value).unwrap()
 }
 
-fn get_params_and_keys(label: Option<Vec<u8>>) -> (JsValue, JsValue, JsValue) {
+fn get_params_and_keys(
+    label: Option<Vec<u8>>,
+) -> (js_sys::Uint8Array, JsValue, js_sys::Uint8Array) {
     let params = generate_accumulator_params(label).unwrap();
 
     let seed = vec![0, 1, 2, 5, 10, 13];
@@ -26,7 +28,7 @@ fn get_params_and_keys(label: Option<Vec<u8>>) -> (JsValue, JsValue, JsValue) {
     (params, sk, pk)
 }
 
-fn get_universal_accum(sk: JsValue, params: JsValue, max_size: u32) -> JsValue {
+fn get_universal_accum(sk: JsValue, params: js_sys::Uint8Array, max_size: u32) -> JsValue {
     let initial_elements = (0..max_size + 1)
         .map(|_| random_ff(None))
         .collect::<Vec<_>>();
@@ -43,8 +45,8 @@ fn positive_accumulator_verify_membership_for_batch(
     accum: JsValue,
     batch: js_sys::Array,
     witnesses: &js_sys::Array,
-    pk: JsValue,
-    params: JsValue,
+    pk: js_sys::Uint8Array,
+    params: js_sys::Uint8Array,
 ) {
     let accum = positive_accumulator_get_accumulated(accum).unwrap();
     for w in witnesses.entries() {
@@ -66,8 +68,8 @@ fn universal_accumulator_verify_membership_for_batch(
     accum: JsValue,
     batch: js_sys::Array,
     witnesses: &js_sys::Array,
-    pk: JsValue,
-    params: JsValue,
+    pk: js_sys::Uint8Array,
+    params: js_sys::Uint8Array,
 ) {
     let accum = universal_accumulator_get_accumulated(accum).unwrap();
     for w in witnesses.entries() {
@@ -89,8 +91,8 @@ fn verify_non_membership_for_batch(
     accum: JsValue,
     non_members: js_sys::Array,
     witnesses: &js_sys::Array,
-    pk: JsValue,
-    params: JsValue,
+    pk: js_sys::Uint8Array,
+    params: js_sys::Uint8Array,
 ) {
     let accum = universal_accumulator_get_accumulated(accum).unwrap();
     for w in witnesses.entries() {
@@ -112,8 +114,8 @@ fn positive_accumulator_create_verify_membership_for_batch(
     accum: JsValue,
     batch: js_sys::Array,
     sk: JsValue,
-    pk: JsValue,
-    params: JsValue,
+    pk: js_sys::Uint8Array,
+    params: js_sys::Uint8Array,
 ) -> js_sys::Array {
     let witnesses =
         positive_accumulator_membership_witnesses_for_batch(accum.clone(), batch.clone(), sk)
@@ -127,8 +129,8 @@ fn universal_accumulator_create_verify_membership_for_batch(
     accum: JsValue,
     batch: js_sys::Array,
     sk: JsValue,
-    pk: JsValue,
-    params: JsValue,
+    pk: js_sys::Uint8Array,
+    params: js_sys::Uint8Array,
 ) -> js_sys::Array {
     let witnesses =
         universal_accumulator_membership_witnesses_for_batch(accum.clone(), batch.clone(), sk)
@@ -143,8 +145,8 @@ fn create_verify_non_membership_for_batch(
     non_members_array: js_sys::Array,
     members_array: js_sys::Array,
     sk: JsValue,
-    pk: JsValue,
-    params: JsValue,
+    pk: js_sys::Uint8Array,
+    params: js_sys::Uint8Array,
 ) -> js_sys::Array {
     let d = universal_accumulator_compute_d_for_batch(non_members_array.clone(), members_array)
         .unwrap();
@@ -190,24 +192,7 @@ pub fn accumulator_params_and_keygen() {
         js_value_to_bytes(values_obj.get(0)),
         js_value_to_bytes(sk.clone())
     );
-    assert_eq!(
-        js_value_to_bytes(values_obj.get(1)),
-        js_value_to_bytes(pk.clone())
-    );
-
-    let bytes = accumulator_params_to_bytes(params.clone()).unwrap();
-    let desez_params = accumulator_params_from_bytes(bytes).unwrap();
-    assert!(accumulator_is_params_valid(desez_params.clone()).unwrap());
-    let params_1: AccumSetupParams = serde_wasm_bindgen::from_value(params).unwrap();
-    let params_2: AccumSetupParams = serde_wasm_bindgen::from_value(desez_params).unwrap();
-    assert_eq!(params_1, params_2);
-
-    let bytes = accumulator_public_key_to_bytes(pk.clone()).unwrap();
-    let desez_pk = accumulator_public_key_from_bytes(bytes).unwrap();
-    assert!(accumulator_is_pubkey_valid(desez_pk.clone()).unwrap());
-    let pk_1: AccumPk = serde_wasm_bindgen::from_value(pk).unwrap();
-    let pk_2: AccumPk = serde_wasm_bindgen::from_value(desez_pk).unwrap();
-    assert_eq!(pk_1, pk_2);
+    assert_eq!(js_value_to_bytes(values_obj.get(1)), pk.to_vec());
 }
 
 #[allow(non_snake_case)]

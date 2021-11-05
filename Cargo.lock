@@ -131,9 +131,9 @@ checksum = "cdb031dd78e28731d87d56cc8ffef4a8f36ca26c38fe2de700543e627f8a464a"
 
 [[package]]
 name = "bbs_plus"
-version = "0.5.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c841005e6fa63172d2b715321c2543e603cbfdd7b9f8341718b674c4aa7a5f97"
+checksum = "0981c4942951d2f500ec90336b441c5d36941282b10389adf4e52753a846db37"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -262,9 +262,9 @@ dependencies = [
 
 [[package]]
 name = "dock_crypto_utils"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7379e2611854817ed09ef72d9db63e4540aa133a6c0bd59c7ccdbc509b42ba08"
+checksum = "f2c86d99df1bf5ecefd59247140d3d7ba9bb27f92f7cae37f61dfcd8a7765aa9"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -469,9 +469,9 @@ dependencies = [
 
 [[package]]
 name = "proof_system"
-version = "0.5.3"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8898bac43c2a956e36569cd0e5944560b1a138a5210a299775dec53e00511a2f"
+checksum = "99d663ded7a13d315595a169fe2aab4c13fb7dd24dc2bc8d57f3ae5be97eb9f0"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -595,9 +595,9 @@ checksum = "71d301d4193d031abdd79ff7e3dd721168a9572ef3fe51a1517aba235bd8f86e"
 
 [[package]]
 name = "schnorr_pok"
-version = "0.4.1"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3a4d0131018e29f4436e4e8c26800465425efc1ca3e4705978be951f5041b76f"
+checksum = "75315124b0bd4969beca9ded16243426268df7a152c49b8899882496af1699e4"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -754,9 +754,9 @@ checksum = "8ccb82d61f80a663efe1f787a51b16b5a51e3314d6ac365b08639f52387b33f3"
 
 [[package]]
 name = "vb_accumulator"
-version = "0.4.3"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f7ac0940b2285cb1adffd166106e53787a176396863bbd6eb806bc9c5de01957"
+checksum = "862180bb0a0fe6e1dce81dc8a4b6515e1d5c73fb15f5d3b198c6919069520cf0"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -790,7 +790,7 @@ checksum = "fd6fbd9a79829dd1ad0cc20627bf1ed606756a7f77edff7b66b7064f9cb327c6"
 
 [[package]]
 name = "wasm"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "ark-bls12-381",
  "ark-ec",

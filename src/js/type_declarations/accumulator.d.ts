@@ -1,42 +1,26 @@
-import {AccumulatorParams, IKeypair, VerifyResult, IUniversalAccumulator, INonMembershipWitness} from "../types";
+import {IKeypair, VerifyResult, IUniversalAccumulator, INonMembershipWitness} from "../types";
 
 export function generateAccumulatorParams(
     label?: Uint8Array
-): Required<AccumulatorParams>;
-
-export function isAccumulatorParamsValid(
-    params: AccumulatorParams
-): boolean;
-
-export function accumulatorParamsToBytes(
-    params: AccumulatorParams
 ): Uint8Array;
 
-export function accumulatorParamsFromBytes(
-    bytes: Uint8Array
-): AccumulatorParams;
+export function isAccumulatorParamsValid(
+    params: Uint8Array
+): boolean;
 
 export function generateAccumulatorSecretKey(seed?: Uint8Array): Uint8Array;
 
 export function generateAccumulatorPublicKey(
     secretKey: Uint8Array,
-    params: AccumulatorParams
+    params: Uint8Array
 ): Uint8Array;
 
 export function isAccumulatorPublicKeyValid(
     publicKey: Uint8Array
 ): boolean;
 
-export function accumulatorPublicKeyToBytes(
-    publicKey: Uint8Array
-): Uint8Array;
-
-export function accumulatorPublicKeyFromBytes(
-    bytes: Uint8Array
-): Uint8Array;
-
 export function generateAccumulatorKeyPair(
-    params: AccumulatorParams,
+    params: Uint8Array,
     seed?: Uint8Array
 ): Required<IKeypair>;
 
@@ -45,7 +29,7 @@ export function accumulatorGetElementFromBytes(
 ): Uint8Array;
 
 export function positiveAccumulatorInitialize(
-    params: AccumulatorParams,
+    params: Uint8Array,
 ): Uint8Array;
 
 export function positiveAccumulatorGetAccumulated(
@@ -75,7 +59,7 @@ export function positiveAccumulatorVerifyMembership(
     element: Uint8Array,
     witness: Uint8Array,
     publicKey: Uint8Array,
-    params: AccumulatorParams,
+    params: Uint8Array,
 ): boolean;
 
 export function positiveAccumulatorAddBatch(
@@ -114,7 +98,7 @@ export function universalAccumulatorCombineMultipleInitialFv(
 
 export function universalAccumulatorInitialiseGivenFv(
     fV: Uint8Array,
-    params: AccumulatorParams,
+    params: Uint8Array,
     maxSize: number,
 ): Required<IUniversalAccumulator>;
 
@@ -145,7 +129,7 @@ export function universalAccumulatorVerifyMembership(
     element: Uint8Array,
     witness: Uint8Array,
     publicKey: Uint8Array,
-    params: AccumulatorParams,
+    params: Uint8Array,
 ): boolean;
 
 export function universalAccumulatorComputeD(
@@ -162,7 +146,7 @@ export function universalAccumulatorNonMembershipWitness(
     d: Uint8Array,
     nonMember: Uint8Array,
     secretKey: Uint8Array,
-    params: AccumulatorParams,
+    params: Uint8Array,
 ): INonMembershipWitness;
 
 export function universalAccumulatorVerifyNonMembership(
@@ -170,7 +154,7 @@ export function universalAccumulatorVerifyNonMembership(
     element: Uint8Array,
     witness: INonMembershipWitness,
     publicKey: Uint8Array,
-    params: AccumulatorParams,
+    params: Uint8Array,
 ): boolean;
 
 export function universalAccumulatorAddBatch(
@@ -212,7 +196,7 @@ export function universalAccumulatorNonMembershipWitnessesForBatch(
     d: Uint8Array[],
     nonMembers: Uint8Array[],
     secretKey: Uint8Array,
-    params: AccumulatorParams,
+    params: Uint8Array,
 ): INonMembershipWitness[];
 
 export function updateMembershipWitnessPostAdd(
@@ -317,7 +301,7 @@ export function accumulatorInitializeMembershipProof(
     blinding: Uint8Array,
     witness: Uint8Array,
     publicKey: Uint8Array,
-    params: AccumulatorParams,
+    params: Uint8Array,
     provingKey: Uint8Array,
 ): Uint8Array;
 
@@ -331,7 +315,7 @@ export function accumulatorVerifyMembershipProof(
     accumulated: Uint8Array,
     challenge: Uint8Array,
     publicKey: Uint8Array,
-    params: AccumulatorParams,
+    params: Uint8Array,
     provingKey: Uint8Array,
 ): Required<VerifyResult>;
 
@@ -340,7 +324,7 @@ export function accumulatorInitializeNonMembershipProof(
     blinding: Uint8Array,
     witness: INonMembershipWitness,
     publicKey: Uint8Array,
-    params: AccumulatorParams,
+    params: Uint8Array,
     provingKey: Uint8Array,
 ): Uint8Array;
 
@@ -354,7 +338,7 @@ export function accumulatorVerifyNonMembershipProof(
     accumulated: Uint8Array,
     challenge: Uint8Array,
     publicKey: Uint8Array,
-    params: AccumulatorParams,
+    params: Uint8Array,
     provingKey: Uint8Array,
 ): Required<VerifyResult>;
 
@@ -362,7 +346,7 @@ export function accumulatorChallengeContributionFromMembershipProtocol(
     protocol: Uint8Array,
     accumulated: Uint8Array,
     publicKey: Uint8Array,
-    params: AccumulatorParams,
+    params: Uint8Array,
     provingKey: Uint8Array,
 ): Uint8Array;
 
@@ -370,7 +354,7 @@ export function accumulatorChallengeContributionFromMembershipProof(
     proof: Uint8Array,
     accumulated: Uint8Array,
     publicKey: Uint8Array,
-    params: AccumulatorParams,
+    params: Uint8Array,
     provingKey: Uint8Array,
 ): Uint8Array;
 
@@ -378,7 +362,7 @@ export function accumulatorChallengeContributionFromNonMembershipProtocol(
     protocol: Uint8Array,
     accumulated: Uint8Array,
     publicKey: Uint8Array,
-    params: AccumulatorParams,
+    params: Uint8Array,
     provingKey: Uint8Array,
 ): Uint8Array;
 
@@ -386,7 +370,7 @@ export function accumulatorChallengeContributionFromNonMembershipProof(
     proof: Uint8Array,
     accumulated: Uint8Array,
     publicKey: Uint8Array,
-    params: AccumulatorParams,
+    params: Uint8Array,
     provingKey: Uint8Array,
 ): Uint8Array;
 
@@ -394,6 +378,6 @@ export function accumulatorChallengeContributionFromNonMembershipProof(
     proof: Uint8Array,
     accumulated: Uint8Array,
     publicKey: Uint8Array,
-    params: AccumulatorParams,
+    params: Uint8Array,
     provingKey: Uint8Array,
 ): Uint8Array;

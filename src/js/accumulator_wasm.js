@@ -44,16 +44,6 @@ module.exports.isAccumulatorParamsValid = (params) => {
     return wasm.isAccumulatorParamsValid(params)
 };
 
-module.exports.accumulatorParamsToBytes = (params) => {
-    requireWasmInitialized();
-    return wasm.accumulatorParamsToBytes(params)
-};
-
-module.exports.accumulatorParamsFromBytes = (bytes) => {
-    requireWasmInitialized();
-    return wasm.accumulatorParamsFromBytes(bytes)
-};
-
 module.exports.generateAccumulatorPublicKey = (secretKey, params) => {
     requireWasmInitialized();
     return wasm.generateAccumulatorPublicKey(secretKey, params)
@@ -62,16 +52,6 @@ module.exports.generateAccumulatorPublicKey = (secretKey, params) => {
 module.exports.isAccumulatorPublicKeyValid = (publicKey) => {
     requireWasmInitialized();
     return wasm.isAccumulatorPublicKeyValid(publicKey)
-};
-
-module.exports.accumulatorPublicKeyToBytes = (pk) => {
-    requireWasmInitialized();
-    return wasm.accumulatorPublicKeyToBytes(pk)
-};
-
-module.exports.accumulatorPublicKeyFromBytes = (bytes) => {
-    requireWasmInitialized();
-    return wasm.accumulatorPublicKeyFromBytes(bytes)
 };
 
 module.exports.generateAccumulatorKeyPair = (params, seed) => {

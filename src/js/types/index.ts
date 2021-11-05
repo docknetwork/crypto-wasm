@@ -15,7 +15,6 @@ export { BbsSigParams } from "./BbsSigParams";
 export { BbsSig } from "./BbsSig";
 export { BbsPoKSigProtocol } from "./BbsPoKSigProtocol";
 export { BbsPoKSigProof } from "./BbsPoKSigProof";
-export {AccumulatorParams} from "./AccumulatorParams";
 export {IKeypair} from "./IKeypair";
 export { VerifyResult } from "./VerifyResult";
 export { IUniversalAccumulator } from "./IUniversalAccumulator";

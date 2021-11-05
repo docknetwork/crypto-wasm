@@ -58,18 +58,14 @@ import {
     accumulatorChallengeContributionFromMembershipProof,
     accumulatorChallengeContributionFromNonMembershipProtocol,
     accumulatorChallengeContributionFromNonMembershipProof,
-    AccumulatorParams, IUniversalAccumulator,
-    accumulatorParamsFromBytes,
-    accumulatorParamsToBytes,
-    accumulatorPublicKeyFromBytes,
-    accumulatorPublicKeyToBytes,
+    IUniversalAccumulator,
     initializeWasm, updateMembershipWitnessesPostBatchUpdates
 } from "../../lib";
 
 import {stringToBytes} from "../utilities";
 
 describe("For Positive accumulator", () => {
-    let params: AccumulatorParams, sk: Uint8Array, pk: Uint8Array, accumulator: Uint8Array;
+    let params: Uint8Array, sk: Uint8Array, pk: Uint8Array, accumulator: Uint8Array;
 
     const seed = new Uint8Array([0, 2, 3, 4, 5]);
 
@@ -94,10 +90,6 @@ describe("For Positive accumulator", () => {
 
         expect(params1).toEqual(params2);
 
-        const bytes = accumulatorParamsToBytes(params1);
-        const deserzParams = accumulatorParamsFromBytes(bytes);
-        expect(params1).toEqual(deserzParams);
-
         params = params1;
     });
 
@@ -120,10 +112,6 @@ describe("For Positive accumulator", () => {
         pk = generateAccumulatorPublicKey(sk, params);
         expect(pk).toBeInstanceOf(Uint8Array);
         expect(isAccumulatorPublicKeyValid(pk)).toBe(true);
-
-        const bytes = accumulatorPublicKeyToBytes(pk);
-        const deserzPk = accumulatorPublicKeyFromBytes(bytes);
-        expect(pk).toEqual(deserzPk);
     });
 
     it("initialize", () => {
@@ -239,7 +227,7 @@ describe("For Positive accumulator", () => {
 });
 
 describe("For Universal accumulator", () => {
-    let params: AccumulatorParams, sk: Uint8Array, pk: Uint8Array, accumulator: IUniversalAccumulator;
+    let params: Uint8Array, sk: Uint8Array, pk: Uint8Array, accumulator: IUniversalAccumulator;
 
     const seed = new Uint8Array([0, 2, 3, 4, 5]);
     const maxSize = 20;
@@ -431,7 +419,7 @@ describe("For Universal accumulator", () => {
 });
 
 describe("Witness update", () => {
-    let params: AccumulatorParams, sk: Uint8Array, pk: Uint8Array, posAccumulator: Uint8Array,
+    let params: Uint8Array, sk: Uint8Array, pk: Uint8Array, posAccumulator: Uint8Array,
         uniAccumulator: IUniversalAccumulator;
 
     beforeAll(async () => {
@@ -615,7 +603,7 @@ describe("Witness update", () => {
 });
 
 describe("Proofs ", () => {
-    let params: AccumulatorParams, sk: Uint8Array, pk: Uint8Array, posAccumulator: Uint8Array,
+    let params: Uint8Array, sk: Uint8Array, pk: Uint8Array, posAccumulator: Uint8Array,
         accumulator: IUniversalAccumulator;
 
     beforeAll(async () => {

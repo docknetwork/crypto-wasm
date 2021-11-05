@@ -2,7 +2,8 @@ use serde_wasm_bindgen::*;
 use wasm_bindgen::prelude::*;
 
 use crate::accumulator::{
-    AccumPk, AccumSetupParams, MembershipPrk, MembershipWit, NonMembershipPrk, NonMembershipWit,
+    deserialize_params, deserialize_public_key, MembershipPrk, MembershipWit, NonMembershipPrk,
+    NonMembershipWit,
 };
 use crate::bbs_plus::{BBSPlusPkG2, SigG1, SigParamsG1};
 use crate::common::VerifyResponse;
@@ -51,15 +52,15 @@ pub fn generate_pok_bbs_sig_statement(
 
 #[wasm_bindgen(js_name = generateAccumulatorMembershipStatement)]
 pub fn generate_accumulator_membership_statement(
-    params: JsValue,
-    public_key: JsValue,
+    params: js_sys::Uint8Array,
+    public_key: js_sys::Uint8Array,
     proving_key: JsValue,
     accumulated: js_sys::Uint8Array,
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
     let accumulated = g1_affine_from_uint8_array(accumulated)?;
-    let pk: AccumPk = serde_wasm_bindgen::from_value(public_key)?;
-    let params: AccumSetupParams = serde_wasm_bindgen::from_value(params)?;
+    let pk = deserialize_public_key(public_key)?;
+    let params = deserialize_params(params)?;
     let prk: MembershipPrk = serde_wasm_bindgen::from_value(proving_key)?;
     let statement = AccumMemStmt::new_as_statement::<G1Affine>(params, pk, prk, accumulated);
     serde_wasm_bindgen::to_value(&statement).map_err(|e| JsValue::from(e))
@@ -67,15 +68,15 @@ pub fn generate_accumulator_membership_statement(
 
 #[wasm_bindgen(js_name = generateAccumulatorNonMembershipStatement)]
 pub fn generate_accumulator_non_membership_statement(
-    params: JsValue,
-    public_key: JsValue,
+    params: js_sys::Uint8Array,
+    public_key: js_sys::Uint8Array,
     proving_key: JsValue,
     accumulated: js_sys::Uint8Array,
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
     let accumulated = g1_affine_from_uint8_array(accumulated)?;
-    let pk: AccumPk = serde_wasm_bindgen::from_value(public_key)?;
-    let params: AccumSetupParams = serde_wasm_bindgen::from_value(params)?;
+    let pk = deserialize_public_key(public_key)?;
+    let params = deserialize_params(params)?;
     let prk: NonMembershipPrk = serde_wasm_bindgen::from_value(proving_key)?;
     let statement = AccumNonMemStmt::new_as_statement::<G1Affine>(params, pk, prk, accumulated);
     serde_wasm_bindgen::to_value(&statement).map_err(|e| JsValue::from(e))

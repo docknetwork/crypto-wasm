@@ -1,4 +1,4 @@
-import {AccumulatorParams, BbsSigParams, INonMembershipWitness, VerifyResult} from "../types";
+import {BbsSigParams, INonMembershipWitness, VerifyResult} from "../types";
 
 export function generatePoKBBSSignatureStatement(
     params: BbsSigParams,
@@ -8,14 +8,14 @@ export function generatePoKBBSSignatureStatement(
 ): Uint8Array;
 
 export function generateAccumulatorMembershipStatement(
-    params: AccumulatorParams,
+    params: Uint8Array,
     publicKey: Uint8Array,
     provingKey: Uint8Array,
     accumulated: Uint8Array
 ): Uint8Array;
 
 export function generateAccumulatorNonMembershipStatement(
-    params: AccumulatorParams,
+    params: Uint8Array,
     publicKey: Uint8Array,
     provingKey: Uint8Array,
     accumulated: Uint8Array
