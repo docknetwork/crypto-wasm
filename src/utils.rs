@@ -317,6 +317,17 @@ macro_rules! obj_to_uint8array {
         })?;
         js_sys::Uint8Array::from(serz.as_slice())
     }};
+
+    ($obj:expr, $obj_name:expr) => {{
+        let mut serz = vec![];
+        CanonicalSerialize::serialize($obj, &mut serz).map_err(|e| {
+            JsValue::from(format!(
+                "Failed to serialize a {} to bytes due to error: {:?}",
+                $obj_name, e
+            ))
+        })?;
+        js_sys::Uint8Array::from(serz.as_slice())
+    }};
 }
 
 macro_rules! obj_from_uint8array {
@@ -326,6 +337,17 @@ macro_rules! obj_from_uint8array {
             JsValue::from(format!(
                 "Failed to deserialize from bytes due to error: {:?}",
                 e
+            ))
+        })?;
+        deserz
+    }};
+
+    ($obj_type:ty, $uint8array:expr, $obj_name:expr) => {{
+        let serz = $uint8array.to_vec();
+        let deserz: $obj_type = CanonicalDeserialize::deserialize(&serz[..]).map_err(|e| {
+            JsValue::from(format!(
+                "Failed to deserialize a {} from bytes due to error: {:?}",
+                $obj_name, e
             ))
         })?;
         deserz

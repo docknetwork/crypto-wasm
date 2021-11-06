@@ -85,21 +85,13 @@ pub fn bbs_params_g2_max_supported_msgs(params: JsValue) -> Result<js_sys::Numbe
 pub fn bbs_params_g1_to_bytes(params: JsValue) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let params: SigParamsG1 = serde_wasm_bindgen::from_value(params)?;
-    let mut bytes = vec![];
-    CanonicalSerialize::serialize(&params, &mut bytes).unwrap();
-    Ok(js_sys::Uint8Array::from(bytes.as_slice()))
+    Ok(obj_to_uint8array!(&params, "SigParamsG1"))
 }
 
 #[wasm_bindgen(js_name = bbsSignatureParamsG1FromBytes)]
 pub fn bbs_params_g1_from_bytes(bytes: js_sys::Uint8Array) -> Result<JsValue, JsValue> {
     set_panic_hook();
-    let params: SigParamsG1 =
-        CanonicalDeserialize::deserialize(&bytes.to_vec()[..]).map_err(|e| {
-            JsValue::from(&format!(
-                "Failed to deserialize signature params from bytes due to error: {:?}",
-                e
-            ))
-        })?;
+    let params = obj_from_uint8array!(SigParamsG1, bytes, "SigParamsG1");
     serde_wasm_bindgen::to_value(&params).map_err(|e| JsValue::from(e))
 }
 
@@ -107,21 +99,13 @@ pub fn bbs_params_g1_from_bytes(bytes: js_sys::Uint8Array) -> Result<JsValue, Js
 pub fn bbs_params_g2_to_bytes(params: JsValue) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let params: SigParamsG2 = serde_wasm_bindgen::from_value(params)?;
-    let mut bytes = vec![];
-    CanonicalSerialize::serialize(&params, &mut bytes).unwrap();
-    Ok(js_sys::Uint8Array::from(bytes.as_slice()))
+    Ok(obj_to_uint8array!(&params, "SigParamsG2"))
 }
 
 #[wasm_bindgen(js_name = bbsSignatureParamsG2FromBytes)]
 pub fn bbs_params_g2_from_bytes(bytes: js_sys::Uint8Array) -> Result<JsValue, JsValue> {
     set_panic_hook();
-    let params: SigParamsG2 =
-        CanonicalDeserialize::deserialize(&bytes.to_vec()[..]).map_err(|e| {
-            JsValue::from(&format!(
-                "Failed to deserialize signature params from bytes due to error: {:?}",
-                e
-            ))
-        })?;
+    let params = obj_from_uint8array!(SigParamsG2, bytes, "SigParamsG2");
     serde_wasm_bindgen::to_value(&params).map_err(|e| JsValue::from(e))
 }
 
@@ -174,44 +158,33 @@ pub fn bbs_is_pubkey_g2_valid(public_key: JsValue) -> Result<bool, JsValue> {
 #[wasm_bindgen(js_name = bbsPublicKeyG1ToBytes)]
 pub fn bbs_public_key_g1_to_bytes(params: JsValue) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
-    let params: BBSPlusPkG1 = serde_wasm_bindgen::from_value(params)?;
-    let mut bytes = vec![];
-    CanonicalSerialize::serialize(&params, &mut bytes).unwrap();
-    Ok(js_sys::Uint8Array::from(bytes.as_slice()))
+    let pk: BBSPlusPkG1 = serde_wasm_bindgen::from_value(params)?;
+    Ok(obj_to_uint8array!(&pk, "BBSPlusPkG1"))
 }
 
 #[wasm_bindgen(js_name = bbsPublicKeyG1FromBytes)]
 pub fn bbs_public_key_g1_from_bytes(bytes: js_sys::Uint8Array) -> Result<JsValue, JsValue> {
     set_panic_hook();
-    let params: BBSPlusPkG1 =
-        CanonicalDeserialize::deserialize(&bytes.to_vec()[..]).map_err(|e| {
-            JsValue::from(&format!(
-                "Failed to deserialize from bytes due to error: {:?}",
-                e
-            ))
-        })?;
-    serde_wasm_bindgen::to_value(&params).map_err(|e| JsValue::from(e))
+    let pk: BBSPlusPkG1 = CanonicalDeserialize::deserialize(&bytes.to_vec()[..]).map_err(|e| {
+        JsValue::from(&format!(
+            "Failed to deserialize from bytes due to error: {:?}",
+            e
+        ))
+    })?;
+    serde_wasm_bindgen::to_value(&pk).map_err(|e| JsValue::from(e))
 }
 
 #[wasm_bindgen(js_name = bbsPublicKeyG2ToBytes)]
 pub fn bbs_public_key_g2_to_bytes(params: JsValue) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
-    let params: BBSPlusPkG2 = serde_wasm_bindgen::from_value(params)?;
-    let mut bytes = vec![];
-    CanonicalSerialize::serialize(&params, &mut bytes).unwrap();
-    Ok(js_sys::Uint8Array::from(bytes.as_slice()))
+    let pk: BBSPlusPkG2 = serde_wasm_bindgen::from_value(params)?;
+    Ok(obj_to_uint8array!(&pk, "BBSPlusPkG2"))
 }
 
 #[wasm_bindgen(js_name = bbsPublicKeyG2FromBytes)]
 pub fn bbs_public_key_g2_from_bytes(bytes: js_sys::Uint8Array) -> Result<JsValue, JsValue> {
     set_panic_hook();
-    let params: BBSPlusPkG2 =
-        CanonicalDeserialize::deserialize(&bytes.to_vec()[..]).map_err(|e| {
-            JsValue::from(&format!(
-                "Failed to deserialize from bytes due to error: {:?}",
-                e
-            ))
-        })?;
+    let params = obj_from_uint8array!(BBSPlusPkG2, bytes, "BBSPlusPkG2");
     serde_wasm_bindgen::to_value(&params).map_err(|e| JsValue::from(e))
 }
 
@@ -366,7 +339,7 @@ pub fn bbs_sign_g1(
     let mut rng = get_seeded_rng();
     match SigG1::new(&mut rng, &messages, &sk, &params) {
         // Ok(sig) => Ok(serde_wasm_bindgen::to_value(&sig).map_err(|e| JsValue::from(e)).unwrap()),
-        Ok(sig) => Ok(obj_to_uint8array!(&sig)),
+        Ok(sig) => Ok(obj_to_uint8array!(&sig, "SigG1")),
         Err(e) => Err(JsValue::from(&format!("{:?}", e))),
     }
 }
@@ -392,7 +365,7 @@ pub fn bbs_blind_sign_g1(
     let mut rng = get_seeded_rng();
     match SigG1::new_with_committed_messages(&mut rng, &commitment, msgs_ref, &sk, &params) {
         // Ok(sig) => Ok(serde_wasm_bindgen::to_value(&sig).map_err(|e| JsValue::from(e)).unwrap()),
-        Ok(sig) => Ok(obj_to_uint8array!(&sig)),
+        Ok(sig) => Ok(obj_to_uint8array!(&sig, "SigG1")),
         Err(e) => Err(JsValue::from(&format!("{:?}", e))),
     }
 }
@@ -407,7 +380,7 @@ pub fn bbs_unblind_sig_g1(
     let signature = obj_from_uint8array!(SigG1, blind_signature);
     let blinding = fr_from_uint8_array(blinding)?;
     // serde_wasm_bindgen::to_value(&signature.unblind(&blinding).map_err(|e| JsValue::from(e)))
-    Ok(obj_to_uint8array!(&signature.unblind(&blinding)))
+    Ok(obj_to_uint8array!(&signature.unblind(&blinding), "SigG1"))
 }
 
 #[wasm_bindgen(js_name = bbsVerifyG1)]
@@ -458,7 +431,7 @@ pub fn bbs_sign_g2(
     let mut rng = get_seeded_rng();
     match SigG2::new(&mut rng, &messages, &sk, &params) {
         // Ok(sig) => Ok(serde_wasm_bindgen::to_value(&sig).map_err(|e| JsValue::from(e)).unwrap()),
-        Ok(sig) => Ok(obj_to_uint8array!(&sig)),
+        Ok(sig) => Ok(obj_to_uint8array!(&sig, "SigG2")),
         Err(e) => Err(JsValue::from(&format!("{:?}", e))),
     }
 }
@@ -484,7 +457,7 @@ pub fn bbs_blind_sign_g2(
     let mut rng = get_seeded_rng();
     match SigG2::new_with_committed_messages(&mut rng, &commitment, msgs_ref, &sk, &params) {
         // Ok(sig) => Ok(serde_wasm_bindgen::to_value(&sig).map_err(|e| JsValue::from(e)).unwrap()),
-        Ok(sig) => Ok(obj_to_uint8array!(&sig)),
+        Ok(sig) => Ok(obj_to_uint8array!(&sig, "SigG2")),
         Err(e) => Err(JsValue::from(&format!("{:?}", e))),
     }
 }
@@ -499,7 +472,7 @@ pub fn bbs_unblind_sig_g2(
     let signature = obj_from_uint8array!(SigG2, blind_signature);
     let blinding = fr_from_uint8_array(blinding)?;
     // serde_wasm_bindgen::to_value(&signature.unblind(&blinding).map_err(|e| JsValue::from(e)))
-    Ok(obj_to_uint8array!(&signature.unblind(&blinding)))
+    Ok(obj_to_uint8array!(&signature.unblind(&blinding), "SigG2"))
 }
 
 #[wasm_bindgen(js_name = bbsVerifyG2)]
@@ -578,7 +551,7 @@ pub fn bbs_gen_proof(
     let challenge = fr_from_uint8_array(challenge)?;
     match protocol.gen_proof(&challenge) {
         // Ok(proof) => Ok(serde_wasm_bindgen::to_value(&proof).map_err(|e| JsValue::from(e)).unwrap()),
-        Ok(proof) => Ok(obj_to_uint8array!(&proof)),
+        Ok(proof) => Ok(obj_to_uint8array!(&proof, "BBS+ProofG1")),
         Err(e) => Err(JsValue::from(&format!("{:?}", e))),
     }
 }

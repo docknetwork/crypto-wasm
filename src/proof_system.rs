@@ -54,14 +54,14 @@ pub fn generate_pok_bbs_sig_statement(
 pub fn generate_accumulator_membership_statement(
     params: js_sys::Uint8Array,
     public_key: js_sys::Uint8Array,
-    proving_key: JsValue,
+    proving_key: js_sys::Uint8Array,
     accumulated: js_sys::Uint8Array,
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
     let accumulated = g1_affine_from_uint8_array(accumulated)?;
     let pk = deserialize_public_key(public_key)?;
     let params = deserialize_params(params)?;
-    let prk: MembershipPrk = serde_wasm_bindgen::from_value(proving_key)?;
+    let prk = obj_from_uint8array!(MembershipPrk, proving_key, "MembershipPrk");
     let statement = AccumMemStmt::new_as_statement::<G1Affine>(params, pk, prk, accumulated);
     serde_wasm_bindgen::to_value(&statement).map_err(|e| JsValue::from(e))
 }
@@ -70,14 +70,14 @@ pub fn generate_accumulator_membership_statement(
 pub fn generate_accumulator_non_membership_statement(
     params: js_sys::Uint8Array,
     public_key: js_sys::Uint8Array,
-    proving_key: JsValue,
+    proving_key: js_sys::Uint8Array,
     accumulated: js_sys::Uint8Array,
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
     let accumulated = g1_affine_from_uint8_array(accumulated)?;
     let pk = deserialize_public_key(public_key)?;
     let params = deserialize_params(params)?;
-    let prk: NonMembershipPrk = serde_wasm_bindgen::from_value(proving_key)?;
+    let prk = obj_from_uint8array!(NonMembershipPrk, proving_key, "NonMembershipPrk");
     let statement = AccumNonMemStmt::new_as_statement::<G1Affine>(params, pk, prk, accumulated);
     serde_wasm_bindgen::to_value(&statement).map_err(|e| JsValue::from(e))
 }
@@ -229,7 +229,7 @@ pub fn generate_composite_proof(
     let proof = ProofG1::new(&mut rng, proof_spec, wits, nonce)
         .map_err(|e| JsValue::from(&format!("Generating proof returned error: {:?}", e)))?;
     // serde_wasm_bindgen::to_value(&proof).map_err(|e| JsValue::from(e))
-    Ok(obj_to_uint8array!(&proof))
+    Ok(obj_to_uint8array!(&proof, "ProofG1"))
 }
 
 #[wasm_bindgen(js_name = verifyCompositeProof)]
