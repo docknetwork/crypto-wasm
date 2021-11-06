@@ -75,17 +75,14 @@ describe("For Positive accumulator", () => {
 
     it("generate params", () => {
         const params0 = generateAccumulatorParams();
-        expect(params0).toBeInstanceOf(Object);
         expect(isAccumulatorParamsValid(params0)).toBe(true);
 
         const label = stringToBytes("Accumulator params");
 
         const params1 = generateAccumulatorParams(label);
-        expect(params1).toBeInstanceOf(Object);
         expect(isAccumulatorParamsValid(params1)).toBe(true);
 
         const params2 = generateAccumulatorParams(label);
-        expect(params2).toBeInstanceOf(Object);
         expect(isAccumulatorParamsValid(params2)).toBe(true);
 
         expect(params1).toEqual(params2);
