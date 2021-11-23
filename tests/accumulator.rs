@@ -33,11 +33,12 @@ fn get_universal_accum(sk: JsValue, params: js_sys::Uint8Array, max_size: u32) -
         .map(|_| random_ff(None))
         .collect::<Vec<_>>();
 
-    let f_v = universal_accumulator_compute_initial_fv(
-        js_array_from_frs(initial_elements.as_slice()).unwrap(),
-        sk,
-    )
-    .unwrap();
+    let initial_fixed = universal_accumulator_fixed_initial_elements().unwrap();
+    let initial_elements_arr = js_array_from_frs(initial_elements.as_slice()).unwrap();
+
+    let all_initial_elements = initial_fixed.concat(&initial_elements_arr);
+
+    let f_v = universal_accumulator_compute_initial_fv(all_initial_elements, sk).unwrap();
     universal_accumulator_initialize_given_f_v(f_v, params, max_size).unwrap()
 }
 
@@ -289,17 +290,21 @@ pub fn universal_accumulator_initialize() {
     let (params, sk, _) = get_params_and_keys(Some(label));
     let max_size = 4;
 
+    let initial_fixed = universal_accumulator_fixed_initial_elements().unwrap();
+
     let initial_elements = (0..max_size + 1)
         .map(|_| random_ff(None))
         .collect::<Vec<_>>();
 
-    let f_v = universal_accumulator_compute_initial_fv(
-        js_array_from_frs(initial_elements.as_slice()).unwrap(),
-        sk.clone(),
-    )
-    .unwrap();
+    let initial_elements_arr = js_array_from_frs(initial_elements.as_slice()).unwrap();
+
+    let all_initial_elements = initial_fixed.concat(&initial_elements_arr);
+
+    let f_v = universal_accumulator_compute_initial_fv(all_initial_elements, sk.clone()).unwrap();
 
     universal_accumulator_initialize_given_f_v(f_v.clone(), params.clone(), max_size).unwrap();
+
+    let f_v_0 = universal_accumulator_compute_initial_fv(initial_fixed, sk.clone()).unwrap();
 
     let mut initial_elements = initial_elements.chunks(2);
     let f_v_1 = universal_accumulator_compute_initial_fv(
@@ -319,6 +324,7 @@ pub fn universal_accumulator_initialize() {
     .unwrap();
 
     let array = js_sys::Array::new();
+    array.push(&f_v_0);
     array.push(&f_v_1);
     array.push(&f_v_2);
     array.push(&f_v_3);

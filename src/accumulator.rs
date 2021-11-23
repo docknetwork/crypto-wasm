@@ -9,6 +9,9 @@ use ark_ec::PairingEngine;
 use serde_wasm_bindgen::*;
 use wasm_bindgen::prelude::*;
 
+use ark_ff::{field_new, One};
+use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
+use blake2::Blake2b;
 use vb_accumulator::prelude::{
     Accumulator, Keypair, MembershipProof, MembershipProofProtocol, MembershipProvingKey,
     MembershipWitness, NonMembershipProof, NonMembershipProofProtocol, NonMembershipProvingKey,
@@ -17,10 +20,8 @@ use vb_accumulator::prelude::{
 };
 
 use crate::Fr;
-use ark_ff::One;
-use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
-use blake2::Blake2b;
 
+// Trying to keep types at one place so changing the curve is easier
 pub(crate) type AccumSk = SecretKey<Fr>;
 pub type AccumPk = PublicKey<<Bls12_381 as PairingEngine>::G2Affine>;
 pub type AccumSetupParams = SetupParams<Bls12_381>;
@@ -187,6 +188,15 @@ pub fn positive_accumulator_verify_membership(
     let accumulated = g1_affine_from_uint8_array(accumulated)?;
     let accum = PositiveAccum::from_accumulated(accumulated);
     crate::verify_membership!(accum, element, witness, public_key, params)
+}
+
+/// Creates the initial elements that depend on the order of the curve and thus can be considered fixed.
+/// This function generates them for the BLS12-381 curve *only*.
+#[wasm_bindgen(js_name = universalAccumulatorFixedInitialElements)]
+pub fn universal_accumulator_fixed_initial_elements() -> Result<js_sys::Array, JsValue> {
+    let initial = vb_accumulator::initial_elements_for_bls12_381!(Fr);
+    let a = js_array_from_frs(&initial)?;
+    Ok(a)
 }
 
 #[wasm_bindgen(js_name = universalAccumulatorComputeInitialFv)]

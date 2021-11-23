@@ -87,6 +87,8 @@ export function positiveAccumulatorMembershipWitnessesForBatch(
     secretKey: Uint8Array,
 ): Uint8Array[];
 
+export function universalAccumulatorFixedInitialElements(): Uint8Array[];
+
 export function universalAccumulatorComputeInitialFv(
     initialElements: Uint8Array[],
     secretKey: Uint8Array,

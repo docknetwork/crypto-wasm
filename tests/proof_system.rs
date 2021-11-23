@@ -12,8 +12,9 @@ use wasm::accumulator::{
     positive_accumulator_get_accumulated, positive_accumulator_initialize,
     positive_accumulator_membership_witness, universal_accumulator_add,
     universal_accumulator_compute_d, universal_accumulator_compute_initial_fv,
-    universal_accumulator_get_accumulated, universal_accumulator_initialize_given_f_v,
-    universal_accumulator_membership_witness, universal_accumulator_non_membership_witness,
+    universal_accumulator_fixed_initial_elements, universal_accumulator_get_accumulated,
+    universal_accumulator_initialize_given_f_v, universal_accumulator_membership_witness,
+    universal_accumulator_non_membership_witness,
 };
 use wasm::bbs_plus::{
     bbs_blind_sign_g1, bbs_commit_to_message_in_g1, bbs_encode_message_for_signing,
@@ -97,12 +98,13 @@ fn get_universal_accum(sk: JsValue, params: js_sys::Uint8Array, max_size: u32) -
         .map(|_| random_ff(None))
         .collect::<Vec<_>>();
 
-    let f_v = universal_accumulator_compute_initial_fv(
-        js_array_from_frs(initial_elements.as_slice()).unwrap(),
-        sk.clone(),
-    )
-    .unwrap();
-    universal_accumulator_initialize_given_f_v(f_v.clone(), params.clone(), max_size).unwrap()
+    let initial_fixed = universal_accumulator_fixed_initial_elements().unwrap();
+    let initial_elements_arr = js_array_from_frs(initial_elements.as_slice()).unwrap();
+
+    let all_initial_elements = initial_fixed.concat(&initial_elements_arr);
+
+    let f_v = universal_accumulator_compute_initial_fv(all_initial_elements, sk).unwrap();
+    universal_accumulator_initialize_given_f_v(f_v, params, max_size).unwrap()
 }
 
 fn test_bbs_statement(stmt_j: JsValue, revealed_msgs: js_sys::Map) {

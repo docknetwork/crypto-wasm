@@ -32,7 +32,7 @@ import {
     universalAccumulatorInitialiseGivenFv,
     universalAccumulatorMembershipWitness,
     universalAccumulatorNonMembershipWitness,
-    verifyCompositeProof, initializeWasm, getProofSpecAsJson
+    verifyCompositeProof, initializeWasm, universalAccumulatorFixedInitialElements
 } from "../../lib";
 
 function setupBBS(messageCount: number, prefix: string, encode: boolean): [BbsSigParams, Uint8Array, Uint8Array, Uint8Array[]] {
@@ -190,7 +190,10 @@ describe("Proving knowledge of BBS+ signatures and accumulator membership and no
             generateFieldElementFromNumber(104),
             generateFieldElementFromNumber(105),
         ];
-        const fV = universalAccumulatorComputeInitialFv(initialElements, sk);
+
+        const fixedInitial = universalAccumulatorFixedInitialElements();
+        const allInitial = fixedInitial.concat(initialElements);
+        const fV = universalAccumulatorComputeInitialFv(allInitial, sk);
         let uniAccumulator = universalAccumulatorInitialiseGivenFv(fV, params, 100);
         const nonMemPrk = generateNonMembershipProvingKey();
         const memPrk = accumulatorDeriveMembershipProvingKeyFromNonMembershipKey(nonMemPrk);

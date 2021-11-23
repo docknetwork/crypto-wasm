@@ -114,6 +114,11 @@ module.exports.positiveAccumulatorMembershipWitnessesForBatch = (accumulator, el
     return wasm.positiveAccumulatorMembershipWitnessesForBatch(accumulator, elements, secretKey)
 };
 
+module.exports.universalAccumulatorFixedInitialElements = () => {
+    requireWasmInitialized();
+    return wasm.universalAccumulatorFixedInitialElements()
+};
+
 module.exports.universalAccumulatorComputeInitialFv = (initialElements, secretKey) => {
     requireWasmInitialized();
     return wasm.universalAccumulatorComputeInitialFv(initialElements, secretKey)

@@ -59,7 +59,8 @@ import {
     accumulatorChallengeContributionFromNonMembershipProtocol,
     accumulatorChallengeContributionFromNonMembershipProof,
     IUniversalAccumulator,
-    initializeWasm, updateMembershipWitnessesPostBatchUpdates
+    initializeWasm, updateMembershipWitnessesPostBatchUpdates,
+    universalAccumulatorFixedInitialElements
 } from "../../lib";
 
 import {stringToBytes} from "../utilities";
@@ -238,6 +239,8 @@ describe("For Universal accumulator", () => {
         sk = generateAccumulatorSecretKey(seed);
         pk = generateAccumulatorPublicKey(sk, params);
 
+        const fixedInitial = universalAccumulatorFixedInitialElements();
+
         const initialElements = [
             generateFieldElementFromNumber(101),
             generateFieldElementFromNumber(102),
@@ -246,11 +249,14 @@ describe("For Universal accumulator", () => {
             generateFieldElementFromNumber(105),
         ];
 
-        const fV = universalAccumulatorComputeInitialFv(initialElements, sk);
+        const allInitial = fixedInitial.concat(initialElements);
 
+        const fV = universalAccumulatorComputeInitialFv(allInitial, sk);
+
+        const fV0 = universalAccumulatorComputeInitialFv(fixedInitial, sk);
         const fV1 = universalAccumulatorComputeInitialFv(initialElements.slice(0, 2), sk);
         const fV2 = universalAccumulatorComputeInitialFv(initialElements.slice(2), sk);
-        const combinedFV = universalAccumulatorCombineMultipleInitialFv([fV1, fV2]);
+        const combinedFV = universalAccumulatorCombineMultipleInitialFv([fV0, fV1, fV2]);
 
         expect(combinedFV).toEqual(fV);
 
@@ -442,7 +448,11 @@ describe("Witness update", () => {
             generateFieldElementFromNumber(109),
             generateFieldElementFromNumber(110),
         ];
-        const fV = universalAccumulatorComputeInitialFv(initialElements, sk);
+
+        const fixedInitial = universalAccumulatorFixedInitialElements();
+        const allInitial = fixedInitial.concat(initialElements);
+
+        const fV = universalAccumulatorComputeInitialFv(allInitial, sk);
         uniAccumulator = universalAccumulatorInitialiseGivenFv(fV, params, initialElements.length - 1);
     });
 
@@ -623,7 +633,11 @@ describe("Proofs ", () => {
             generateFieldElementFromNumber(109),
             generateFieldElementFromNumber(110),
         ];
-        const fV = universalAccumulatorComputeInitialFv(initialElements, sk);
+
+        const fixedInitial = universalAccumulatorFixedInitialElements();
+        const allInitial = fixedInitial.concat(initialElements);
+
+        const fV = universalAccumulatorComputeInitialFv(allInitial, sk);
         accumulator = universalAccumulatorInitialiseGivenFv(fV, params, initialElements.length - 1);
     });
 
