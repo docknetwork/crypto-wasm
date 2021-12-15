@@ -1,9 +1,12 @@
 use crate::utils::{
     field_element_from_u32, fr_from_uint8_array, fr_to_uint8_array, g1_affine_to_uint8_array,
-    g2_affine_to_uint8_array, get_seeded_rng, random_bytes, set_panic_hook,
+    g2_affine_to_uint8_array, get_seeded_rng, js_array_to_fr_vec, js_array_to_g1_affine_vec,
+    js_array_to_g2_affine_vec, random_bytes, set_panic_hook,
 };
 use crate::{Fr, G1Proj, G2Proj};
+use ark_ec::msm::VariableBaseMSM;
 use ark_ec::ProjectiveCurve;
+use ark_ff::PrimeField;
 use ark_serialize::CanonicalSerialize;
 use ark_std::UniformRand;
 use blake2::Blake2b;
@@ -62,6 +65,38 @@ pub fn field_element_as_bytes(element: js_sys::Uint8Array) -> Result<js_sys::Uin
         ))
     })?;
     Ok(js_sys::Uint8Array::from(bytes.as_slice()))
+}
+
+/// Create a Pedersen commitment in group G1
+#[wasm_bindgen(js_name = pedersenCommitmentG1)]
+pub fn pedersen_commitment_g1(
+    bases: js_sys::Array,
+    messages: js_sys::Array,
+) -> Result<js_sys::Uint8Array, JsValue> {
+    set_panic_hook();
+    let bases = js_array_to_g1_affine_vec(&bases)?;
+    let messages = js_array_to_fr_vec(&messages)?
+        .into_iter()
+        .map(|s| s.into_repr())
+        .collect::<Vec<_>>();
+    let comm = VariableBaseMSM::multi_scalar_mul(&bases, &messages).into_affine();
+    g1_affine_to_uint8_array(&comm)
+}
+
+/// Create a Pedersen commitment in group G2
+#[wasm_bindgen(js_name = pedersenCommitmentG2)]
+pub fn pedersen_commitment_g2(
+    bases: js_sys::Array,
+    messages: js_sys::Array,
+) -> Result<js_sys::Uint8Array, JsValue> {
+    set_panic_hook();
+    let bases = js_array_to_g2_affine_vec(&bases)?;
+    let messages = js_array_to_fr_vec(&messages)?
+        .into_iter()
+        .map(|s| s.into_repr())
+        .collect::<Vec<_>>();
+    let comm = VariableBaseMSM::multi_scalar_mul(&bases, &messages).into_affine();
+    g2_affine_to_uint8_array(&comm)
 }
 
 fn fr_uin8_array_from_bytes(bytes: &[u8]) -> js_sys::Uint8Array {

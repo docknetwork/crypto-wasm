@@ -46,7 +46,7 @@ the witness (its the manager's signature on the element), the element and the wi
 or absence of the element. An accumulator can be considered similar to the root of the merkle tree where the inclusion proof is the witness 
 of the element (non-membership proofs aren't possible with simple merkle trees). As with merkle trees, as elements are added or 
 removed from the accumulator, the witness (inclusion proof) needs to be updated for the current accumulated value (root).  
-2 kinds of accumulators are provided, positive and universal. Positive support only membership witnesses while universal support both 
+2 kinds of accumulators are provided, **positive** and **universal**. Positive support only membership witnesses while universal support both 
 membership and non-membership witnesses. Creating non-membership witnesses is expensive however and the cost depends on the 
 number of members present in the accumulator. Both accumulators are owned by an accumulator manager who has the private key to the accumulator 
 and only the owner can add or remove elements or create witnesses using the accumulator.    

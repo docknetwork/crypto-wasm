@@ -55,7 +55,13 @@ export function generatePedersenCommitmentWitness(
     elements: Uint8Array[]
 ): Uint8Array;
 
-export function generateProofSpec(
+export function generateProofSpecG1(
+    statements: Uint8Array[],
+    metaStatements: Uint8Array[],
+    context?: Uint8Array
+): Uint8Array;
+
+export function generateProofSpecG2(
     statements: Uint8Array[],
     metaStatements: Uint8Array[],
     context?: Uint8Array
@@ -69,13 +75,25 @@ export function getProofSpecFromJson(
     json: string
 ): Uint8Array;
 
-export function generateCompositeProof(
+export function generateCompositeProofG1(
     proofSpec: Uint8Array,
     witnesses: Uint8Array[],
     nonce?: Uint8Array
 ): Uint8Array;
 
-export function verifyCompositeProof(
+export function generateCompositeProofG2(
+    proofSpec: Uint8Array,
+    witnesses: Uint8Array[],
+    nonce?: Uint8Array
+): Uint8Array;
+
+export function verifyCompositeProofG1(
+    proof: Uint8Array,
+    proofSpec: Uint8Array,
+    nonce?: Uint8Array
+): Required<VerifyResult>;
+
+export function verifyCompositeProofG2(
     proof: Uint8Array,
     proofSpec: Uint8Array,
     nonce?: Uint8Array

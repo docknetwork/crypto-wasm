@@ -1,6 +1,6 @@
 {
   "name": "@docknetwork/crypto-wasm",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "author": "Dock.io",
   "license": "Apache-2.0",
   "private": false,
@@ -19,7 +19,7 @@
     "lib": "lib"
   },
   "engines": {
-    "node": ">=11.0.0"
+    "node": ">=14.0.0"
   },
   "scripts": {
     "install:deps": "./scripts/install-dependencies.sh",

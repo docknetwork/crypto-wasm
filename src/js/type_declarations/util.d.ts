@@ -21,3 +21,13 @@ export function generateChallengeFromBytes(
 export function generateFieldElementFromNumber(
     num: number,
 ): Uint8Array;
+
+export function pedersenCommitmentG1(
+    bases: Uint8Array[],
+    messages: Uint8Array[],
+): Uint8Array;
+
+export function pedersenCommitmentG2(
+    bases: Uint8Array[],
+    messages: Uint8Array[],
+): Uint8Array;

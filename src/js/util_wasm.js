@@ -7,7 +7,7 @@ const {
 /*const {
     generateRandomFieldElement, generateRandomG1Element, generateRandomG2Element,
     generateFieldElementFromBytes, fieldElementAsBytes, generateChallengeFromBytes,
-    generateFieldElementFromNumber
+    generateFieldElementFromNumber, pedersenCommitmentG1, pedersenCommitmentG2
 } = require("./index");*/
 
 module.exports.generateRandomFieldElement = (seed) => {
@@ -43,4 +43,14 @@ module.exports.generateChallengeFromBytes = (bytes) => {
 module.exports.generateFieldElementFromNumber = (num) => {
     requireWasmInitialized();
     return wasm.generateFieldElementFromNumber(num);
+};
+
+module.exports.pedersenCommitmentG1 = (bases, messages) => {
+    requireWasmInitialized();
+    return wasm.pedersenCommitmentG1(bases, messages);
+};
+
+module.exports.pedersenCommitmentG2 = (bases, messages) => {
+    requireWasmInitialized();
+    return wasm.pedersenCommitmentG2(bases, messages);
 };

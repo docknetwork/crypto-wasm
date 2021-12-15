@@ -4,7 +4,7 @@
     generatePoKBBSSignatureStatement, generateAccumulatorMembershipStatement,
     generateAccumulatorNonMembershipStatement, generatePedersenCommitmentStatement, generateWitnessEqualityMetaStatement,
     generatePoKBBSSignatureWitness, generateAccumulatorMembershipWitness, generateAccumulatorNonMembershipWitness,
-    generatePedersenCommitmentWitness, generateProofSpec, generateCompositeProof, verifyCompositeProof,
+    generatePedersenCommitmentWitness, generateProofSpecG1, generateCompositeProof, verifyCompositeProof,
     getProofSpecAsJson, getProofSpecFromJson
 } = require("./index");*/
 
@@ -62,9 +62,14 @@ module.exports.generatePedersenCommitmentWitness = (elements) => {
     return wasm.generatePedersenCommitmentWitness(elements);
 };
 
-module.exports.generateProofSpec = (statements, metaStatements, context) => {
+module.exports.generateProofSpecG1 = (statements, metaStatements, context) => {
     requireWasmInitialized();
-    return wasm.generateProofSpec(statements, metaStatements, context);
+    return wasm.generateProofSpecG1(statements, metaStatements, context);
+};
+
+module.exports.generateProofSpecG2 = (statements, metaStatements, context) => {
+    requireWasmInitialized();
+    return wasm.generateProofSpecG2(statements, metaStatements, context);
 };
 
 module.exports.getProofSpecAsJson = (proofSpec) => {
@@ -77,12 +82,22 @@ module.exports.getProofSpecFromJson = (json) => {
     return wasm.getProofSpecFromJson(json);
 };
 
-module.exports.generateCompositeProof = (proofSpec, witnesses, nonce) => {
+module.exports.generateCompositeProofG1 = (proofSpec, witnesses, nonce) => {
     requireWasmInitialized();
-    return wasm.generateCompositeProof(proofSpec, witnesses, nonce);
+    return wasm.generateCompositeProofG1(proofSpec, witnesses, nonce);
 };
 
-module.exports.verifyCompositeProof = (proof, proofSpec, nonce) => {
+module.exports.generateCompositeProofG2 = (proofSpec, witnesses, nonce) => {
     requireWasmInitialized();
-    return wasm.verifyCompositeProof(proof, proofSpec, nonce);
+    return wasm.generateCompositeProofG2(proofSpec, witnesses, nonce);
+};
+
+module.exports.verifyCompositeProofG1 = (proof, proofSpec, nonce) => {
+    requireWasmInitialized();
+    return wasm.verifyCompositeProofG1(proof, proofSpec, nonce);
+};
+
+module.exports.verifyCompositeProofG2 = (proof, proofSpec, nonce) => {
+    requireWasmInitialized();
+    return wasm.verifyCompositeProofG2(proof, proofSpec, nonce);
 };

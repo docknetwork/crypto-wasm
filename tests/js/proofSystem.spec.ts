@@ -17,8 +17,8 @@ import {
     generateNonMembershipProvingKey, generatePedersenCommitmentG1Statement, generatePedersenCommitmentWitness,
     generatePoKBBSSignatureStatement,
     generatePoKBBSSignatureWitness,
-    generateCompositeProof,
-    generateProofSpec, generateRandomFieldElement,
+    generateCompositeProofG1, generateCompositeProofG2,
+    generateProofSpecG1, generateProofSpecG2, generateRandomFieldElement,
     generateSignatureParamsG1,
     generateWitnessEqualityMetaStatement,
     positiveAccumulatorAdd,
@@ -32,7 +32,8 @@ import {
     universalAccumulatorInitialiseGivenFv,
     universalAccumulatorMembershipWitness,
     universalAccumulatorNonMembershipWitness,
-    verifyCompositeProof, initializeWasm, universalAccumulatorFixedInitialElements
+    verifyCompositeProofG1, verifyCompositeProofG2, initializeWasm, universalAccumulatorFixedInitialElements, generateRandomG1Element,
+    pedersenCommitmentG1, pedersenCommitmentG2, generateRandomG2Element, generatePedersenCommitmentG2Statement
 } from "../../lib";
 
 function setupBBS(messageCount: number, prefix: string, encode: boolean): [BbsSigParams, Uint8Array, Uint8Array, Uint8Array[]] {
@@ -122,7 +123,7 @@ describe("Proving knowledge of many BBS+ signatures", () => {
         statements.push(statement3);
 
         const context = stringToBytes('test-context');
-        const proofSpec = generateProofSpec(statements, metaStatements, context);
+        const proofSpec = generateProofSpecG1(statements, metaStatements, context);
 
         const witness1 = generatePoKBBSSignatureWitness(sig1, unrevealedMsgs1, encodeWhileSigning);
         const witness2 = generatePoKBBSSignatureWitness(sig2, unrevealedMsgs2, encodeWhileSigning);
@@ -135,8 +136,8 @@ describe("Proving knowledge of many BBS+ signatures", () => {
 
         const nonce = stringToBytes('test-nonce');
 
-        const proof = generateCompositeProof(proofSpec, witnesses, nonce);
-        const res = verifyCompositeProof(proof, proofSpec, nonce);
+        const proof = generateCompositeProofG1(proofSpec, witnesses, nonce);
+        const res = verifyCompositeProofG1(proof, proofSpec, nonce);
         expect(res.verified).toBe(true);
     }
 
@@ -155,6 +156,10 @@ describe("Proving knowledge of many BBS+ signatures", () => {
 });
 
 describe("Proving knowledge of BBS+ signatures and accumulator membership and non-membership", () => {
+    beforeAll(async () => {
+        await initializeWasm();
+    });
+
     it("generate and verify a proof of knowledge of a BBS+ signature and accumulator membership", () => {
         const messageCount1 = 6;
         const messageCount2 = 8;
@@ -239,7 +244,7 @@ describe("Proving knowledge of BBS+ signatures and accumulator membership and no
         statements.push(statement4);
         statements.push(statement5);
 
-        const proofSpec = generateProofSpec(statements, metaStatements);
+        const proofSpec = generateProofSpecG1(statements, metaStatements);
 
         const witness1 = generatePoKBBSSignatureWitness(sig1, unrevealedMsgs1, false);
         const witness2 = generatePoKBBSSignatureWitness(sig2, unrevealedMsgs2, false);
@@ -254,14 +259,18 @@ describe("Proving knowledge of BBS+ signatures and accumulator membership and no
         witnesses.push(witness4);
         witnesses.push(witness5);
 
-        const proof = generateCompositeProof(proofSpec, witnesses);
+        const proof = generateCompositeProofG1(proofSpec, witnesses);
 
-        const res = verifyCompositeProof(proof, proofSpec);
+        const res = verifyCompositeProofG1(proof, proofSpec);
         expect(res.verified).toBe(true);
     });
 });
 
 describe("Proving knowledge of a BBS+ signature while requesting a partially blind BBS+ signature", () => {
+    beforeAll(async () => {
+        await initializeWasm();
+    });
+
     it("generate and verify a proof of knowledge of a BBS+ signature and accumulator membership", () => {
         const messageCount1 = 5;
         const messageCount2 = 6;
@@ -313,7 +322,7 @@ describe("Proving knowledge of a BBS+ signature while requesting a partially bli
         set.add([1, 3]);
         metaStatements.push(generateWitnessEqualityMetaStatement(set));
 
-        const proofSpec = generateProofSpec(statements, metaStatements);
+        const proofSpec = generateProofSpecG1(statements, metaStatements);
 
         const witness1 = generatePoKBBSSignatureWitness(sig1, unrevealedMsgs1, true);
 
@@ -327,8 +336,8 @@ describe("Proving knowledge of a BBS+ signature while requesting a partially bli
 
         const nonce = stringToBytes('test');
 
-        const proof = generateCompositeProof(proofSpec, witnesses, nonce);
-        const res = verifyCompositeProof(proof, proofSpec, nonce);
+        const proof = generateCompositeProofG1(proofSpec, witnesses, nonce);
+        const res = verifyCompositeProofG1(proof, proofSpec, nonce);
         expect(res.verified).toBe(true);
 
         const blindSig = bbsBlindSignG1(commitment, msgsToNotCommit, sk2, sigParams2, true);
@@ -336,4 +345,93 @@ describe("Proving knowledge of a BBS+ signature while requesting a partially bli
         const res1 = bbsVerifyG1(messages2, sig2, pk2, sigParams2, true);
         expect(res1.verified).toBe(true);
     })
+});
+
+describe("Proving equality of openings of Pedersen commitments", () => {
+    let messages: Uint8Array[];
+
+    beforeAll(async () => {
+        await initializeWasm();
+        messages = [generateRandomFieldElement(), generateRandomFieldElement(), generateRandomFieldElement()];
+    });
+
+    it("commitments in G1", () => {
+        const bases1 = [generateRandomG1Element(), generateRandomG1Element()];
+        const m1 = [messages[0], messages[1]];
+        const commitment1 = pedersenCommitmentG1(bases1, m1);
+
+        const bases2 = [generateRandomG1Element(), generateRandomG1Element(), generateRandomG1Element()];
+        const m2 = [messages[0], messages[1], messages[2]];
+        const commitment2 = pedersenCommitmentG1(bases2, m2);
+
+        const statement1 = generatePedersenCommitmentG1Statement(bases1, commitment1);
+        const statement2 = generatePedersenCommitmentG1Statement(bases2, commitment2);
+
+        const statements = [];
+        statements.push(statement1);
+        statements.push(statement2);
+
+        const metaStatements = [];
+
+        const set1 = new Set<[number, number]>();
+        set1.add([0, 0]);
+        set1.add([1, 0]);
+        metaStatements.push(generateWitnessEqualityMetaStatement(set1));
+        const set2 = new Set<[number, number]>();
+        set2.add([0, 1]);
+        set2.add([1, 1]);
+        metaStatements.push(generateWitnessEqualityMetaStatement(set2));
+
+        const proofSpec = generateProofSpecG1(statements, metaStatements);
+
+        const witness1 = generatePedersenCommitmentWitness(m1);
+        const witness2 = generatePedersenCommitmentWitness(m2);
+        const witnesses = [];
+        witnesses.push(witness1);
+        witnesses.push(witness2);
+
+        const proof = generateCompositeProofG1(proofSpec, witnesses);
+        const res = verifyCompositeProofG1(proof, proofSpec);
+        expect(res.verified).toBe(true);
+    });
+
+    it("commitments in G2", () => {
+        const bases1 = [generateRandomG2Element(), generateRandomG2Element()];
+        const m1 = [messages[0], messages[1]];
+        const commitment1 = pedersenCommitmentG2(bases1, m1);
+
+        const bases2 = [generateRandomG2Element(), generateRandomG2Element(), generateRandomG2Element()];
+        const m2 = [messages[0], messages[1], messages[2]];
+        const commitment2 = pedersenCommitmentG2(bases2, m2);
+
+        const statement1 = generatePedersenCommitmentG2Statement(bases1, commitment1);
+        const statement2 = generatePedersenCommitmentG2Statement(bases2, commitment2);
+
+        const statements = [];
+        statements.push(statement1);
+        statements.push(statement2);
+
+        const metaStatements = [];
+
+        const set1 = new Set<[number, number]>();
+        set1.add([0, 0]);
+        set1.add([1, 0]);
+        metaStatements.push(generateWitnessEqualityMetaStatement(set1));
+        const set2 = new Set<[number, number]>();
+        set2.add([0, 1]);
+        set2.add([1, 1]);
+        metaStatements.push(generateWitnessEqualityMetaStatement(set2));
+
+        const proofSpec = generateProofSpecG2(statements, metaStatements);
+
+        const witness1 = generatePedersenCommitmentWitness(m1);
+        const witness2 = generatePedersenCommitmentWitness(m2);
+        const witnesses = [];
+        witnesses.push(witness1);
+        witnesses.push(witness2);
+
+        const proof = generateCompositeProofG2(proofSpec, witnesses);
+        const res = verifyCompositeProofG2(proof, proofSpec);
+        expect(res.verified).toBe(true);
+    });
 });

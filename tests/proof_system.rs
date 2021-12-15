@@ -24,15 +24,17 @@ use wasm::bbs_plus::{
 };
 use wasm::common::{
     field_element_as_bytes, field_element_from_number, generate_field_element_from_bytes,
-    generate_random_field_element, random_ff, VerifyResponse,
+    generate_random_field_element, generate_random_g1_element, generate_random_g2_element,
+    pedersen_commitment_g1, pedersen_commitment_g2, random_ff, VerifyResponse,
 };
 use wasm::proof_system::{
     generate_accumulator_membership_statement, generate_accumulator_membership_witness,
     generate_accumulator_non_membership_statement, generate_accumulator_non_membership_witness,
-    generate_composite_proof, generate_pedersen_commitment_g1_statement,
+    generate_composite_proof_g1, generate_composite_proof_g2,
+    generate_pedersen_commitment_g1_statement, generate_pedersen_commitment_g2_statement,
     generate_pedersen_commitment_witness, generate_pok_bbs_sig_statement,
-    generate_pok_bbs_sig_witness, generate_proof_spec, generate_witness_equality_meta_statement,
-    verify_composite_proof,
+    generate_pok_bbs_sig_witness, generate_proof_spec_g1, generate_proof_spec_g2,
+    generate_witness_equality_meta_statement, verify_composite_proof_g1, verify_composite_proof_g2,
 };
 use wasm::utils::{
     fr_from_jsvalue, js_array_from_frs, msgs_bytes_map_to_fr_btreemap, random_bytes,
@@ -216,7 +218,7 @@ pub fn three_bbs_sigs_and_msg_equality() {
 
     let context = Some("test-context".as_bytes().to_vec());
 
-    let proof_spec = generate_proof_spec(statements, meta_statements, context).unwrap();
+    let proof_spec = generate_proof_spec_g1(statements, meta_statements, context).unwrap();
 
     let witness_1 = generate_pok_bbs_sig_witness(sig_1, unrevealed_msgs_1, true).unwrap();
     let witness_2 = generate_pok_bbs_sig_witness(sig_2, unrevealed_msgs_2, true).unwrap();
@@ -229,8 +231,8 @@ pub fn three_bbs_sigs_and_msg_equality() {
 
     let nonce = Some("test-nonce".as_bytes().to_vec());
 
-    let proof = generate_composite_proof(proof_spec.clone(), witnesses, nonce.clone()).unwrap();
-    let result = verify_composite_proof(proof, proof_spec, nonce).unwrap();
+    let proof = generate_composite_proof_g1(proof_spec.clone(), witnesses, nonce.clone()).unwrap();
+    let result = verify_composite_proof_g1(proof, proof_spec, nonce).unwrap();
     let r: VerifyResponse = serde_wasm_bindgen::from_value(result).unwrap();
     r.validate();
 }
@@ -498,7 +500,7 @@ pub fn bbs_sig_and_accumulator() {
 
     let context = Some("test-context".as_bytes().to_vec());
 
-    let proof_spec = generate_proof_spec(statements, meta_statements, context).unwrap();
+    let proof_spec = generate_proof_spec_g1(statements, meta_statements, context).unwrap();
 
     let witness_1 = generate_pok_bbs_sig_witness(sig_1, unrevealed_msgs_1.clone(), false).unwrap();
     let witness_2 = generate_pok_bbs_sig_witness(sig_2, unrevealed_msgs_2.clone(), false).unwrap();
@@ -538,9 +540,9 @@ pub fn bbs_sig_and_accumulator() {
 
     let nonce = Some("test-nonce".as_bytes().to_vec());
 
-    let proof = generate_composite_proof(proof_spec.clone(), witnesses, nonce.clone()).unwrap();
+    let proof = generate_composite_proof_g1(proof_spec.clone(), witnesses, nonce.clone()).unwrap();
 
-    let result = verify_composite_proof(proof, proof_spec, nonce).unwrap();
+    let result = verify_composite_proof_g1(proof, proof_spec, nonce).unwrap();
     let r: VerifyResponse = serde_wasm_bindgen::from_value(result).unwrap();
     r.validate();
 }
@@ -619,7 +621,7 @@ pub fn request_blind_bbs_sig() {
 
     let context = Some("test-context".as_bytes().to_vec());
 
-    let proof_spec = generate_proof_spec(statements, meta_statements, context).unwrap();
+    let proof_spec = generate_proof_spec_g1(statements, meta_statements, context).unwrap();
 
     let witness_1 = generate_pok_bbs_sig_witness(sig_1, unrevealed_msgs_1, true).unwrap();
 
@@ -633,8 +635,8 @@ pub fn request_blind_bbs_sig() {
     witnesses.push(&witness_2);
 
     let nonce = Some("test-nonce".as_bytes().to_vec());
-    let proof = generate_composite_proof(proof_spec.clone(), witnesses, nonce.clone()).unwrap();
-    let result = verify_composite_proof(proof, proof_spec, nonce).unwrap();
+    let proof = generate_composite_proof_g1(proof_spec.clone(), witnesses, nonce.clone()).unwrap();
+    let result = verify_composite_proof_g1(proof, proof_spec, nonce).unwrap();
     let r: VerifyResponse = serde_wasm_bindgen::from_value(result).unwrap();
     r.validate();
 
@@ -643,6 +645,91 @@ pub fn request_blind_bbs_sig() {
     let sig_2 = bbs_unblind_sig_g1(blinded_sig, blinding).unwrap();
 
     let result = bbs_verify_g1(msgs_2_jsvalue, sig_2, pk_2, params_2, true).unwrap();
+    let r: VerifyResponse = serde_wasm_bindgen::from_value(result).unwrap();
+    r.validate();
+}
+
+#[allow(non_snake_case)]
+#[wasm_bindgen_test]
+pub fn pedersen_commitment_opening_equality() {
+    let m_1 = generate_random_field_element(None).unwrap();
+    let m_2 = generate_random_field_element(None).unwrap();
+    let m_3 = generate_random_field_element(None).unwrap();
+
+    let msgs_1 = js_sys::Array::new();
+    msgs_1.push(&m_1);
+    msgs_1.push(&m_2);
+
+    let msgs_2 = js_sys::Array::new();
+    msgs_2.push(&m_1);
+    msgs_2.push(&m_2);
+    msgs_2.push(&m_3);
+
+    let bases_1 = js_sys::Array::new();
+    bases_1.push(&generate_random_g1_element().unwrap());
+    bases_1.push(&generate_random_g1_element().unwrap());
+
+    let comm_1 = pedersen_commitment_g1(bases_1.clone(), msgs_1.clone()).unwrap();
+
+    let bases_2 = js_sys::Array::new();
+    bases_2.push(&generate_random_g1_element().unwrap());
+    bases_2.push(&generate_random_g1_element().unwrap());
+    bases_2.push(&generate_random_g1_element().unwrap());
+
+    let comm_2 = pedersen_commitment_g1(bases_2.clone(), msgs_2.clone()).unwrap();
+
+    let statements = js_sys::Array::new();
+    let stmt_1 = generate_pedersen_commitment_g1_statement(bases_1, comm_1.clone()).unwrap();
+    let stmt_2 = generate_pedersen_commitment_g1_statement(bases_2, comm_2.clone()).unwrap();
+    statements.push(&stmt_1);
+    statements.push(&stmt_2);
+
+    let meta_statements = js_sys::Array::new();
+    meta_statements.push(&get_witness_equality_statement(vec![(0, 0), (1, 0)]));
+    meta_statements.push(&get_witness_equality_statement(vec![(0, 1), (1, 1)]));
+
+    let proof_spec = generate_proof_spec_g1(statements, meta_statements, None).unwrap();
+
+    let witnesses = js_sys::Array::new();
+    witnesses.push(&generate_pedersen_commitment_witness(msgs_1.clone()).unwrap());
+    witnesses.push(&generate_pedersen_commitment_witness(msgs_2.clone()).unwrap());
+
+    let proof = generate_composite_proof_g1(proof_spec.clone(), witnesses, None).unwrap();
+    let result = verify_composite_proof_g1(proof, proof_spec, None).unwrap();
+    let r: VerifyResponse = serde_wasm_bindgen::from_value(result).unwrap();
+    r.validate();
+
+    let bases_1 = js_sys::Array::new();
+    bases_1.push(&generate_random_g2_element().unwrap());
+    bases_1.push(&generate_random_g2_element().unwrap());
+
+    let comm_1 = pedersen_commitment_g2(bases_1.clone(), msgs_1.clone()).unwrap();
+
+    let bases_2 = js_sys::Array::new();
+    bases_2.push(&generate_random_g2_element().unwrap());
+    bases_2.push(&generate_random_g2_element().unwrap());
+    bases_2.push(&generate_random_g2_element().unwrap());
+
+    let comm_2 = pedersen_commitment_g2(bases_2.clone(), msgs_2.clone()).unwrap();
+
+    let statements = js_sys::Array::new();
+    let stmt_1 = generate_pedersen_commitment_g2_statement(bases_1, comm_1.clone()).unwrap();
+    let stmt_2 = generate_pedersen_commitment_g2_statement(bases_2, comm_2.clone()).unwrap();
+    statements.push(&stmt_1);
+    statements.push(&stmt_2);
+
+    let meta_statements = js_sys::Array::new();
+    meta_statements.push(&get_witness_equality_statement(vec![(0, 0), (1, 0)]));
+    meta_statements.push(&get_witness_equality_statement(vec![(0, 1), (1, 1)]));
+
+    let proof_spec = generate_proof_spec_g2(statements, meta_statements, None).unwrap();
+
+    let witnesses = js_sys::Array::new();
+    witnesses.push(&generate_pedersen_commitment_witness(msgs_1.clone()).unwrap());
+    witnesses.push(&generate_pedersen_commitment_witness(msgs_2.clone()).unwrap());
+
+    let proof = generate_composite_proof_g2(proof_spec.clone(), witnesses, None).unwrap();
+    let result = verify_composite_proof_g2(proof, proof_spec, None).unwrap();
     let r: VerifyResponse = serde_wasm_bindgen::from_value(result).unwrap();
     r.validate();
 }

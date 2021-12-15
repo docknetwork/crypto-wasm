@@ -12,7 +12,7 @@ use crate::utils::{
     js_array_to_fr_vec, js_array_to_g1_affine_vec, js_array_to_g2_affine_vec,
     msgs_bytes_map_to_fr_btreemap, set_panic_hook,
 };
-use crate::{Fr, G1Affine};
+use crate::{Fr, G1Affine, G2Affine};
 use ark_bls12_381::Bls12_381;
 use ark_ec::PairingEngine;
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
@@ -32,8 +32,10 @@ pub(crate) type PedCommG2Stmt =
 pub(crate) type PoKBBSSigWit = witness::PoKBBSSignatureG1<Bls12_381>;
 pub(crate) type AccumMemWit = witness::Membership<Bls12_381>;
 pub(crate) type AccumNonMemWit = witness::NonMembership<Bls12_381>;
-pub(crate) type ProofSpec = proof::ProofSpec<Bls12_381, <Bls12_381 as PairingEngine>::G1Affine>;
+pub(crate) type ProofSpecG1 = proof::ProofSpec<Bls12_381, <Bls12_381 as PairingEngine>::G1Affine>;
+pub(crate) type ProofSpecG2 = proof::ProofSpec<Bls12_381, <Bls12_381 as PairingEngine>::G2Affine>;
 pub(crate) type ProofG1 = proof::Proof<Bls12_381, G1Affine, Fr, Blake2b>;
+pub(crate) type ProofG2 = proof::Proof<Bls12_381, G2Affine, Fr, Blake2b>;
 
 #[wasm_bindgen(js_name = generatePoKBBSSignatureStatement)]
 pub fn generate_pok_bbs_sig_statement(
@@ -172,8 +174,10 @@ pub fn generate_pedersen_commitment_witness(elements: js_sys::Array) -> Result<J
     serde_wasm_bindgen::to_value(&witness).map_err(|e| JsValue::from(e))
 }
 
-#[wasm_bindgen(js_name = generateProofSpec)]
-pub fn generate_proof_spec(
+// TODO: Use macros to reduce code duplication
+
+#[wasm_bindgen(js_name = generateProofSpecG1)]
+pub fn generate_proof_spec_g1(
     statements: js_sys::Array,
     meta_statements: js_sys::Array,
     context: Option<Vec<u8>>,
@@ -193,14 +197,41 @@ pub fn generate_proof_spec(
         stmts.add(stmt);
     }
 
-    let proof_spec = ProofSpec::new_with_statements_and_meta_statements(stmts, meta_stmts, context);
+    let proof_spec =
+        ProofSpecG1::new_with_statements_and_meta_statements(stmts, meta_stmts, context);
+    serde_wasm_bindgen::to_value(&proof_spec).map_err(|e| JsValue::from(e))
+}
+
+#[wasm_bindgen(js_name = generateProofSpecG2)]
+pub fn generate_proof_spec_g2(
+    statements: js_sys::Array,
+    meta_statements: js_sys::Array,
+    context: Option<Vec<u8>>,
+) -> Result<JsValue, JsValue> {
+    set_panic_hook();
+    let mut meta_stmts: statement::MetaStatements = statement::MetaStatements::new();
+    for ms in meta_statements.values() {
+        let meta_stmt: statement::MetaStatement = serde_wasm_bindgen::from_value(ms.unwrap())?;
+        meta_stmts.add(meta_stmt);
+    }
+
+    let mut stmts: statement::Statements<Bls12_381, <Bls12_381 as PairingEngine>::G2Affine> =
+        statement::Statements::new();
+    for s in statements.values() {
+        let stmt: statement::Statement<Bls12_381, <Bls12_381 as PairingEngine>::G2Affine> =
+            serde_wasm_bindgen::from_value(s.unwrap())?;
+        stmts.add(stmt);
+    }
+
+    let proof_spec =
+        ProofSpecG2::new_with_statements_and_meta_statements(stmts, meta_stmts, context);
     serde_wasm_bindgen::to_value(&proof_spec).map_err(|e| JsValue::from(e))
 }
 
 #[wasm_bindgen(js_name = getProofSpecAsJson)]
 pub fn get_proof_spec_as_json(proof_spec: JsValue) -> Result<js_sys::JsString, JsValue> {
     set_panic_hook();
-    let proof_spec: ProofSpec = serde_wasm_bindgen::from_value(proof_spec)?;
+    let proof_spec: ProofSpecG1 = serde_wasm_bindgen::from_value(proof_spec)?;
     let ser = serde_json::to_string(&proof_spec).unwrap();
     Ok(js_sys::JsString::from(ser))
 }
@@ -208,18 +239,18 @@ pub fn get_proof_spec_as_json(proof_spec: JsValue) -> Result<js_sys::JsString, J
 #[wasm_bindgen(js_name = getProofSpecFromJson)]
 pub fn get_proof_spec_from_json(proof_spec: js_sys::JsString) -> Result<JsValue, JsValue> {
     set_panic_hook();
-    let proof_spec: ProofSpec = serde_json::from_str(&String::from(proof_spec)).unwrap();
+    let proof_spec: ProofSpecG1 = serde_json::from_str(&String::from(proof_spec)).unwrap();
     serde_wasm_bindgen::to_value(&proof_spec).map_err(|e| JsValue::from(e))
 }
 
-#[wasm_bindgen(js_name = generateCompositeProof)]
-pub fn generate_composite_proof(
+#[wasm_bindgen(js_name = generateCompositeProofG1)]
+pub fn generate_composite_proof_g1(
     proof_spec: JsValue,
     witnesses: js_sys::Array,
     nonce: Option<Vec<u8>>,
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
-    let proof_spec: ProofSpec = serde_wasm_bindgen::from_value(proof_spec)?;
+    let proof_spec: ProofSpecG1 = serde_wasm_bindgen::from_value(proof_spec)?;
     let mut wits: witness::Witnesses<Bls12_381> = witness::Witnesses::new();
     for w in witnesses.values() {
         let wit: witness::Witness<Bls12_381> = serde_wasm_bindgen::from_value(w.unwrap())?;
@@ -228,12 +259,30 @@ pub fn generate_composite_proof(
     let mut rng = get_seeded_rng();
     let proof = ProofG1::new(&mut rng, proof_spec, wits, nonce)
         .map_err(|e| JsValue::from(&format!("Generating proof returned error: {:?}", e)))?;
-    // serde_wasm_bindgen::to_value(&proof).map_err(|e| JsValue::from(e))
     Ok(obj_to_uint8array!(&proof, "ProofG1"))
 }
 
-#[wasm_bindgen(js_name = verifyCompositeProof)]
-pub fn verify_composite_proof(
+#[wasm_bindgen(js_name = generateCompositeProofG2)]
+pub fn generate_composite_proof_g2(
+    proof_spec: JsValue,
+    witnesses: js_sys::Array,
+    nonce: Option<Vec<u8>>,
+) -> Result<js_sys::Uint8Array, JsValue> {
+    set_panic_hook();
+    let proof_spec: ProofSpecG2 = serde_wasm_bindgen::from_value(proof_spec)?;
+    let mut wits: witness::Witnesses<Bls12_381> = witness::Witnesses::new();
+    for w in witnesses.values() {
+        let wit: witness::Witness<Bls12_381> = serde_wasm_bindgen::from_value(w.unwrap())?;
+        wits.add(wit);
+    }
+    let mut rng = get_seeded_rng();
+    let proof = ProofG2::new(&mut rng, proof_spec, wits, nonce)
+        .map_err(|e| JsValue::from(&format!("Generating proof returned error: {:?}", e)))?;
+    Ok(obj_to_uint8array!(&proof, "ProofG2"))
+}
+
+#[wasm_bindgen(js_name = verifyCompositeProofG1)]
+pub fn verify_composite_proof_g1(
     proof: js_sys::Uint8Array,
     proof_spec: JsValue,
     nonce: Option<Vec<u8>>,
@@ -241,7 +290,30 @@ pub fn verify_composite_proof(
     set_panic_hook();
     // let proof: ProofG1 = serde_wasm_bindgen::from_value(proof)?;
     let proof = obj_from_uint8array!(ProofG1, proof);
-    let proof_spec: ProofSpec = serde_wasm_bindgen::from_value(proof_spec)?;
+    let proof_spec: ProofSpecG1 = serde_wasm_bindgen::from_value(proof_spec)?;
+    match proof.verify(proof_spec, nonce) {
+        Ok(_) => Ok(serde_wasm_bindgen::to_value(&VerifyResponse {
+            verified: true,
+            error: None,
+        })
+        .unwrap()),
+        Err(e) => Ok(serde_wasm_bindgen::to_value(&VerifyResponse {
+            verified: false,
+            error: Some(format!("Verifying proof returned error {:?}", e)),
+        })
+        .unwrap()),
+    }
+}
+
+#[wasm_bindgen(js_name = verifyCompositeProofG2)]
+pub fn verify_composite_proof_g2(
+    proof: js_sys::Uint8Array,
+    proof_spec: JsValue,
+    nonce: Option<Vec<u8>>,
+) -> Result<JsValue, JsValue> {
+    set_panic_hook();
+    let proof = obj_from_uint8array!(ProofG2, proof);
+    let proof_spec: ProofSpecG2 = serde_wasm_bindgen::from_value(proof_spec)?;
     match proof.verify(proof_spec, nonce) {
         Ok(_) => Ok(serde_wasm_bindgen::to_value(&VerifyResponse {
             verified: true,
