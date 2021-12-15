@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         node-version: [14.x, 16.x, 17.x]
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, macos-latest]
     steps:
       - uses: actions/checkout@v1
       - uses: jetli/wasm-pack-action@v0.3.0
@@ -26,18 +26,3 @@ jobs:
       - run: yarn install --frozen-lockfile
       - run: yarn build:release
       - run: yarn test
-  build_test_wasm_env_interop:
-    name: Build and Test WASM running cross OS and NodeJS versions
-    runs-on: ${{matrix.os}}
-    strategy:
-      matrix:
-        node-version: [14.x, 16.x, 17.x]
-        os: [ubuntu-latest, macos-latest]
-    steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-node@v1
-        with:
-          node-version: ${{ matrix.node-version }}
-      - run: yarn install --frozen-lockfile
-      - run: yarn build:release
-      - run: yarn test:wasm
