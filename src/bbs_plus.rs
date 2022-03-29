@@ -38,7 +38,7 @@ pub fn bbs_generate_g1_params(
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
     let label = label.unwrap_or_else(|| random_bytes());
-    let params = SignatureParamsG1::<Bls12_381>::new::<Blake2b>(&label, message_count);
+    let params = SigParamsG1::new::<Blake2b>(&label, message_count);
     serde_wasm_bindgen::to_value(&params).map_err(|e| JsValue::from(e))
 }
 
@@ -63,7 +63,7 @@ pub fn bbs_generate_g2_params(
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
     let label = label.unwrap_or_else(|| random_bytes());
-    let params = SignatureParamsG2::<Bls12_381>::new::<Blake2b>(&label, message_count);
+    let params = SigParamsG2::new::<Blake2b>(&label, message_count);
     serde_wasm_bindgen::to_value(&params).map_err(|e| JsValue::from(e))
 }
 

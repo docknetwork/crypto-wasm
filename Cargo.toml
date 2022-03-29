@@ -5,7 +5,7 @@ edition = "2021"
 license = "Apache-2.0"
 name = "wasm"
 repository = "https://github.com/docknetwork/crypto-wasm"
-version = "0.6.0"
+version = "0.7.0"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -20,14 +20,20 @@ js-sys = "0.3"
 rand = { version = "0.7", features = ["wasm-bindgen"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0"}
-serde-wasm-bindgen = "0.3.1"
-wasm-bindgen = "= 0.2.78"
+serde-wasm-bindgen = "0.4.2"
+wasm-bindgen = "= 0.2.79"
 wee_alloc = { version = "0.4.5", optional = true }
-bbs_plus = { version = "0.6.0", default-features = false }
-vb_accumulator = { version = "0.7.0", default-features = false }
-schnorr_pok = { version = "0.5.0", default-features = false }
-proof_system = { version = "0.8.0", default-features = false }
-dock_crypto_utils = { version = "0.3.0", default-features = false }
+#bbs_plus = { version = "0.6.0", default-features = false }
+#vb_accumulator = { version = "0.7.0", default-features = false }
+#schnorr_pok = { version = "0.5.0", default-features = false }
+#proof_system = { version = "0.8.0", default-features = false }
+#dock_crypto_utils = { version = "0.3.0", default-features = false }
+bbs_plus = { path = "../crypto/bbs_plus", default-features = false }
+vb_accumulator = { path = "../crypto/vb_accumulator", default-features = false }
+schnorr_pok = { path = "../crypto/schnorr_pok", default-features = false }
+proof_system = { path = "../crypto/proof_system", default-features = false }
+dock_crypto_utils = { path = "../crypto/utils", default-features = false }
+saver = { path = "../crypto/saver", default-features = false }
 ark-ec = { version = "^0.3.0", default-features = false }
 ark-ff = { version = "^0.3.0", default-features = false }
 ark-bls12-381 = { version = "^0.3.0", default-features = false, features = [ "curve" ] }
@@ -37,7 +43,7 @@ getrandom = { version = "0.2", features = ["js"] }
 ark-std = { version = "^0.3.0", default-features = false }
 
 [dev-dependencies]
-wasm-bindgen-test = "0.3.13"
+wasm-bindgen-test = "0.3.29"
 
 [profile.release]
 lto = true

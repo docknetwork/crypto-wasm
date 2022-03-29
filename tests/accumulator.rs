@@ -212,8 +212,9 @@ pub fn positive_accumulator_membership() {
     let witness =
         positive_accumulator_membership_witness(accumulator.clone(), element_1.clone(), sk.clone())
             .unwrap();
+    let accum = positive_accumulator_get_accumulated(accumulator.clone()).unwrap();
     assert!(positive_accumulator_verify_membership(
-        positive_accumulator_get_accumulated(accumulator.clone()).unwrap(),
+        accum,
         element_1.clone(),
         witness.clone(),
         pk.clone(),

@@ -35,79 +35,20 @@ use wasm::proof_system::{
     generate_pedersen_commitment_witness, generate_pok_bbs_sig_statement,
     generate_pok_bbs_sig_witness, generate_proof_spec_g1, generate_proof_spec_g2,
     generate_witness_equality_meta_statement, verify_composite_proof_g1, verify_composite_proof_g2,
+    Witness,
 };
 use wasm::utils::{
     fr_from_jsvalue, js_array_from_frs, msgs_bytes_map_to_fr_btreemap, random_bytes,
+};
+mod common;
+use common::{
+    accum_params_and_keys, bbs_params_and_keys, gen_msgs, get_revealed_unrevealed,
+    get_universal_accum, get_witness_equality_statement,
 };
 use wasm_bindgen::JsValue;
 use wasm_bindgen_test::*;
 
 wasm_bindgen_test_configure!(run_in_browser);
-
-fn bbs_params_and_keys(message_count: usize) -> (JsValue, JsValue, JsValue) {
-    let params = bbs_generate_g1_params(message_count, None).unwrap();
-    let sk = bbs_generate_secret_key(None).unwrap();
-    let pk = bbs_generate_public_key_g2(sk.clone(), params.clone()).unwrap();
-    (params, sk, pk)
-}
-
-fn gen_msgs(count: usize) -> Vec<Vec<u8>> {
-    (0..count).map(|_| random_bytes()).collect::<Vec<Vec<u8>>>()
-}
-
-fn get_revealed_unrevealed(
-    msgs: &Vec<Vec<u8>>,
-    revealed_indices: &BTreeSet<usize>,
-) -> (js_sys::Map, js_sys::Map) {
-    let revealed_msgs = js_sys::Map::new();
-    let unrevealed_msgs = js_sys::Map::new();
-    for i in 0..msgs.len() {
-        if revealed_indices.contains(&i) {
-            revealed_msgs.set(
-                &JsValue::from(i as u32),
-                &serde_wasm_bindgen::to_value(&msgs[i]).unwrap(),
-            );
-        } else {
-            unrevealed_msgs.set(
-                &JsValue::from(i as u32),
-                &serde_wasm_bindgen::to_value(&msgs[i]).unwrap(),
-            );
-        }
-    }
-    (revealed_msgs, unrevealed_msgs)
-}
-
-fn get_witness_equality_statement(witness_refs: Vec<(u32, u32)>) -> JsValue {
-    let equality = js_sys::Set::new(&JsValue::undefined());
-    for (s, w) in witness_refs {
-        let wit_ref = js_sys::Array::new();
-        wit_ref.push(&JsValue::from(s));
-        wit_ref.push(&JsValue::from(w));
-        equality.add(&wit_ref);
-    }
-    generate_witness_equality_meta_statement(equality).unwrap()
-}
-
-fn get_params_and_keys() -> (js_sys::Uint8Array, JsValue, js_sys::Uint8Array) {
-    let params = generate_accumulator_params(None).unwrap();
-    let sk = accumulator_generate_secret_key(None).unwrap();
-    let pk = accumulator_generate_public_key(sk.clone(), params.clone()).unwrap();
-    (params, sk, pk)
-}
-
-fn get_universal_accum(sk: JsValue, params: js_sys::Uint8Array, max_size: u32) -> JsValue {
-    let initial_elements = (0..max_size + 1)
-        .map(|_| random_ff(None))
-        .collect::<Vec<_>>();
-
-    let initial_fixed = universal_accumulator_fixed_initial_elements().unwrap();
-    let initial_elements_arr = js_array_from_frs(initial_elements.as_slice()).unwrap();
-
-    let all_initial_elements = initial_fixed.concat(&initial_elements_arr);
-
-    let f_v = universal_accumulator_compute_initial_fv(all_initial_elements, sk).unwrap();
-    universal_accumulator_initialize_given_f_v(f_v, params, max_size).unwrap()
-}
 
 fn test_bbs_statement(stmt_j: JsValue, revealed_msgs: js_sys::Map) {
     let stmt: statement::Statement<Bls12_381, <Bls12_381 as PairingEngine>::G1Affine> =
@@ -127,7 +68,7 @@ fn test_bbs_statement(stmt_j: JsValue, revealed_msgs: js_sys::Map) {
 }
 
 fn test_bbs_witness(wit_j: JsValue, unrevealed_msgs: js_sys::Map) {
-    let wit: witness::Witness<Bls12_381> = serde_wasm_bindgen::from_value(wit_j).unwrap();
+    let wit: Witness = serde_wasm_bindgen::from_value(wit_j).unwrap();
     match wit {
         witness::Witness::PoKBBSSignatureG1(s) => {
             assert_eq!(s.unrevealed_messages.len() as u32, unrevealed_msgs.size());
@@ -314,7 +255,7 @@ pub fn bbs_sig_and_accumulator() {
     let (revealed_msgs_2, unrevealed_msgs_2) =
         get_revealed_unrevealed(&msgs_2, &revealed_indices_2);
 
-    let (accum_params, accum_sk, accum_pk) = get_params_and_keys();
+    let (accum_params, accum_sk, accum_pk) = accum_params_and_keys();
     let non_mem_prk = generate_non_membership_proving_key(None).unwrap();
     let mem_prk =
         accumulator_derive_membership_proving_key_from_non_membership_key(non_mem_prk.clone())

@@ -27,6 +27,7 @@ pub mod accumulator;
 pub mod bbs_plus;
 pub mod common;
 pub mod proof_system;
+pub mod saver;
 
 // Trying to keep types at one place so changing the curve is easier
 pub(crate) type Fr = <Bls12_381 as PairingEngine>::Fr;
