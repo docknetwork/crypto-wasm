@@ -67,14 +67,6 @@ export function generateProofSpecG2(
     context?: Uint8Array
 ): Uint8Array;
 
-export function getProofSpecAsJson(
-    proofSpec: Uint8Array
-): string;
-
-export function getProofSpecFromJson(
-    json: string
-): Uint8Array;
-
 export function generateCompositeProofG1(
     proofSpec: Uint8Array,
     witnesses: Uint8Array[],

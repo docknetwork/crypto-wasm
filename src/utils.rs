@@ -48,6 +48,12 @@ extern "C" {
     pub fn log_many(a: &str, b: &str);
 }
 
+#[macro_export]
+macro_rules! console_log {
+    // Note that this is using the `log` function
+    ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
+}
+
 pub fn fr_to_jsvalue(elem: &Fr) -> Result<JsValue, JsValue> {
     let mut bytes = vec![];
     elem.serialize(&mut bytes).map_err(|e| {
@@ -306,6 +312,7 @@ pub fn random_bytes() -> Vec<u8> {
     s
 }
 
+#[macro_export]
 macro_rules! obj_to_uint8array {
     ($obj:expr) => {{
         let mut serz = vec![];
@@ -330,6 +337,7 @@ macro_rules! obj_to_uint8array {
     }};
 }
 
+#[macro_export]
 macro_rules! obj_from_uint8array {
     ($obj_type:ty, $uint8array:expr) => {{
         let serz = $uint8array.to_vec();
@@ -350,6 +358,58 @@ macro_rules! obj_from_uint8array {
                 $obj_name, e
             ))
         })?;
+        deserz
+    }};
+}
+
+#[macro_export]
+macro_rules! obj_to_uint8array_unchecked {
+    ($obj:expr) => {{
+        let mut serz = vec![];
+        CanonicalSerialize::serialize_unchecked($obj, &mut serz).map_err(|e| {
+            JsValue::from(format!(
+                "Failed to serialize to bytes due to error: {:?}",
+                e
+            ))
+        })?;
+        js_sys::Uint8Array::from(serz.as_slice())
+    }};
+
+    ($obj:expr, $obj_name:expr) => {{
+        let mut serz = vec![];
+        CanonicalSerialize::serialize_unchecked($obj, &mut serz).map_err(|e| {
+            JsValue::from(format!(
+                "Failed to serialize a {} to bytes due to error: {:?}",
+                $obj_name, e
+            ))
+        })?;
+        js_sys::Uint8Array::from(serz.as_slice())
+    }};
+}
+
+#[macro_export]
+macro_rules! obj_from_uint8array_unchecked {
+    ($obj_type:ty, $uint8array:expr) => {{
+        let serz = $uint8array.to_vec();
+        let deserz: $obj_type =
+            CanonicalDeserialize::deserialize_unchecked(&serz[..]).map_err(|e| {
+                JsValue::from(format!(
+                    "Failed to deserialize from bytes due to error: {:?}",
+                    e
+                ))
+            })?;
+        deserz
+    }};
+
+    ($obj_type:ty, $uint8array:expr, $obj_name:expr) => {{
+        let serz = $uint8array.to_vec();
+        let deserz: $obj_type =
+            CanonicalDeserialize::deserialize_unchecked(&serz[..]).map_err(|e| {
+                JsValue::from(format!(
+                    "Failed to deserialize a {} from bytes due to error: {:?}",
+                    $obj_name, e
+                ))
+            })?;
         deserz
     }};
 }

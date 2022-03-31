@@ -14,11 +14,11 @@ use crate::utils::{
 };
 use crate::{Fr, G1Affine, G2Affine};
 use ark_bls12_381::Bls12_381;
-use ark_ec::PairingEngine;
+use ark_ec::{AffineCurve, PairingEngine};
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use ark_std::collections::BTreeSet;
 use blake2::Blake2b;
-use proof_system::prelude::{EqualWitnesses, MetaStatement, MetaStatements};
+use proof_system::prelude::{EqualWitnesses, MetaStatement, MetaStatements, Statement};
 use proof_system::proof;
 use proof_system::statement;
 use proof_system::witness;
@@ -37,72 +37,10 @@ pub type Witnesses = witness::Witnesses<Bls12_381>;
 pub(crate) type PoKBBSSigWit = witness::PoKBBSSignatureG1<Bls12_381>;
 pub(crate) type AccumMemWit = witness::Membership<Bls12_381>;
 pub(crate) type AccumNonMemWit = witness::NonMembership<Bls12_381>;
-pub(crate) type ProofSpecG1 =
-    proof_system::prelude::ProofSpec<Bls12_381, <Bls12_381 as PairingEngine>::G1Affine>;
-pub(crate) type ProofSpecG2 =
-    proof_system::prelude::ProofSpec<Bls12_381, <Bls12_381 as PairingEngine>::G2Affine>;
-pub(crate) type ProofG1 = proof::Proof<Bls12_381, G1Affine, Fr, Blake2b>;
-pub(crate) type ProofG2 = proof::Proof<Bls12_381, G2Affine, Fr, Blake2b>;
+pub(crate) type ProofSpec<G> = proof_system::proof_spec::ProofSpec<Bls12_381, G>;
+pub(crate) type Proof<G> = proof::Proof<Bls12_381, G, Blake2b>;
+pub(crate) type ProofG1 = proof::Proof<Bls12_381, G1Affine, Blake2b>;
 pub(crate) type StatementProofG1 = proof_system::prelude::StatementProof<Bls12_381, G1Affine>;
-
-macro_rules! gen_proof_spec {
-    ($group: ident, $proof_spec: ident, $statements: ident, $meta_statements: ident, $context: ident) => {{
-        set_panic_hook();
-        let mut meta_stmts = MetaStatements::new();
-        for ms in $meta_statements.values() {
-            let meta_stmt: MetaStatement = serde_wasm_bindgen::from_value(ms.unwrap())?;
-            meta_stmts.add(meta_stmt);
-        }
-
-        let mut stmts: statement::Statements<Bls12_381, <Bls12_381 as PairingEngine>::$group> =
-            statement::Statements::new();
-        for s in $statements.values() {
-            let stmt: statement::Statement<Bls12_381, <Bls12_381 as PairingEngine>::$group> =
-                serde_wasm_bindgen::from_value(s.unwrap())?;
-            stmts.add(stmt);
-        }
-
-        let proof_spec =
-            $proof_spec::new_with_statements_and_meta_statements(stmts, meta_stmts, $context);
-        serde_wasm_bindgen::to_value(&proof_spec).map_err(|e| JsValue::from(e))
-    }};
-}
-
-macro_rules! gen_proof {
-    ($proof_spec_typ: ident, $proof_spec: ident, $witnesses: ident, $proof_typ: ident, $proof_typ_name: expr, $nonce: ident) => {{
-        set_panic_hook();
-        let proof_spec: $proof_spec_typ = serde_wasm_bindgen::from_value($proof_spec)?;
-        let mut wits: Witnesses = witness::Witnesses::new();
-        for w in $witnesses.values() {
-            let wit: Witness = serde_wasm_bindgen::from_value(w.unwrap())?;
-            wits.add(wit);
-        }
-        let mut rng = get_seeded_rng();
-        let proof = $proof_typ::new(&mut rng, proof_spec, wits, $nonce)
-            .map_err(|e| JsValue::from(&format!("Generating proof returned error: {:?}", e)))?;
-        Ok(obj_to_uint8array!(&proof, $proof_typ_name))
-    }};
-}
-
-macro_rules! verify_proof {
-    ($proof_spec_typ: ident, $proof_spec: ident, $proof: ident, $proof_typ: ident, $nonce: ident) => {{
-        set_panic_hook();
-        let proof = obj_from_uint8array!($proof_typ, $proof);
-        let proof_spec: $proof_spec_typ = serde_wasm_bindgen::from_value($proof_spec)?;
-        match proof.verify(proof_spec, $nonce) {
-            Ok(_) => Ok(serde_wasm_bindgen::to_value(&VerifyResponse {
-                verified: true,
-                error: None,
-            })
-            .unwrap()),
-            Err(e) => Ok(serde_wasm_bindgen::to_value(&VerifyResponse {
-                verified: false,
-                error: Some(format!("Verifying proof returned error {:?}", e)),
-            })
-            .unwrap()),
-        }
-    }};
-}
 
 #[wasm_bindgen(js_name = generatePoKBBSSignatureStatement)]
 pub fn generate_pok_bbs_sig_statement(
@@ -110,13 +48,13 @@ pub fn generate_pok_bbs_sig_statement(
     public_key: JsValue,
     revealed_msgs: js_sys::Map,
     encode_messages: bool,
-) -> Result<JsValue, JsValue> {
+) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let params: SigParamsG1 = serde_wasm_bindgen::from_value(params)?;
     let pk: BBSPlusPkG2 = serde_wasm_bindgen::from_value(public_key)?;
     let msgs = msgs_bytes_map_to_fr_btreemap(&revealed_msgs, encode_messages)?;
     let statement = PoKBBSSigStmt::new_as_statement::<G1Affine>(params, pk, msgs);
-    serde_wasm_bindgen::to_value(&statement).map_err(|e| JsValue::from(e))
+    Ok(obj_to_uint8array_unchecked!(&statement, "PokBBSStatement"))
 }
 
 #[wasm_bindgen(js_name = generateAccumulatorMembershipStatement)]
@@ -125,14 +63,17 @@ pub fn generate_accumulator_membership_statement(
     public_key: js_sys::Uint8Array,
     proving_key: js_sys::Uint8Array,
     accumulated: js_sys::Uint8Array,
-) -> Result<JsValue, JsValue> {
+) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let accumulated = g1_affine_from_uint8_array(accumulated)?;
     let pk = deserialize_public_key(public_key)?;
     let params = deserialize_params(params)?;
     let prk = obj_from_uint8array!(MembershipPrk, proving_key, "MembershipPrk");
     let statement = AccumMemStmt::new_as_statement::<G1Affine>(params, pk, prk, accumulated);
-    serde_wasm_bindgen::to_value(&statement).map_err(|e| JsValue::from(e))
+    Ok(obj_to_uint8array_unchecked!(
+        &statement,
+        "AccumMemStatement"
+    ))
 }
 
 #[wasm_bindgen(js_name = generateAccumulatorNonMembershipStatement)]
@@ -141,38 +82,41 @@ pub fn generate_accumulator_non_membership_statement(
     public_key: js_sys::Uint8Array,
     proving_key: js_sys::Uint8Array,
     accumulated: js_sys::Uint8Array,
-) -> Result<JsValue, JsValue> {
+) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let accumulated = g1_affine_from_uint8_array(accumulated)?;
     let pk = deserialize_public_key(public_key)?;
     let params = deserialize_params(params)?;
     let prk = obj_from_uint8array!(NonMembershipPrk, proving_key, "NonMembershipPrk");
     let statement = AccumNonMemStmt::new_as_statement::<G1Affine>(params, pk, prk, accumulated);
-    serde_wasm_bindgen::to_value(&statement).map_err(|e| JsValue::from(e))
+    Ok(obj_to_uint8array_unchecked!(
+        &statement,
+        "AccumNonMemStatement"
+    ))
 }
 
 #[wasm_bindgen(js_name = generatePedersenCommitmentG1Statement)]
 pub fn generate_pedersen_commitment_g1_statement(
     bases: js_sys::Array,
     commitment: js_sys::Uint8Array,
-) -> Result<JsValue, JsValue> {
+) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let bases = js_array_to_g1_affine_vec(&bases)?;
     let commitment = g1_affine_from_uint8_array(commitment)?;
     let statement = PedCommG1Stmt::new_as_statement::<Bls12_381>(bases, commitment);
-    serde_wasm_bindgen::to_value(&statement).map_err(|e| JsValue::from(e))
+    Ok(obj_to_uint8array_unchecked!(&statement, "PedCommG1Stmt"))
 }
 
 #[wasm_bindgen(js_name = generatePedersenCommitmentG2Statement)]
 pub fn generate_pedersen_commitment_g2_statement(
     bases: js_sys::Array,
     commitment: js_sys::Uint8Array,
-) -> Result<JsValue, JsValue> {
+) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let bases = js_array_to_g2_affine_vec(&bases)?;
     let commitment = g2_affine_from_uint8_array(commitment)?;
     let statement = PedCommG2Stmt::new_as_statement::<Bls12_381>(bases, commitment);
-    serde_wasm_bindgen::to_value(&statement).map_err(|e| JsValue::from(e))
+    Ok(obj_to_uint8array_unchecked!(&statement, "PedCommG2Stmt"))
 }
 
 #[wasm_bindgen(js_name = generateWitnessEqualityMetaStatement)]
@@ -200,7 +144,6 @@ pub fn generate_pok_bbs_sig_witness(
     encode_messages: bool,
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
-    // let signature: SigG1 = serde_wasm_bindgen::from_value(signature)?;
     let signature = obj_from_uint8array!(SigG1, signature);
     let msgs = msgs_bytes_map_to_fr_btreemap(&unrevealed_msgs, encode_messages)?;
     let witness = PoKBBSSigWit::new_as_witness(signature, msgs);
@@ -244,8 +187,9 @@ pub fn generate_proof_spec_g1(
     statements: js_sys::Array,
     meta_statements: js_sys::Array,
     context: Option<Vec<u8>>,
-) -> Result<JsValue, JsValue> {
-    gen_proof_spec!(G1Affine, ProofSpecG1, statements, meta_statements, context)
+) -> Result<js_sys::Uint8Array, JsValue> {
+    set_panic_hook();
+    gen_proof_spec::<<Bls12_381 as PairingEngine>::G1Affine>(statements, meta_statements, context)
 }
 
 #[wasm_bindgen(js_name = generateProofSpecG2)]
@@ -253,73 +197,81 @@ pub fn generate_proof_spec_g2(
     statements: js_sys::Array,
     meta_statements: js_sys::Array,
     context: Option<Vec<u8>>,
-) -> Result<JsValue, JsValue> {
-    gen_proof_spec!(G2Affine, ProofSpecG2, statements, meta_statements, context)
-}
-
-#[wasm_bindgen(js_name = getProofSpecAsJson)]
-pub fn get_proof_spec_as_json(proof_spec: JsValue) -> Result<js_sys::JsString, JsValue> {
+) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
-    let proof_spec: ProofSpecG1 = serde_wasm_bindgen::from_value(proof_spec)?;
-    let ser = serde_json::to_string(&proof_spec).unwrap();
-    Ok(js_sys::JsString::from(ser))
-}
-
-#[wasm_bindgen(js_name = getProofSpecFromJson)]
-pub fn get_proof_spec_from_json(proof_spec: js_sys::JsString) -> Result<JsValue, JsValue> {
-    set_panic_hook();
-    let proof_spec: ProofSpecG1 = serde_json::from_str(&String::from(proof_spec)).unwrap();
-    serde_wasm_bindgen::to_value(&proof_spec).map_err(|e| JsValue::from(e))
+    gen_proof_spec::<<Bls12_381 as PairingEngine>::G2Affine>(statements, meta_statements, context)
 }
 
 #[wasm_bindgen(js_name = generateCompositeProofG1)]
 pub fn generate_composite_proof_g1(
-    proof_spec: JsValue,
+    proof_spec: js_sys::Uint8Array,
     witnesses: js_sys::Array,
     nonce: Option<Vec<u8>>,
 ) -> Result<js_sys::Uint8Array, JsValue> {
-    gen_proof!(
-        ProofSpecG1,
-        proof_spec,
-        witnesses,
-        ProofG1,
-        "ProofG1",
-        nonce
-    )
+    set_panic_hook();
+    gen_proof::<<Bls12_381 as PairingEngine>::G1Affine>(proof_spec, witnesses, nonce)
 }
 
 #[wasm_bindgen(js_name = generateCompositeProofG2)]
 pub fn generate_composite_proof_g2(
-    proof_spec: JsValue,
+    proof_spec: js_sys::Uint8Array,
     witnesses: js_sys::Array,
     nonce: Option<Vec<u8>>,
 ) -> Result<js_sys::Uint8Array, JsValue> {
-    gen_proof!(
-        ProofSpecG2,
-        proof_spec,
-        witnesses,
-        ProofG2,
-        "ProofG2",
-        nonce
+    set_panic_hook();
+    gen_proof::<<Bls12_381 as PairingEngine>::G2Affine>(proof_spec, witnesses, nonce)
+}
+
+#[wasm_bindgen(js_name = generateCompositeProofG1WithDeconstructedProofSpec)]
+pub fn generate_composite_proof_g1_with_deconstructed_proof_spec(
+    statements: js_sys::Array,
+    meta_statements: js_sys::Array,
+    context: Option<Vec<u8>>,
+    witnesses: js_sys::Array,
+    nonce: Option<Vec<u8>>,
+) -> Result<js_sys::Uint8Array, JsValue> {
+    let (statements, meta_statements) =
+        parse_statements_and_meta_statements(statements, meta_statements)?;
+    let proof_spec = ProofSpec::<<Bls12_381 as PairingEngine>::G1Affine>::new_with_statements_and_meta_statements(statements, meta_statements, context);
+    gen_proof_given_proof_spec_obj::<<Bls12_381 as PairingEngine>::G1Affine>(
+        proof_spec, witnesses, nonce,
     )
 }
 
 #[wasm_bindgen(js_name = verifyCompositeProofG1)]
 pub fn verify_composite_proof_g1(
     proof: js_sys::Uint8Array,
-    proof_spec: JsValue,
+    proof_spec: js_sys::Uint8Array,
     nonce: Option<Vec<u8>>,
 ) -> Result<JsValue, JsValue> {
-    verify_proof!(ProofSpecG1, proof_spec, proof, ProofG1, nonce)
+    set_panic_hook();
+    verify_proof::<<Bls12_381 as PairingEngine>::G1Affine>(proof_spec, proof, nonce)
 }
 
 #[wasm_bindgen(js_name = verifyCompositeProofG2)]
 pub fn verify_composite_proof_g2(
     proof: js_sys::Uint8Array,
-    proof_spec: JsValue,
+    proof_spec: js_sys::Uint8Array,
     nonce: Option<Vec<u8>>,
 ) -> Result<JsValue, JsValue> {
-    verify_proof!(ProofSpecG2, proof_spec, proof, ProofG2, nonce)
+    set_panic_hook();
+    verify_proof::<<Bls12_381 as PairingEngine>::G2Affine>(proof_spec, proof, nonce)
+}
+
+#[wasm_bindgen(js_name = verifyCompositeProofG1WithDeconstructedProofSpec)]
+pub fn verify_composite_proof_g1_with_deconstructed_proof_spec(
+    proof: js_sys::Uint8Array,
+    statements: js_sys::Array,
+    meta_statements: js_sys::Array,
+    context: Option<Vec<u8>>,
+    nonce: Option<Vec<u8>>,
+) -> Result<JsValue, JsValue> {
+    let (statements, meta_statements) =
+        parse_statements_and_meta_statements(statements, meta_statements)?;
+    let proof_spec = ProofSpec::<<Bls12_381 as PairingEngine>::G1Affine>::new_with_statements_and_meta_statements(statements, meta_statements, context);
+    verify_proof_given_proof_spec_obj::<<Bls12_381 as PairingEngine>::G1Affine>(
+        proof_spec, proof, nonce,
+    )
 }
 
 #[wasm_bindgen(js_name = generateSaverStatement)]
@@ -329,16 +281,32 @@ pub fn generate_saver_statement(
     chunked_comm_gens: js_sys::Uint8Array,
     encryption_key: js_sys::Uint8Array,
     snark_pk: js_sys::Uint8Array,
-) -> Result<JsValue, JsValue> {
+    uncompressed_public_params: bool,
+) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
-    let enc_gens = obj_from_uint8array!(EncGens, enc_gens, "EncryptionGenerators");
-    let chunked_comm_gens = obj_from_uint8array!(
-        ChunkedCommGens,
-        chunked_comm_gens,
-        "ChunkedCommitmentGenerators"
-    );
-    let ek = obj_from_uint8array!(SaverEk, encryption_key, "SaverEk");
-    let snark_pk = obj_from_uint8array!(SaverSnarkPk, snark_pk, "SaverSnarkPk");
+    let (enc_gens, chunked_comm_gens, ek, snark_pk) = if uncompressed_public_params {
+        (
+            obj_from_uint8array_unchecked!(EncGens, enc_gens, "EncryptionGenerators"),
+            obj_from_uint8array_unchecked!(
+                ChunkedCommGens,
+                chunked_comm_gens,
+                "ChunkedCommitmentGenerators"
+            ),
+            obj_from_uint8array_unchecked!(SaverEk, encryption_key, "SaverEk"),
+            obj_from_uint8array_unchecked!(SaverSnarkPk, snark_pk, "SaverSnarkPk"),
+        )
+    } else {
+        (
+            obj_from_uint8array!(EncGens, enc_gens, "EncryptionGenerators"),
+            obj_from_uint8array!(
+                ChunkedCommGens,
+                chunked_comm_gens,
+                "ChunkedCommitmentGenerators"
+            ),
+            obj_from_uint8array!(SaverEk, encryption_key, "SaverEk"),
+            obj_from_uint8array!(SaverSnarkPk, snark_pk, "SaverSnarkPk"),
+        )
+    };
     let statement = SaverStmt::new_as_statement::<G1Affine>(
         chunk_bit_size,
         enc_gens,
@@ -352,7 +320,7 @@ pub fn generate_saver_statement(
             e
         ))
     })?;
-    serde_wasm_bindgen::to_value(&statement).map_err(|e| JsValue::from(e))
+    Ok(obj_to_uint8array_unchecked!(&statement, "SaverStatement"))
 }
 
 #[wasm_bindgen(js_name = generateSaverWitness)]
@@ -378,4 +346,88 @@ pub fn saver_get_ciphertext_from_proof(
     } else {
         Err(JsValue::from(&format!("StatementProof wasn't for Saver")))
     }
+}
+
+fn gen_proof_spec<G: AffineCurve>(
+    statements: js_sys::Array,
+    meta_statements: js_sys::Array,
+    context: Option<Vec<u8>>,
+) -> Result<js_sys::Uint8Array, JsValue> {
+    let (stmts, meta_stmts) = parse_statements_and_meta_statements(statements, meta_statements)?;
+    let proof_spec =
+        ProofSpec::<G>::new_with_statements_and_meta_statements(stmts, meta_stmts, context);
+    Ok(obj_to_uint8array_unchecked!(&proof_spec, "ProofSpec"))
+}
+
+fn gen_proof<G: AffineCurve<ScalarField = Fr>>(
+    proof_spec: js_sys::Uint8Array,
+    witnesses: js_sys::Array,
+    nonce: Option<Vec<u8>>,
+) -> Result<js_sys::Uint8Array, JsValue> {
+    let proof_spec = obj_from_uint8array_unchecked!(ProofSpec::<G>, proof_spec, "ProofSpec");
+    gen_proof_given_proof_spec_obj::<G>(proof_spec, witnesses, nonce)
+}
+
+fn verify_proof<G: AffineCurve<ScalarField = Fr>>(
+    proof_spec: js_sys::Uint8Array,
+    proof: js_sys::Uint8Array,
+    nonce: Option<Vec<u8>>,
+) -> Result<JsValue, JsValue> {
+    let proof_spec = obj_from_uint8array_unchecked!(ProofSpec::<G>, proof_spec, "ProofSpec");
+    verify_proof_given_proof_spec_obj::<G>(proof_spec, proof, nonce)
+}
+
+fn gen_proof_given_proof_spec_obj<G: AffineCurve<ScalarField = Fr>>(
+    proof_spec: ProofSpec<G>,
+    witnesses: js_sys::Array,
+    nonce: Option<Vec<u8>>,
+) -> Result<js_sys::Uint8Array, JsValue> {
+    let mut wits: Witnesses = witness::Witnesses::new();
+    for w in witnesses.values() {
+        let wit: Witness = serde_wasm_bindgen::from_value(w.unwrap())?;
+        wits.add(wit);
+    }
+    let mut rng = get_seeded_rng();
+    let proof = Proof::<G>::new(&mut rng, proof_spec, wits, nonce)
+        .map_err(|e| JsValue::from(&format!("Generating proof returned error: {:?}", e)))?;
+    Ok(obj_to_uint8array!(&proof, "Proof"))
+}
+
+fn verify_proof_given_proof_spec_obj<G: AffineCurve<ScalarField = Fr>>(
+    proof_spec: ProofSpec<G>,
+    proof: js_sys::Uint8Array,
+    nonce: Option<Vec<u8>>,
+) -> Result<JsValue, JsValue> {
+    let proof = obj_from_uint8array!(Proof<G>, proof);
+    match proof.verify(proof_spec, nonce) {
+        Ok(_) => Ok(serde_wasm_bindgen::to_value(&VerifyResponse {
+            verified: true,
+            error: None,
+        })
+        .unwrap()),
+        Err(e) => Ok(serde_wasm_bindgen::to_value(&VerifyResponse {
+            verified: false,
+            error: Some(format!("Verifying proof returned error {:?}", e)),
+        })
+        .unwrap()),
+    }
+}
+
+fn parse_statements_and_meta_statements<G: AffineCurve>(
+    statements: js_sys::Array,
+    meta_statements: js_sys::Array,
+) -> Result<(statement::Statements<Bls12_381, G>, MetaStatements), JsValue> {
+    let mut meta_stmts = MetaStatements::new();
+    for ms in meta_statements.values() {
+        let meta_stmt: MetaStatement = serde_wasm_bindgen::from_value(ms.unwrap())?;
+        meta_stmts.add(meta_stmt);
+    }
+    let mut stmts: statement::Statements<Bls12_381, G> = statement::Statements::new();
+    for s in statements.values() {
+        let s = js_sys::Uint8Array::new(&s.unwrap());
+        let stmt =
+            obj_from_uint8array_unchecked!(statement::Statement<Bls12_381, G>, &s, "Statement");
+        stmts.add(stmt);
+    }
+    Ok((stmts, meta_stmts))
 }

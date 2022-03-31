@@ -4,8 +4,7 @@
     generatePoKBBSSignatureStatement, generateAccumulatorMembershipStatement,
     generateAccumulatorNonMembershipStatement, generatePedersenCommitmentStatement, generateWitnessEqualityMetaStatement,
     generatePoKBBSSignatureWitness, generateAccumulatorMembershipWitness, generateAccumulatorNonMembershipWitness,
-    generatePedersenCommitmentWitness, generateProofSpecG1, generateCompositeProof, verifyCompositeProof,
-    getProofSpecAsJson, getProofSpecFromJson
+    generatePedersenCommitmentWitness, generateProofSpecG1, generateCompositeProof, verifyCompositeProof
 } = require("./index");*/
 
 const {
@@ -70,16 +69,6 @@ module.exports.generateProofSpecG1 = (statements, metaStatements, context) => {
 module.exports.generateProofSpecG2 = (statements, metaStatements, context) => {
     requireWasmInitialized();
     return wasm.generateProofSpecG2(statements, metaStatements, context);
-};
-
-module.exports.getProofSpecAsJson = (proofSpec) => {
-    requireWasmInitialized();
-    return wasm.getProofSpecAsJson(proofSpec);
-};
-
-module.exports.getProofSpecFromJson = (json) => {
-    requireWasmInitialized();
-    return wasm.getProofSpecFromJson(json);
 };
 
 module.exports.generateCompositeProofG1 = (proofSpec, witnesses, nonce) => {

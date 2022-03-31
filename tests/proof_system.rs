@@ -1,8 +1,11 @@
 #![cfg(target_arch = "wasm32")]
 extern crate wasm_bindgen_test;
 
+use web_sys::console;
+
 use ark_bls12_381::Bls12_381;
 use ark_ec::PairingEngine;
+use ark_serialize::CanonicalDeserialize;
 use ark_std::collections::BTreeSet;
 use proof_system::{statement, witness};
 use wasm::accumulator::{
@@ -50,9 +53,11 @@ use wasm_bindgen_test::*;
 
 wasm_bindgen_test_configure!(run_in_browser);
 
-fn test_bbs_statement(stmt_j: JsValue, revealed_msgs: js_sys::Map) {
+fn test_bbs_statement(stmt_j: js_sys::Uint8Array, revealed_msgs: js_sys::Map) {
+    let s = js_sys::Uint8Array::new(&stmt_j);
+    let serz = s.to_vec();
     let stmt: statement::Statement<Bls12_381, <Bls12_381 as PairingEngine>::G1Affine> =
-        serde_wasm_bindgen::from_value(stmt_j).unwrap();
+        CanonicalDeserialize::deserialize_unchecked(&serz[..]).unwrap();
     match stmt {
         statement::Statement::PoKBBSSignatureG1(s) => {
             assert_eq!(s.revealed_messages.len() as u32, revealed_msgs.size());
@@ -172,8 +177,13 @@ pub fn three_bbs_sigs_and_msg_equality() {
 
     let nonce = Some("test-nonce".as_bytes().to_vec());
 
+    console::time_with_label("proof gen");
     let proof = generate_composite_proof_g1(proof_spec.clone(), witnesses, nonce.clone()).unwrap();
+    console::time_end_with_label("proof gen");
+
+    console::time_with_label("proof ver");
     let result = verify_composite_proof_g1(proof, proof_spec, nonce).unwrap();
+    console::time_end_with_label("proof ver");
     let r: VerifyResponse = serde_wasm_bindgen::from_value(result).unwrap();
     r.validate();
 }
