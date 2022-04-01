@@ -25,6 +25,7 @@ use wasm_bindgen::prelude::*;
 pub mod utils;
 pub mod accumulator;
 pub mod bbs_plus;
+pub mod bound_check;
 pub mod common;
 pub mod proof_system;
 pub mod saver;

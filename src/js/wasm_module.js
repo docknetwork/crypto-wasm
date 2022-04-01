@@ -25,4 +25,6 @@ module.exports = {
   ...require('./bbs_plus_wasm'),
   ...require('./accumulator_wasm'),
   ...require('./proof_system_wasm'),
+  ...require('./saver_wasm'),
+  ...require('./bound_check_wasm'),
 };

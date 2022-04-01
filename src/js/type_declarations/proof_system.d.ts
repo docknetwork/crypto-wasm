@@ -31,6 +31,22 @@ export function generatePedersenCommitmentG2Statement(
     commitment: Uint8Array
 ): Uint8Array;
 
+export function generateSaverStatement(
+    chunkBitSize: number,
+    encGens: Uint8Array,
+    commGens: Uint8Array,
+    encryptionKey: Uint8Array,
+    snarkPk: Uint8Array,
+    uncompressedPublicParams: boolean
+): Uint8Array;
+
+export function generateBoundCheckLegoStatement(
+    min: Uint8Array,
+    max: Uint8Array,
+    snarkPk: Uint8Array,
+    uncompressedPublicParams: boolean
+): Uint8Array;
+
 export function generateWitnessEqualityMetaStatement(
     equalities: Set<[number, number]>,
 ): Uint8Array;
@@ -53,6 +69,14 @@ export function generateAccumulatorNonMembershipWitness(
 
 export function generatePedersenCommitmentWitness(
     elements: Uint8Array[]
+): Uint8Array;
+
+export function generateSaverWitness(
+    message: Uint8Array
+): Uint8Array;
+
+export function generateBoundCheckWitness(
+    message: Uint8Array
 ): Uint8Array;
 
 export function generateProofSpecG1(
@@ -90,3 +114,25 @@ export function verifyCompositeProofG2(
     proofSpec: Uint8Array,
     nonce?: Uint8Array
 ): Required<VerifyResult>;
+
+export function generateCompositeProofG1WithDeconstructedProofSpec(
+    statements: Uint8Array[],
+    metaStatements: Uint8Array[],
+    witnesses: Uint8Array[],
+    context?: Uint8Array,
+    nonce?: Uint8Array
+): Uint8Array;
+
+export function verifyCompositeProofG1WithDeconstructedProofSpec(
+    proof: Uint8Array,
+    statements: Uint8Array[],
+    metaStatements: Uint8Array[],
+    context?: Uint8Array,
+    nonce?: Uint8Array
+): Required<VerifyResult>;
+
+export function saverGetCiphertextFromProof(
+    proof: Uint8Array,
+    statementIndex: number
+): Uint8Array;
+

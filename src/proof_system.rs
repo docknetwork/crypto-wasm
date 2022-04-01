@@ -18,12 +18,15 @@ use ark_ec::{AffineCurve, PairingEngine};
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use ark_std::collections::BTreeSet;
 use blake2::Blake2b;
+use js_sys::Uint8Array;
 use proof_system::prelude::{EqualWitnesses, MetaStatement, MetaStatements, Statement};
 use proof_system::proof;
 use proof_system::statement;
 use proof_system::witness;
 
+use crate::bound_check::BoundCheckSnarkPk;
 use crate::saver::{ChunkedCommGens, EncGens, SaverEk, SaverSnarkPk};
+
 pub(crate) type PoKBBSSigStmt = statement::PoKBBSSignatureG1<Bls12_381>;
 pub(crate) type AccumMemStmt = statement::AccumulatorMembership<Bls12_381>;
 pub(crate) type AccumNonMemStmt = statement::AccumulatorNonMembership<Bls12_381>;
@@ -32,6 +35,7 @@ pub(crate) type PedCommG1Stmt =
 pub(crate) type PedCommG2Stmt =
     statement::PedersenCommitment<<Bls12_381 as PairingEngine>::G2Affine>;
 pub(crate) type SaverStmt = statement::Saver<Bls12_381>;
+pub(crate) type BoundCheckLegoStmt = statement::BoundCheckLegoGroth16<Bls12_381>;
 pub type Witness = witness::Witness<Bls12_381>;
 pub type Witnesses = witness::Witnesses<Bls12_381>;
 pub(crate) type PoKBBSSigWit = witness::PoKBBSSignatureG1<Bls12_381>;
@@ -226,8 +230,8 @@ pub fn generate_composite_proof_g2(
 pub fn generate_composite_proof_g1_with_deconstructed_proof_spec(
     statements: js_sys::Array,
     meta_statements: js_sys::Array,
-    context: Option<Vec<u8>>,
     witnesses: js_sys::Array,
+    context: Option<Vec<u8>>,
     nonce: Option<Vec<u8>>,
 ) -> Result<js_sys::Uint8Array, JsValue> {
     let (statements, meta_statements) =
@@ -346,6 +350,42 @@ pub fn saver_get_ciphertext_from_proof(
     } else {
         Err(JsValue::from(&format!("StatementProof wasn't for Saver")))
     }
+}
+
+#[wasm_bindgen(js_name = generateBoundCheckLegoStatement)]
+pub fn generate_bound_check_lego_statement(
+    min: Uint8Array,
+    max: Uint8Array,
+    snark_pk: js_sys::Uint8Array,
+    uncompressed_public_params: bool,
+) -> Result<js_sys::Uint8Array, JsValue> {
+    set_panic_hook();
+    let min = fr_from_uint8_array(min)?;
+    let max = fr_from_uint8_array(max)?;
+    let snark_pk = if uncompressed_public_params {
+        obj_from_uint8array_unchecked!(BoundCheckSnarkPk, snark_pk, "BoundCheckSnarkPk")
+    } else {
+        obj_from_uint8array!(BoundCheckSnarkPk, snark_pk, "BoundCheckSnarkPk")
+    };
+    let statement =
+        BoundCheckLegoStmt::new_as_statement::<G1Affine>(min, max, snark_pk).map_err(|e| {
+            JsValue::from(&format!(
+                "Creating statement for SAVER returned error: {:?}",
+                e
+            ))
+        })?;
+    Ok(obj_to_uint8array_unchecked!(
+        &statement,
+        "BoundCheckLegoStmt"
+    ))
+}
+
+#[wasm_bindgen(js_name = generateBoundCheckWitness)]
+pub fn generate_bound_check_witness(message: js_sys::Uint8Array) -> Result<JsValue, JsValue> {
+    set_panic_hook();
+    let message = fr_from_uint8_array(message)?;
+    let witness = Witness::BoundCheckLegoGroth16(message);
+    serde_wasm_bindgen::to_value(&witness).map_err(|e| JsValue::from(e))
 }
 
 fn gen_proof_spec<G: AffineCurve>(

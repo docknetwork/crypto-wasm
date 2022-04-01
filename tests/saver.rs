@@ -8,10 +8,7 @@ use proof_system::{statement, witness};
 use wasm_bindgen_test::*;
 use web_sys::console;
 
-use wasm::bbs_plus::{
-    bbs_encode_message_for_signing, bbs_encode_messages_for_signing, bbs_generate_g1_params,
-    bbs_generate_public_key_g2, bbs_generate_secret_key, bbs_sign_g1, bbs_verify_g1,
-};
+use wasm::bbs_plus::{bbs_encode_message_for_signing, bbs_sign_g1};
 use wasm::common::VerifyResponse;
 use wasm::proof_system::{
     generate_composite_proof_g1, generate_composite_proof_g1_with_deconstructed_proof_spec,
@@ -91,7 +88,7 @@ pub fn bbs_sig_and_verifiable_encryption() {
     statements.push(&stmt_2);
 
     let meta_statements = js_sys::Array::new();
-    // statement 0's 2nd index = statement 1st's 0th dex
+    // statement 0's `enc_msg_idx`th index = statement 1st's 0th index
     let meta_statement = get_witness_equality_statement(vec![(0, enc_msg_idx as u32), (1, 0)]);
     meta_statements.push(&meta_statement);
 
@@ -112,8 +109,8 @@ pub fn bbs_sig_and_verifiable_encryption() {
     let proof = generate_composite_proof_g1_with_deconstructed_proof_spec(
         statements.clone(),
         meta_statements.clone(),
-        context.clone(),
         witnesses,
+        context.clone(),
         nonce.clone(),
     )
     .unwrap();
@@ -132,7 +129,10 @@ pub fn bbs_sig_and_verifiable_encryption() {
     let r: VerifyResponse = serde_wasm_bindgen::from_value(result).unwrap();
     r.validate();
 
+    // Verifier extracts ciphertext from proof
     let ct = saver_get_ciphertext_from_proof(proof, 1).unwrap();
+
+    // Decryptor decrypts the ciphertext
     console::time_with_label("decrypt");
     let dec_arr = saver_decrypt_ciphertext_using_snark_pk(
         ct.clone(),
@@ -148,7 +148,8 @@ pub fn bbs_sig_and_verifiable_encryption() {
     let decrypted_message = js_sys::Uint8Array::new(&dec_arr.get(0));
     let nu = js_sys::Uint8Array::new(&dec_arr.get(1));
 
-    console::time_with_label("verify decrypttion");
+    // Verifier checks that decrypted message was encrypted in the ciphertext
+    console::time_with_label("verify decryption");
     let result = saver_verify_decryption_using_snark_pk(
         ct,
         decrypted_message.clone(),
@@ -160,7 +161,7 @@ pub fn bbs_sig_and_verifiable_encryption() {
         true,
     )
     .unwrap();
-    console::time_end_with_label("verify decrypttion");
+    console::time_end_with_label("verify decryption");
     let r: VerifyResponse = serde_wasm_bindgen::from_value(result).unwrap();
     r.validate();
     assert_eq!(decrypted_message.to_vec(), encoded_msgs[enc_msg_idx]);

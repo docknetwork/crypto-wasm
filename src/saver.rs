@@ -114,6 +114,18 @@ pub fn saver_decompress_snark_pk(
     Ok(obj_to_uint8array_unchecked!(&snark_pk, "SaverSnarkPk"))
 }
 
+/// Return the uncompressed SNARK verification key from compressed proving key
+#[wasm_bindgen(js_name = saverGetSnarkVkFromPk)]
+pub fn saver_get_snark_vk_from_pk(
+    snark_pk: js_sys::Uint8Array,
+) -> Result<js_sys::Uint8Array, JsValue> {
+    let snark_pk = obj_from_uint8array!(SaverSnarkPk, snark_pk, "SaverSnarkPk");
+    Ok(obj_to_uint8array_unchecked!(
+        &snark_pk.pk.vk,
+        "SaverSnarkVk"
+    ))
+}
+
 #[wasm_bindgen(js_name = saverDecryptCiphertextUsingSnarkVk)]
 pub fn saver_decrypt_ciphertext_using_snark_vk(
     ciphertext: js_sys::Uint8Array,

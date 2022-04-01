@@ -1,4 +1,4 @@
-import { stringToBytes } from "../utilities";
+import { stringToBytes, getRevealedUnrevealed } from "../utilities";
 import {
     BbsSigParams, accumulatorDeriveMembershipProvingKeyFromNonMembershipKey, bbsBlindSignG1, bbsCommitMsgsInG1,
     bbsEncodeMessageForSigning, bbsEncodeMessagesForSigning, bbsGetBasesForCommitmentG1,
@@ -49,20 +49,6 @@ function setupBBS(messageCount: number, prefix: string, encode: boolean): [BbsSi
         messages.push(m);
     }
     return [sigParams, sk, pk, messages];
-}
-
-function getRevealedUnrevealed(messages: Uint8Array[], revealedIndices: Set<number>): [Map<number, Uint8Array>, Map<number, Uint8Array>] {
-    const revealedMsgs = new Map();
-    const unrevealedMsgs = new Map();
-    for (let i = 0; i < messages.length; i++) {
-        if (revealedIndices.has(i)) {
-            revealedMsgs.set(i, messages[i]);
-        } else {
-            unrevealedMsgs.set(i, messages[i]);
-        }
-    }
-
-    return [revealedMsgs, unrevealedMsgs];
 }
 
 describe("Proving knowledge of many BBS+ signatures", () => {
