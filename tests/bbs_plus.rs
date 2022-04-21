@@ -1,13 +1,16 @@
 #![cfg(target_arch = "wasm32")]
 extern crate wasm_bindgen_test;
 
+use js_sys::Uint8Array;
+use wasm_bindgen::JsValue;
+use wasm_bindgen_test::*;
+
 use wasm::bbs_plus::*;
 use wasm::common::{
     field_element_as_bytes, field_element_from_number, generate_challenge_from_bytes,
     generate_random_field_element, VerifyResponse,
 };
-use wasm_bindgen::JsValue;
-use wasm_bindgen_test::*;
+use wasm::utils::js_array_of_bytearrays_from_vector_of_bytevectors;
 
 wasm_bindgen_test_configure!(run_in_browser);
 
@@ -15,7 +18,7 @@ fn js_value_to_bytes(js_value: JsValue) -> Vec<u8> {
     serde_wasm_bindgen::from_value::<Vec<u8>>(js_value).unwrap()
 }
 
-fn bbs_setup(message_count: usize) -> (JsValue, JsValue, JsValue, JsValue, JsValue) {
+fn bbs_setup(message_count: usize) -> (JsValue, JsValue, Uint8Array, Uint8Array, Uint8Array) {
     let label_g1 = b"test-g1".to_vec();
     let label_g2 = b"test-g2".to_vec();
     let params_g1 = bbs_generate_g1_params(message_count, Some(label_g1)).unwrap();
@@ -91,7 +94,7 @@ pub fn bbs_params_and_keygen() {
 
     let sk = bbs_generate_secret_key(Some(seed.clone())).unwrap();
     let sk_1 = bbs_generate_secret_key(Some(seed)).unwrap();
-    assert_eq!(js_value_to_bytes(sk.clone()), js_value_to_bytes(sk_1));
+    assert_eq!(sk.to_vec(), sk_1.to_vec());
 
     let pk_g1 = bbs_generate_public_key_g1(sk.clone(), params_g2.clone()).unwrap();
     assert!(bbs_is_pubkey_g1_valid(pk_g1.clone()).unwrap());
@@ -99,26 +102,12 @@ pub fn bbs_params_and_keygen() {
     assert!(bbs_is_pubkey_g2_valid(pk_g2.clone()).unwrap());
 
     let values_g1_obj = js_sys::Object::values(&keypair_g1_obj);
-    // assert_eq!(values_g1_obj.get(0), pk_g1);
-    // assert_eq!(values_g1_obj.get(1), sk);
-    assert_eq!(
-        js_value_to_bytes(values_g1_obj.get(0)),
-        js_value_to_bytes(sk.clone())
-    );
-    assert_eq!(
-        js_value_to_bytes(values_g1_obj.get(1)),
-        js_value_to_bytes(pk_g1.clone())
-    );
+    assert_eq!(js_value_to_bytes(values_g1_obj.get(0)), sk.to_vec());
+    assert_eq!(js_value_to_bytes(values_g1_obj.get(1)), pk_g1.to_vec());
 
     let values_g2_obj = js_sys::Object::values(&keypair_g2_obj);
-    assert_eq!(
-        js_value_to_bytes(values_g2_obj.get(0)),
-        js_value_to_bytes(sk.clone())
-    );
-    assert_eq!(
-        js_value_to_bytes(values_g2_obj.get(1)),
-        js_value_to_bytes(pk_g2.clone())
-    );
+    assert_eq!(js_value_to_bytes(values_g2_obj.get(0)), sk.to_vec());
+    assert_eq!(js_value_to_bytes(values_g2_obj.get(1)), pk_g2.to_vec());
 
     let bytes = bbs_params_g1_to_bytes(params_g1.clone()).unwrap();
     let desez_params = bbs_params_g1_from_bytes(bytes).unwrap();
@@ -133,20 +122,6 @@ pub fn bbs_params_and_keygen() {
     let params_1: SigParamsG2 = serde_wasm_bindgen::from_value(params_g2).unwrap();
     let params_2: SigParamsG2 = serde_wasm_bindgen::from_value(desez_params).unwrap();
     assert_eq!(params_1, params_2);
-
-    let bytes = bbs_public_key_g1_to_bytes(pk_g1.clone()).unwrap();
-    let desez_pk = bbs_public_key_g1_from_bytes(bytes).unwrap();
-    assert!(bbs_is_pubkey_g1_valid(desez_pk.clone()).unwrap());
-    let pk_1: BBSPlusPkG1 = serde_wasm_bindgen::from_value(pk_g1).unwrap();
-    let pk_2: BBSPlusPkG1 = serde_wasm_bindgen::from_value(desez_pk).unwrap();
-    assert_eq!(pk_1, pk_2);
-
-    let bytes = bbs_public_key_g2_to_bytes(pk_g2.clone()).unwrap();
-    let desez_pk = bbs_public_key_g2_from_bytes(bytes).unwrap();
-    assert!(bbs_is_pubkey_g2_valid(desez_pk.clone()).unwrap());
-    let pk_1: BBSPlusPkG2 = serde_wasm_bindgen::from_value(pk_g2).unwrap();
-    let pk_2: BBSPlusPkG2 = serde_wasm_bindgen::from_value(desez_pk).unwrap();
-    assert_eq!(pk_1, pk_2);
 }
 
 #[allow(non_snake_case)]
@@ -159,14 +134,14 @@ pub fn bbs_sign_verify() {
         b"Message4".to_vec(),
     ];
     let message_count = messages.len();
-    let messages_as_jsvalue = serde_wasm_bindgen::to_value(&messages).unwrap();
+    let messages_as_array = js_array_of_bytearrays_from_vector_of_bytevectors(&messages).unwrap();
 
     let (params_g1, params_g2, sk, pk_g1, pk_g2) = bbs_setup(message_count);
 
     check_sig_ver!(
         bbs_sign_g1,
         bbs_verify_g1,
-        messages_as_jsvalue,
+        messages_as_array,
         sk,
         pk_g2,
         params_g1,
@@ -175,7 +150,7 @@ pub fn bbs_sign_verify() {
     check_sig_ver!(
         bbs_sign_g2,
         bbs_verify_g2,
-        messages_as_jsvalue,
+        messages_as_array,
         sk,
         pk_g1,
         params_g2,
@@ -193,17 +168,16 @@ pub fn bbs_sign_verify() {
         } else {
             // Messages are encoded from text
             let m = format!("Message{}", i).as_bytes().to_vec();
-            let encoded = bbs_encode_message_for_signing(m).unwrap();
-            let bytes: Vec<u8> = serde_wasm_bindgen::from_value(encoded).unwrap();
-            msgs.push(bytes);
+            let bytes = bbs_encode_message_for_signing(m).unwrap();
+            msgs.push(bytes.to_vec());
         }
     }
-    let messages_as_jsvalue = serde_wasm_bindgen::to_value(&msgs).unwrap();
+    let messages_as_array = js_array_of_bytearrays_from_vector_of_bytevectors(&msgs).unwrap();
 
     check_sig_ver!(
         bbs_sign_g1,
         bbs_verify_g1,
-        messages_as_jsvalue,
+        messages_as_array,
         sk,
         pk_g2,
         params_g1,
@@ -212,7 +186,7 @@ pub fn bbs_sign_verify() {
     check_sig_ver!(
         bbs_sign_g2,
         bbs_verify_g2,
-        messages_as_jsvalue,
+        messages_as_array,
         sk,
         pk_g1,
         params_g2,
@@ -231,7 +205,7 @@ pub fn bbs_blind_sign() {
         b"Message5".to_vec(),
     ];
     let message_count = messages.len();
-    let messages_as_jsvalue = serde_wasm_bindgen::to_value(&messages).unwrap();
+    let messages_as_array = js_array_of_bytearrays_from_vector_of_bytevectors(&messages).unwrap();
     let (params_g1, params_g2, sk, pk_g1, pk_g2) = bbs_setup(message_count);
 
     // Prover commits to message indices 1 and 4
@@ -276,8 +250,7 @@ pub fn bbs_blind_sign() {
     )
     .unwrap();
     let sig_g1 = bbs_unblind_sig_g1(blind_sig_g1, blinding.clone()).unwrap();
-    let result =
-        bbs_verify_g1(messages_as_jsvalue.clone(), sig_g1, pk_g2, params_g1, true).unwrap();
+    let result = bbs_verify_g1(messages_as_array.clone(), sig_g1, pk_g2, params_g1, true).unwrap();
     let r: VerifyResponse = serde_wasm_bindgen::from_value(result).unwrap();
     assert!(r.verified);
     assert!(r.error.is_none());
@@ -298,7 +271,7 @@ pub fn bbs_blind_sign() {
     )
     .unwrap();
     let sig_g2 = bbs_unblind_sig_g2(blind_sig_g2, blinding.clone()).unwrap();
-    let result = bbs_verify_g2(messages_as_jsvalue, sig_g2, pk_g1, params_g2, true).unwrap();
+    let result = bbs_verify_g2(messages_as_array, sig_g2, pk_g1, params_g2, true).unwrap();
     let r: VerifyResponse = serde_wasm_bindgen::from_value(result).unwrap();
     assert!(r.verified);
     assert!(r.error.is_none());
@@ -412,9 +385,9 @@ pub fn bbs_proof_of_knowledge() {
         b"Message5".to_vec(),
         b"Message6".to_vec(),
     ];
-    let messages_as_jsvalue = serde_wasm_bindgen::to_value(&messages).unwrap();
+    let messages_as_array = js_array_of_bytearrays_from_vector_of_bytevectors(&messages).unwrap();
 
-    check!(messages, messages_as_jsvalue, true);
+    check!(messages, messages_as_array, true);
 
     let mut messages = vec![];
     for i in 1..=message_count {
@@ -427,14 +400,13 @@ pub fn bbs_proof_of_knowledge() {
         } else {
             // Messages are encoded from text
             let m = format!("Message{}", i).as_bytes().to_vec();
-            let encoded = bbs_encode_message_for_signing(m).unwrap();
-            let bytes: Vec<u8> = serde_wasm_bindgen::from_value(encoded).unwrap();
-            messages.push(bytes);
+            let bytes = bbs_encode_message_for_signing(m).unwrap();
+            messages.push(bytes.to_vec());
         }
     }
-    let messages_as_jsvalue = serde_wasm_bindgen::to_value(&messages).unwrap();
+    let messages_as_array = js_array_of_bytearrays_from_vector_of_bytevectors(&messages).unwrap();
 
-    check!(messages, messages_as_jsvalue, false);
+    check!(messages, messages_as_array, false);
 }
 
 #[allow(non_snake_case)]
@@ -450,11 +422,11 @@ pub fn bbs_extend_params() {
 
     assert_eq!(
         bbs_params_g1_max_supported_msgs(params_g1.clone()).unwrap(),
-        message_count as u32
+        message_count
     );
     assert_eq!(
         bbs_params_g2_max_supported_msgs(params_g2.clone()).unwrap(),
-        message_count as u32
+        message_count
     );
 
     let new_message_count = 5;
@@ -474,11 +446,11 @@ pub fn bbs_extend_params() {
 
     assert_eq!(
         bbs_params_g1_max_supported_msgs(params_g1_1.clone()).unwrap(),
-        new_message_count as u32
+        new_message_count
     );
     assert_eq!(
         bbs_params_g2_max_supported_msgs(params_g2_1.clone()).unwrap(),
-        new_message_count as u32
+        new_message_count
     );
 
     assert_eq!(
@@ -515,11 +487,11 @@ pub fn bbs_extend_params() {
 
     assert_eq!(
         bbs_params_g1_max_supported_msgs(params_g1_2.clone()).unwrap(),
-        new_message_count as u32
+        new_message_count
     );
     assert_eq!(
         bbs_params_g2_max_supported_msgs(params_g2_2.clone()).unwrap(),
-        new_message_count as u32
+        new_message_count
     );
 
     assert_eq!(
@@ -562,7 +534,7 @@ pub fn bbs_extend_params() {
         b"Message4".to_vec(),
         b"Message5".to_vec(),
     ];
-    let messages_as_jsvalue = serde_wasm_bindgen::to_value(&messages).unwrap();
+    let messages_as_array = js_array_of_bytearrays_from_vector_of_bytevectors(&messages).unwrap();
 
     let sk = bbs_generate_secret_key(None).unwrap();
 
@@ -572,7 +544,7 @@ pub fn bbs_extend_params() {
     check_sig_ver!(
         bbs_sign_g1,
         bbs_verify_g1,
-        messages_as_jsvalue,
+        messages_as_array,
         sk,
         pk_g2,
         params_g1_1,
@@ -582,7 +554,7 @@ pub fn bbs_extend_params() {
     check_sig_ver!(
         bbs_sign_g2,
         bbs_verify_g2,
-        messages_as_jsvalue,
+        messages_as_array,
         sk,
         pk_g1,
         params_g2_1,

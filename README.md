@@ -190,6 +190,19 @@ For accumulator, run:
 wasm-pack test --headless --chrome -- --test accumulator
 ```
 
+Some tests take long (few minutes) to run and to prevent timeout of such tests, set env variable `WASM_BINDGEN_TEST_TIMEOUT` 
+to the number of seconds for the timeout. eg. the following sets the timeout to 360 seconds, i.e. 6 minutes
+
+```
+WASM_BINDGEN_TEST_TIMEOUT=360 wasm-pack test --headless --chrome
+```
+
+It's better to run tests in release mode since debug mode takes a long time. Increasing the timeout helps as well as shown below.
+
+```
+WASM_BINDGEN_TEST_TIMEOUT=360 wasm-pack test --release --headless --chrome
+```
+
 #### Benchmark
 
 To benchmark the implementation locally in a node environment using the wasm module run:

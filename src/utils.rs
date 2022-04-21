@@ -14,9 +14,7 @@
 use crate::{Fr, G1Affine, G2Affine};
 use ark_ff::PrimeField;
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
-use ark_std::collections::BTreeMap;
 use ark_std::rand::prelude::{RngCore, SeedableRng, StdRng};
-use blake2::Blake2b;
 use wasm_bindgen::prelude::*;
 
 pub fn set_panic_hook() {
@@ -195,46 +193,6 @@ pub fn g2_affine_from_uint8_array(value: js_sys::Uint8Array) -> Result<G2Affine,
     Ok(elem)
 }
 
-pub fn message_bytes_to_messages(
-    messages_as_bytes: &[Vec<u8>],
-    encode_messages: bool,
-) -> Result<Vec<Fr>, JsValue> {
-    let mut result = vec![];
-    for m in messages_as_bytes {
-        result.push({
-            if encode_messages {
-                encode_message_for_signing(m)
-            } else {
-                Fr::deserialize(m.as_slice()).map_err(|e| {
-                    JsValue::from(&format!("Cannot deserialize to Fr due to error: {:?}", e))
-                })?
-            }
-        });
-    }
-    Ok(result)
-}
-
-pub fn msgs_bytes_map_to_fr_btreemap(
-    messages: &js_sys::Map,
-    encode_messages: bool,
-) -> Result<BTreeMap<usize, Fr>, serde_wasm_bindgen::Error> {
-    let mut msgs = BTreeMap::new();
-    for e in messages.entries() {
-        let arr = js_sys::Array::from(&e.unwrap());
-        let index: usize = serde_wasm_bindgen::from_value(arr.get(0))?;
-        let msg: Vec<u8> = serde_wasm_bindgen::from_value(arr.get(1))?;
-        let m = if encode_messages {
-            encode_message_for_signing(&msg)
-        } else {
-            Fr::deserialize(msg.as_slice()).map_err(|e| {
-                JsValue::from(&format!("Cannot deserialize to Fr due to error: {:?}", e))
-            })?
-        };
-        msgs.insert(index, m);
-    }
-    Ok(msgs)
-}
-
 pub fn js_array_to_fr_vec(array: &js_sys::Array) -> Result<Vec<Fr>, serde_wasm_bindgen::Error> {
     let mut frs = Vec::with_capacity(array.length() as usize);
     for a in array.values() {
@@ -249,6 +207,28 @@ pub fn js_array_from_frs(frs: &[Fr]) -> Result<js_sys::Array, serde_wasm_bindgen
         array.push(&fr_to_jsvalue(fr)?);
     }
     Ok(array)
+}
+
+pub fn js_array_of_bytearrays_to_vector_of_bytevectors(
+    array: &js_sys::Array,
+) -> Result<Vec<Vec<u8>>, serde_wasm_bindgen::Error> {
+    let mut r = Vec::with_capacity(array.length() as usize);
+    for a in array.values() {
+        let b = js_sys::Uint8Array::new(&a.unwrap());
+        r.push(b.to_vec());
+    }
+    Ok(r)
+}
+
+pub fn js_array_of_bytearrays_from_vector_of_bytevectors(
+    vector: &Vec<Vec<u8>>,
+) -> Result<js_sys::Array, serde_wasm_bindgen::Error> {
+    let r = js_sys::Array::new_with_length(vector.len() as u32);
+    for (i, v) in vector.iter().enumerate() {
+        let b = js_sys::Uint8Array::from(v.as_slice());
+        r.set(i as u32, JsValue::from(b));
+    }
+    Ok(r)
 }
 
 pub fn js_array_to_g1_affine_vec(
@@ -271,26 +251,9 @@ pub fn js_array_to_g2_affine_vec(
     Ok(g2s)
 }
 
-/// This is to convert a message to field element. This encoding needs to be collision resistant but
-/// not preimage-resistant and thus use of hash function is not necessary. However, the encoding must
-/// be constant time
-pub fn encode_message_for_signing(msg: &[u8]) -> Fr {
-    dock_crypto_utils::hashing_utils::field_elem_from_seed::<Fr, Blake2b>(
-        msg,
-        "BBS+ message".as_bytes(),
-    )
-}
-
 pub fn field_element_from_u32(number: u32) -> Fr {
     // Using BigInteger256 is fine as Bls12-381 curve
     Fr::from_repr(ark_ff::BigInteger256::from(number as u64)).unwrap()
-}
-
-pub fn encode_bytes_as_accumulator_member(bytes: &[u8]) -> Fr {
-    dock_crypto_utils::hashing_utils::field_elem_from_seed::<Fr, Blake2b>(
-        bytes,
-        "Accumulator element".as_bytes(),
-    )
 }
 
 pub fn get_seeded_rng() -> StdRng {
@@ -310,6 +273,10 @@ pub fn random_bytes() -> Vec<u8> {
     let mut s = vec![0u8; 32];
     rng.fill_bytes(s.as_mut_slice());
     s
+}
+
+pub fn is_positive_safe_integer(num: &js_sys::Number) -> bool {
+    return js_sys::Number::is_safe_integer(num) && num >= &js_sys::Number::from(0);
 }
 
 #[macro_export]
@@ -423,6 +390,7 @@ mod tests {
     wasm_bindgen_test_configure!(run_in_browser);
 
     use super::*;
+    use crate::bbs_plus::encode_messages_as_js_map_to_fr_btreemap;
     use ark_bls12_381::{G1Projective, G2Projective};
     use ark_ec::ProjectiveCurve;
     use ark_std::UniformRand;
@@ -486,7 +454,7 @@ mod tests {
         map.set(&JsValue::from(2), &fr_to_jsvalue(&f2).unwrap());
         map.set(&JsValue::from(3), &fr_to_jsvalue(&f3).unwrap());
 
-        let fr_map = msgs_bytes_map_to_fr_btreemap(&map, false).unwrap();
+        let fr_map = encode_messages_as_js_map_to_fr_btreemap(&map, false).unwrap();
 
         assert_eq!(f1, *fr_map.get(&1).unwrap());
         assert_eq!(f2, *fr_map.get(&2).unwrap());

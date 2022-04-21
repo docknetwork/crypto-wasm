@@ -8,19 +8,33 @@ import {
     generateCompositeProofG1WithDeconstructedProofSpec,
     generatePoKBBSSignatureStatement,
     generatePoKBBSSignatureWitness,
-    generateSaverStatement,
+    generateSaverProverStatement,
+    generateSaverProverStatementFromParamRefs,
+    generateSaverVerifierStatement,
+    generateSaverVerifierStatementFromParamRefs,
     generateSaverWitness,
+    generateSetupParamForSaverCommitmentGens,
+    generateSetupParamForSaverEncryptionGens,
+    generateSetupParamForSaverEncryptionKey,
+    generateSetupParamForSaverProvingKey,
+    generateSetupParamForSaverVerifyingKey,
     generateSignatureParamsG1,
     generateWitnessEqualityMetaStatement,
-    initializeWasm, saverDecompressChunkedCommitmentGenerators,
+    initializeWasm,
+    saverDecompressChunkedCommitmentGenerators,
     saverDecompressDecryptionKey,
     saverDecompressEncryptionGenerators,
     saverDecompressEncryptionKey,
-    saverDecompressSnarkPk, saverDecryptCiphertextUsingSnarkPk,
+    saverDecompressSnarkPk,
+    saverDecryptCiphertextUsingSnarkPk,
+    saverDecryptCiphertextUsingSnarkVk,
     saverDecryptorSetup,
     saverGenerateChunkedCommitmentGenerators,
     saverGenerateEncryptionGenerators,
-    saverGetCiphertextFromProof, saverVerifyDecryptionUsingSnarkPk,
+    saverGetCiphertextFromProof,
+    saverGetSnarkVkFromPk,
+    saverVerifyDecryptionUsingSnarkPk,
+    saverVerifyDecryptionUsingSnarkVk,
     verifyCompositeProofG1WithDeconstructedProofSpec
 } from "../../lib";
 
@@ -29,11 +43,11 @@ import {stringToBytes, getRevealedUnrevealed} from "../utilities";
 describe("Verifiable encryption of a signed message", () => {
     const messageCount = 5;
     const chunkBitSize = 8;
-    const encMsgIdx = 2;
+    const encMsgIdx = 0;
 
     let sigParams: BbsSigParams, sigSk: Uint8Array, sigPk: Uint8Array, sig: Uint8Array, proof: Uint8Array;
     let snarkPk: Uint8Array, sk: Uint8Array, ek: Uint8Array, dk: Uint8Array, encGens: Uint8Array, commGens: Uint8Array;
-    let snarkPkDecom: Uint8Array, ekDecom: Uint8Array, dkDecom: Uint8Array, encGensDecom: Uint8Array,
+    let snarkPkDecom: Uint8Array, snarkVkDecom: Uint8Array, ekDecom: Uint8Array, dkDecom: Uint8Array, encGensDecom: Uint8Array,
         commGensDecom: Uint8Array;
 
     const messages: Uint8Array[] = [];
@@ -44,13 +58,12 @@ describe("Verifiable encryption of a signed message", () => {
 
     it("decryptor setup", () => {
         encGens = saverGenerateEncryptionGenerators();
-        commGens = saverGenerateChunkedCommitmentGenerators();
-        const setup = saverDecryptorSetup(chunkBitSize, encGens);
-        snarkPk = setup[0];
-        sk = setup[1];
-        ek = setup[2];
-        dk = setup[3];
+        [snarkPk, sk, ek, dk] = saverDecryptorSetup(chunkBitSize, encGens, false);
     }, 10000);
+
+    it("verifier setup", () => {
+        commGens = saverGenerateChunkedCommitmentGenerators();
+    });
 
     it("decompress public params", () => {
         encGensDecom = saverDecompressEncryptionGenerators(encGens);
@@ -61,7 +74,10 @@ describe("Verifiable encryption of a signed message", () => {
         console.time('Snark Pk decompressed');
         snarkPkDecom = saverDecompressSnarkPk(snarkPk);
         console.timeEnd('Snark Pk decompressed');
-    }, 120000);
+        console.time('Snark Vk decompressed');
+        snarkVkDecom = saverGetSnarkVkFromPk(snarkPk, true);
+        console.timeEnd('Snark Vk decompressed');
+    }, 150000);
 
     it("signature setup and sign messages", () => {
         sigParams = generateSignatureParamsG1(messageCount);
@@ -78,7 +94,7 @@ describe("Verifiable encryption of a signed message", () => {
         expect(res.verified).toBe(true);
     });
 
-    it("create proof and verify", () => {
+    it("create and verify a proof of a single verifiably encrypted message", () => {
         const revealedIndices = new Set<number>();
         revealedIndices.add(4);
 
@@ -86,12 +102,12 @@ describe("Verifiable encryption of a signed message", () => {
         const statement1 = generatePoKBBSSignatureStatement(sigParams, sigPk, revealedMsgs, false);
 
         console.time("saver stmt");
-        const statement2 = generateSaverStatement(chunkBitSize, encGensDecom, commGensDecom, ekDecom, snarkPkDecom, true);
+        const statement2 = generateSaverProverStatement(chunkBitSize, encGensDecom, commGensDecom, ekDecom, snarkPkDecom, true);
         console.timeEnd("saver stmt");
 
-        const statements = [];
-        statements.push(statement1);
-        statements.push(statement2);
+        const proverStatements = [];
+        proverStatements.push(statement1);
+        proverStatements.push(statement2);
 
         const metaStatements = [];
         const set = new Set<[number, number]>();
@@ -107,24 +123,123 @@ describe("Verifiable encryption of a signed message", () => {
         witnesses.push(witness2);
 
         console.time("proof gen");
-        proof = generateCompositeProofG1WithDeconstructedProofSpec(statements, metaStatements, witnesses);
+        proof = generateCompositeProofG1WithDeconstructedProofSpec(proverStatements, metaStatements, [], witnesses);
         console.timeEnd("proof gen");
 
+        console.time("saver verifier stmt");
+        const statement3 = generateSaverVerifierStatement(chunkBitSize, encGensDecom, commGensDecom, ekDecom, snarkVkDecom, true);
+        console.timeEnd("saver check verifier stmt");
+
+        const verifierStatements = [];
+        verifierStatements.push(statement1);
+        verifierStatements.push(statement3);
+
         console.time("proof ver");
-        const res = verifyCompositeProofG1WithDeconstructedProofSpec(proof, statements, metaStatements);
+        const res = verifyCompositeProofG1WithDeconstructedProofSpec(proof, verifierStatements, metaStatements, []);
         console.timeEnd("proof ver");
         expect(res.verified).toBe(true);
-    }, 120000);
+    }, 30000);
 
     it("decrypt and verify", () => {
         const ct = saverGetCiphertextFromProof(proof, 1);
 
-        console.time("decrypt");
-        const dec = saverDecryptCiphertextUsingSnarkPk(ct, sk, dkDecom, snarkPkDecom, chunkBitSize, true);
-        console.timeEnd("decrypt");
+        console.time("decrypt using pk");
+        const [decryptedMessage, nu] = saverDecryptCiphertextUsingSnarkPk(ct, sk, dkDecom, snarkPkDecom, chunkBitSize, true);
+        console.timeEnd("decrypt using pk");
 
-        console.time("decrypt ver");
-        const res = saverVerifyDecryptionUsingSnarkPk(ct, dec[0], dec[1], dkDecom, snarkPkDecom, encGensDecom, chunkBitSize, true);
-        console.timeEnd("decrypt ver");
-    }, 80000);
+        expect(decryptedMessage).toEqual(messages[encMsgIdx]);
+
+        console.time("decrypt ver using pk");
+        const res = saverVerifyDecryptionUsingSnarkPk(ct, decryptedMessage, nu, dkDecom, snarkPkDecom, encGensDecom, chunkBitSize, true);
+        console.timeEnd("decrypt ver using pk");
+        expect(res.verified).toBe(true);
+
+        console.time("decrypt using vk");
+        const [decryptedMessage1, nu1] = saverDecryptCiphertextUsingSnarkVk(ct, sk, dkDecom, snarkVkDecom, chunkBitSize, true);
+        console.timeEnd("decrypt using vk");
+
+        expect(decryptedMessage1).toEqual(messages[encMsgIdx]);
+
+        console.time("decrypt ver using vk");
+        const res1 = saverVerifyDecryptionUsingSnarkVk(ct, decryptedMessage1, nu1, dkDecom, snarkVkDecom, encGensDecom, chunkBitSize, true);
+        console.timeEnd("decrypt ver using vk");
+        expect(res1.verified).toBe(true);
+    }, 10000);
+
+    it("create and verify a proof of multiple verifiably encrypted messages", () => {
+        const [revealedMsgs, unrevealedMsgs] = getRevealedUnrevealed(messages, new Set<number>());
+        const statement1 = generatePoKBBSSignatureStatement(sigParams, sigPk, revealedMsgs, false);
+
+        console.time("saver setup params");
+        const provingSetupParams = [];
+        provingSetupParams.push(generateSetupParamForSaverEncryptionGens(encGensDecom, true));
+        provingSetupParams.push(generateSetupParamForSaverCommitmentGens(commGensDecom, true));
+        provingSetupParams.push(generateSetupParamForSaverEncryptionKey(ekDecom, true));
+        provingSetupParams.push(generateSetupParamForSaverProvingKey(snarkPkDecom, true));
+        console.timeEnd("saver setup params");
+
+        const statement2 = generateSaverProverStatementFromParamRefs(chunkBitSize, 0, 1, 2, 3);
+        const statement3 = generateSaverProverStatementFromParamRefs(chunkBitSize, 0, 1, 2, 3);
+        const statement4 = generateSaverProverStatementFromParamRefs(chunkBitSize, 0, 1, 2, 3);
+
+        const proverStatements = [];
+        proverStatements.push(statement1);
+        proverStatements.push(statement2);
+        proverStatements.push(statement3);
+        proverStatements.push(statement4);
+
+        const metaStatements = [];
+        const set1 = new Set<[number, number]>();
+        set1.add([0, encMsgIdx]);
+        set1.add([1, 0]);
+        metaStatements.push(generateWitnessEqualityMetaStatement(set1));
+
+        const set2 = new Set<[number, number]>();
+        set2.add([0, encMsgIdx+1]);
+        set2.add([2, 0]);
+        metaStatements.push(generateWitnessEqualityMetaStatement(set2));
+
+        const set3 = new Set<[number, number]>();
+        set3.add([0, encMsgIdx+2]);
+        set3.add([3, 0]);
+        metaStatements.push(generateWitnessEqualityMetaStatement(set3));
+
+        const witness1 = generatePoKBBSSignatureWitness(sig, unrevealedMsgs, false);
+        const witness2 = generateSaverWitness(messages[encMsgIdx]);
+        const witness3 = generateSaverWitness(messages[encMsgIdx+1]);
+        const witness4 = generateSaverWitness(messages[encMsgIdx+2]);
+
+        const witnesses = [];
+        witnesses.push(witness1);
+        witnesses.push(witness2);
+        witnesses.push(witness3);
+        witnesses.push(witness4);
+
+        console.time("proof gen");
+        proof = generateCompositeProofG1WithDeconstructedProofSpec(proverStatements, metaStatements, provingSetupParams, witnesses);
+        console.timeEnd("proof gen");
+
+        console.time("saver verifier setup params");
+        const verifierSetupParams = [];
+        verifierSetupParams.push(generateSetupParamForSaverEncryptionGens(encGensDecom, true));
+        verifierSetupParams.push(generateSetupParamForSaverCommitmentGens(commGensDecom, true));
+        verifierSetupParams.push(generateSetupParamForSaverEncryptionKey(ekDecom, true));
+        verifierSetupParams.push(generateSetupParamForSaverVerifyingKey(snarkVkDecom, true));
+        console.timeEnd("saver check verifier setup params");
+
+        const statement5 = generateSaverVerifierStatementFromParamRefs(chunkBitSize, 0, 1, 2, 3);
+        const statement6 = generateSaverVerifierStatementFromParamRefs(chunkBitSize, 0, 1, 2, 3);
+        const statement7 = generateSaverVerifierStatementFromParamRefs(chunkBitSize, 0, 1, 2, 3);
+
+        const verifierStatements = [];
+        verifierStatements.push(statement1);
+        verifierStatements.push(statement5);
+        verifierStatements.push(statement6);
+        verifierStatements.push(statement7);
+
+        console.time("proof ver");
+        const res = verifyCompositeProofG1WithDeconstructedProofSpec(proof, verifierStatements, metaStatements, verifierSetupParams);
+        console.timeEnd("proof ver");
+        expect(res.verified).toBe(true);
+    }, 90000);
 });

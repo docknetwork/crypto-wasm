@@ -8,11 +8,11 @@ export function saverGenerateChunkedCommitmentGenerators(
     label?: Uint8Array
 ): Uint8Array;
 
-// TODO: Fix return type to be an array of 4 bytearrays
 export function saverDecryptorSetup(
     chunkBitSize: number,
-    encGens: Uint8Array
-): Uint8Array[];
+    encGens: Uint8Array,
+    returnUncompressedSnarkPk: boolean,
+): [Uint8Array, Uint8Array, Uint8Array, Uint8Array];
 
 export function saverDecompressEncryptionGenerators(
     encGens: Uint8Array
@@ -35,10 +35,14 @@ export function saverDecompressSnarkPk(
 ): Uint8Array;
 
 export function saverGetSnarkVkFromPk(
-    snarkPk: Uint8Array
+    snarkPk: Uint8Array,
+    returnUncompressed: boolean
 ): Uint8Array;
 
-// TODO: Fix return type to be an array of 2 bytearrays
+export function saverDecompressSnarkVk(
+    snarkVk: Uint8Array
+): Uint8Array;
+
 export function saverDecryptCiphertextUsingSnarkPk(
     ciphertext: Uint8Array,
     secretKey: Uint8Array,
@@ -46,7 +50,7 @@ export function saverDecryptCiphertextUsingSnarkPk(
     snarkPk: Uint8Array,
     chunkBitSize: number,
     uncompressedPublicParams: boolean
-): Uint8Array[];
+): [Uint8Array, Uint8Array];
 
 export function saverDecryptCiphertextUsingSnarkVk(
     ciphertext: Uint8Array,
@@ -55,7 +59,7 @@ export function saverDecryptCiphertextUsingSnarkVk(
     snarkVk: Uint8Array,
     chunkBitSize: number,
     uncompressedPublicParams: boolean
-): Uint8Array[];
+): [Uint8Array, Uint8Array];
 
 export function saverVerifyDecryptionUsingSnarkPk(
     ciphertext: Uint8Array,
@@ -68,3 +72,13 @@ export function saverVerifyDecryptionUsingSnarkPk(
     uncompressedPublicParams: boolean
 ): Required<VerifyResult>;
 
+export function saverVerifyDecryptionUsingSnarkVk(
+    ciphertext: Uint8Array,
+    message: Uint8Array,
+    nu: Uint8Array,
+    decryptionKey: Uint8Array,
+    snarkVk: Uint8Array,
+    encGens: Uint8Array,
+    chunkBitSize: number,
+    uncompressedPublicParams: boolean
+): Required<VerifyResult>;

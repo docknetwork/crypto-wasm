@@ -1,7 +1,7 @@
 use crate::common::VerifyResponse;
 use crate::utils::{
-    fr_from_uint8_array, fr_to_jsvalue, fr_to_uint8_array, g1_affine_from_uint8_array,
-    g1_affine_to_jsvalue, g1_affine_to_uint8_array, get_seeded_rng, random_bytes, set_panic_hook,
+    fr_from_uint8_array, fr_to_uint8_array, g1_affine_from_uint8_array, g1_affine_to_uint8_array,
+    get_seeded_rng, random_bytes, set_panic_hook,
 };
 use crate::Fr;
 use ark_bls12_381::Bls12_381;
@@ -14,7 +14,6 @@ use saver::{
     saver_groth16::{ProvingKey, VerifyingKey},
     setup::{setup_for_groth16, ChunkedCommitmentGens, EncryptionGens},
 };
-use serde_wasm_bindgen::*;
 use wasm_bindgen::prelude::*;
 
 pub(crate) type EncGens = EncryptionGens<Bls12_381>;
@@ -50,6 +49,7 @@ pub fn saver_generate_chunked_commitment_generators(
 pub fn saver_decryptor_setup(
     chunk_bit_size: u8,
     enc_gens: js_sys::Uint8Array,
+    return_uncompressed_snark_pk: bool,
 ) -> Result<js_sys::Array, JsValue> {
     set_panic_hook();
     let enc_gens = obj_from_uint8array!(EncGens, enc_gens, "EncryptionGenerators");
@@ -57,7 +57,11 @@ pub fn saver_decryptor_setup(
     let (snark_pk, sk, ek, dk) = setup_for_groth16(&mut rng, chunk_bit_size, &enc_gens)
         .map_err(|e| JsValue::from(&format!("Decryptor setup returned error: {:?}", e)))?;
     let setup = js_sys::Array::new();
-    let snark_pk = obj_to_uint8array!(&snark_pk, "SaverSnarkPk");
+    let snark_pk = if return_uncompressed_snark_pk {
+        obj_to_uint8array_unchecked!(&snark_pk, "SaverSnarkPk")
+    } else {
+        obj_to_uint8array!(&snark_pk, "SaverSnarkPk")
+    };
     let sk = obj_to_uint8array!(&sk, "SaverSk");
     let ek = obj_to_uint8array!(&ek, "SaverEk");
     let dk = obj_to_uint8array!(&dk, "SaverDk");
@@ -114,16 +118,26 @@ pub fn saver_decompress_snark_pk(
     Ok(obj_to_uint8array_unchecked!(&snark_pk, "SaverSnarkPk"))
 }
 
-/// Return the uncompressed SNARK verification key from compressed proving key
+/// Return the compressed or uncompressed SNARK verification key from compressed proving key
 #[wasm_bindgen(js_name = saverGetSnarkVkFromPk)]
 pub fn saver_get_snark_vk_from_pk(
     snark_pk: js_sys::Uint8Array,
+    return_uncompressed: bool,
 ) -> Result<js_sys::Uint8Array, JsValue> {
     let snark_pk = obj_from_uint8array!(SaverSnarkPk, snark_pk, "SaverSnarkPk");
-    Ok(obj_to_uint8array_unchecked!(
-        &snark_pk.pk.vk,
-        "SaverSnarkVk"
-    ))
+    Ok(if return_uncompressed {
+        obj_to_uint8array_unchecked!(&snark_pk.pk.vk, "SaverSnarkVk")
+    } else {
+        obj_to_uint8array!(&snark_pk.pk.vk, "SaverSnarkVk")
+    })
+}
+
+#[wasm_bindgen(js_name = saverDecompressSnarkVk)]
+pub fn saver_decompress_snark_vk(
+    snark_vk: js_sys::Uint8Array,
+) -> Result<js_sys::Uint8Array, JsValue> {
+    let snark_vk = obj_from_uint8array!(SaverSnarkVk, snark_vk, "SaverSnarkVk");
+    Ok(obj_to_uint8array_unchecked!(&snark_vk, "SaverSnarkVk"))
 }
 
 #[wasm_bindgen(js_name = saverDecryptCiphertextUsingSnarkVk)]
@@ -136,20 +150,19 @@ pub fn saver_decrypt_ciphertext_using_snark_vk(
     uncompressed_public_params: bool,
 ) -> Result<js_sys::Array, JsValue> {
     set_panic_hook();
-    let ct = obj_from_uint8array!(SaverCiphertext, ciphertext, "SaverCiphertext");
-    let sk = obj_from_uint8array!(SaverSk, secret_key, "SaverSk");
-    let (dk, snark_vk) = if uncompressed_public_params {
-        (
-            obj_from_uint8array_unchecked!(SaverDk, decryption_key, "SaverDk"),
-            obj_from_uint8array_unchecked!(SaverSnarkVk, snark_vk, "SaverSnarkVk"),
-        )
+    let snark_vk = if uncompressed_public_params {
+        obj_from_uint8array_unchecked!(SaverSnarkVk, snark_vk, "SaverSnarkVk")
     } else {
-        (
-            obj_from_uint8array!(SaverDk, decryption_key, "SaverDk"),
-            obj_from_uint8array!(SaverSnarkVk, snark_vk, "SaverSnarkVk"),
-        )
+        obj_from_uint8array!(SaverSnarkVk, snark_vk, "SaverSnarkVk")
     };
-    decrypt(&ct, &sk, &dk, &snark_vk, chunk_bit_size)
+    decrypt(
+        ciphertext,
+        secret_key,
+        decryption_key,
+        &snark_vk,
+        chunk_bit_size,
+        uncompressed_public_params,
+    )
 }
 
 #[wasm_bindgen(js_name = saverDecryptCiphertextUsingSnarkPk)]
@@ -162,20 +175,19 @@ pub fn saver_decrypt_ciphertext_using_snark_pk(
     uncompressed_public_params: bool,
 ) -> Result<js_sys::Array, JsValue> {
     set_panic_hook();
-    let ct = obj_from_uint8array!(SaverCiphertext, ciphertext, "SaverCiphertext");
-    let sk = obj_from_uint8array!(SaverSk, secret_key, "SaverSk");
-    let (dk, snark_pk) = if uncompressed_public_params {
-        (
-            obj_from_uint8array_unchecked!(SaverDk, decryption_key, "SaverDk"),
-            obj_from_uint8array_unchecked!(SaverSnarkPk, snark_pk, "SaverSnarkPk"),
-        )
+    let snark_pk = if uncompressed_public_params {
+        obj_from_uint8array_unchecked!(SaverSnarkPk, snark_pk, "SaverSnarkPk")
     } else {
-        (
-            obj_from_uint8array!(SaverDk, decryption_key, "SaverDk"),
-            obj_from_uint8array!(SaverSnarkPk, snark_pk, "SaverSnarkPk"),
-        )
+        obj_from_uint8array!(SaverSnarkPk, snark_pk, "SaverSnarkPk")
     };
-    decrypt(&ct, &sk, &dk, &snark_pk.pk.vk, chunk_bit_size)
+    decrypt(
+        ciphertext,
+        secret_key,
+        decryption_key,
+        &snark_pk.pk.vk,
+        chunk_bit_size,
+        uncompressed_public_params,
+    )
 }
 
 #[wasm_bindgen(js_name = saverVerifyDecryptionUsingSnarkPk)]
@@ -190,17 +202,97 @@ pub fn saver_verify_decryption_using_snark_pk(
     uncompressed_public_params: bool,
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
-    let (enc_gens, dk, snark_pk) = if uncompressed_public_params {
+    let snark_pk = if uncompressed_public_params {
+        obj_from_uint8array_unchecked!(SaverSnarkPk, snark_pk, "SaverSnarkPk")
+    } else {
+        obj_from_uint8array!(SaverSnarkPk, snark_pk, "SaverSnarkPk")
+    };
+    verify_decryption(
+        ciphertext,
+        decrypted_message,
+        nu,
+        decryption_key,
+        &snark_pk.pk.vk,
+        enc_gens,
+        chunk_bit_size,
+        uncompressed_public_params,
+    )
+}
+
+#[wasm_bindgen(js_name = saverVerifyDecryptionUsingSnarkVk)]
+pub fn saver_verify_decryption_using_snark_vk(
+    ciphertext: js_sys::Uint8Array,
+    decrypted_message: js_sys::Uint8Array,
+    nu: js_sys::Uint8Array,
+    decryption_key: js_sys::Uint8Array,
+    snark_vk: js_sys::Uint8Array,
+    enc_gens: js_sys::Uint8Array,
+    chunk_bit_size: u8,
+    uncompressed_public_params: bool,
+) -> Result<JsValue, JsValue> {
+    set_panic_hook();
+    let snark_vk = if uncompressed_public_params {
+        obj_from_uint8array_unchecked!(SaverSnarkVk, snark_vk, "SaverSnarkVk")
+    } else {
+        obj_from_uint8array!(SaverSnarkVk, snark_vk, "SaverSnarkVk")
+    };
+    verify_decryption(
+        ciphertext,
+        decrypted_message,
+        nu,
+        decryption_key,
+        &snark_vk,
+        enc_gens,
+        chunk_bit_size,
+        uncompressed_public_params,
+    )
+}
+
+fn decrypt(
+    ciphertext: js_sys::Uint8Array,
+    secret_key: js_sys::Uint8Array,
+    decryption_key: js_sys::Uint8Array,
+    snark_vk: &SaverSnarkVk,
+    chunk_bit_size: u8,
+    uncompressed_public_params: bool,
+) -> Result<js_sys::Array, JsValue> {
+    let ct = obj_from_uint8array!(SaverCiphertext, ciphertext, "SaverCiphertext");
+    let sk = obj_from_uint8array!(SaverSk, secret_key, "SaverSk");
+    let dk = if uncompressed_public_params {
+        obj_from_uint8array_unchecked!(SaverDk, decryption_key, "SaverDk")
+    } else {
+        obj_from_uint8array!(SaverDk, decryption_key, "SaverDk")
+    };
+    let (decrypted_message, nu) = ct
+        .decrypt_given_groth16_vk(&sk, &dk, snark_vk, chunk_bit_size)
+        .map_err(|e| JsValue::from(&format!("Decryption returned error: {:?}", e)))?;
+    let dec = js_sys::Array::new();
+    let m = fr_to_uint8_array(&decrypted_message)?;
+    let nu = g1_affine_to_uint8_array(&nu)?;
+    dec.push(&m);
+    dec.push(&nu);
+    Ok(dec)
+}
+
+fn verify_decryption(
+    ciphertext: js_sys::Uint8Array,
+    decrypted_message: js_sys::Uint8Array,
+    nu: js_sys::Uint8Array,
+    decryption_key: js_sys::Uint8Array,
+    snark_vk: &SaverSnarkVk,
+    enc_gens: js_sys::Uint8Array,
+    chunk_bit_size: u8,
+    uncompressed_public_params: bool,
+) -> Result<JsValue, JsValue> {
+    let (enc_gens, dk) = if uncompressed_public_params {
         (
             obj_from_uint8array_unchecked!(EncGens, enc_gens, "EncryptionGenerators"),
             obj_from_uint8array_unchecked!(SaverDk, decryption_key, "SaverDk"),
-            obj_from_uint8array_unchecked!(SaverSnarkPk, snark_pk, "SaverSnarkPk"),
         )
     } else {
         (
             obj_from_uint8array!(EncGens, enc_gens, "EncryptionGenerators"),
             obj_from_uint8array!(SaverDk, decryption_key, "SaverDk"),
-            obj_from_uint8array!(SaverSnarkPk, snark_pk, "SaverSnarkPk"),
         )
     };
     let ct = obj_from_uint8array!(SaverCiphertext, ciphertext, "SaverCiphertext");
@@ -211,7 +303,7 @@ pub fn saver_verify_decryption_using_snark_pk(
         &nu,
         chunk_bit_size,
         &dk,
-        &snark_pk.pk.vk,
+        snark_vk,
         &enc_gens,
     ) {
         Ok(_) => Ok(serde_wasm_bindgen::to_value(&VerifyResponse {
@@ -225,22 +317,4 @@ pub fn saver_verify_decryption_using_snark_pk(
         })
         .unwrap()),
     }
-}
-
-fn decrypt(
-    ct: &SaverCiphertext,
-    sk: &SaverSk,
-    dk: &SaverDk,
-    snark_vk: &SaverSnarkVk,
-    chunk_bit_size: u8,
-) -> Result<js_sys::Array, JsValue> {
-    let (decrypted_message, nu) = ct
-        .decrypt_given_groth16_vk(sk, dk, snark_vk, chunk_bit_size)
-        .map_err(|e| JsValue::from(&format!("Decryption returned error: {:?}", e)))?;
-    let dec = js_sys::Array::new();
-    let m = fr_to_uint8_array(&decrypted_message)?;
-    let nu = g1_affine_to_uint8_array(&nu)?;
-    dec.push(&m);
-    dec.push(&nu);
-    Ok(dec)
 }

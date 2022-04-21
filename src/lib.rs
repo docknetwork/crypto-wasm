@@ -19,7 +19,6 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 use ark_bls12_381::Bls12_381;
 use ark_ec::PairingEngine;
-use wasm_bindgen::prelude::*;
 
 #[macro_use]
 pub mod utils;
@@ -27,7 +26,8 @@ pub mod accumulator;
 pub mod bbs_plus;
 pub mod bound_check;
 pub mod common;
-pub mod proof_system;
+pub mod composite_proof_system;
+pub mod legosnark;
 pub mod saver;
 
 // Trying to keep types at one place so changing the curve is easier

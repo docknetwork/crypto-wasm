@@ -1,12 +1,11 @@
 use crate::utils::{
-    encode_bytes_as_accumulator_member, fr_from_jsvalue, fr_from_uint8_array, fr_to_jsvalue,
-    fr_to_uint8_array, g1_affine_from_uint8_array, g1_affine_to_uint8_array, get_seeded_rng,
-    js_array_from_frs, js_array_to_fr_vec, random_bytes, set_panic_hook,
+    fr_from_jsvalue, fr_from_uint8_array, fr_to_jsvalue, fr_to_uint8_array,
+    g1_affine_from_uint8_array, g1_affine_to_uint8_array, get_seeded_rng, js_array_from_frs,
+    js_array_to_fr_vec, random_bytes, set_panic_hook,
 };
 
 use ark_bls12_381::Bls12_381;
 use ark_ec::PairingEngine;
-use serde_wasm_bindgen::*;
 use wasm_bindgen::prelude::*;
 
 use ark_ff::{field_new, One};
@@ -31,8 +30,8 @@ pub(crate) type UniversalAccum = UniversalAccumulator<Bls12_381>;
 pub(crate) type MembershipWit = MembershipWitness<<Bls12_381 as PairingEngine>::G1Affine>;
 pub(crate) type NonMembershipWit = NonMembershipWitness<<Bls12_381 as PairingEngine>::G1Affine>;
 pub(crate) type Omega = Omega_<<Bls12_381 as PairingEngine>::G1Affine>;
-pub(crate) type MembershipPrk = MembershipProvingKey<<Bls12_381 as PairingEngine>::G1Affine>;
-pub(crate) type NonMembershipPrk = NonMembershipProvingKey<<Bls12_381 as PairingEngine>::G1Affine>;
+pub type MembershipPrk = MembershipProvingKey<<Bls12_381 as PairingEngine>::G1Affine>;
+pub type NonMembershipPrk = NonMembershipProvingKey<<Bls12_381 as PairingEngine>::G1Affine>;
 pub(crate) type MemProtocol = MembershipProofProtocol<Bls12_381>;
 pub(crate) type MemProof = MembershipProof<Bls12_381>;
 pub(crate) type NonMemProtocol = NonMembershipProofProtocol<Bls12_381>;
@@ -1178,4 +1177,11 @@ mod macros {
             Ok(result)
         }}
     }
+}
+
+pub fn encode_bytes_as_accumulator_member(bytes: &[u8]) -> Fr {
+    dock_crypto_utils::hashing_utils::field_elem_from_seed::<Fr, Blake2b>(
+        bytes,
+        "Accumulator element".as_bytes(),
+    )
 }

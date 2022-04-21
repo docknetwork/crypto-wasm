@@ -1,4 +1,5 @@
 use ark_std::collections::BTreeSet;
+use js_sys::Uint8Array;
 use wasm::accumulator::{
     accumulator_generate_public_key, accumulator_generate_secret_key, generate_accumulator_params,
     universal_accumulator_compute_initial_fv, universal_accumulator_fixed_initial_elements,
@@ -6,11 +7,11 @@ use wasm::accumulator::{
 };
 use wasm::bbs_plus::{bbs_generate_g1_params, bbs_generate_public_key_g2, bbs_generate_secret_key};
 use wasm::common::random_ff;
-use wasm::proof_system::generate_witness_equality_meta_statement;
+use wasm::composite_proof_system::statement::generate_witness_equality_meta_statement;
 use wasm::utils::{js_array_from_frs, random_bytes};
 use wasm_bindgen::JsValue;
 
-pub fn bbs_params_and_keys(message_count: usize) -> (JsValue, JsValue, JsValue) {
+pub fn bbs_params_and_keys(message_count: usize) -> (JsValue, Uint8Array, Uint8Array) {
     let params = bbs_generate_g1_params(message_count, None).unwrap();
     let sk = bbs_generate_secret_key(None).unwrap();
     let pk = bbs_generate_public_key_g2(sk.clone(), params.clone()).unwrap();
@@ -54,14 +55,14 @@ pub fn get_witness_equality_statement(witness_refs: Vec<(u32, u32)>) -> JsValue 
     generate_witness_equality_meta_statement(equality).unwrap()
 }
 
-pub fn accum_params_and_keys() -> (js_sys::Uint8Array, JsValue, js_sys::Uint8Array) {
+pub fn accum_params_and_keys() -> (Uint8Array, JsValue, Uint8Array) {
     let params = generate_accumulator_params(None).unwrap();
     let sk = accumulator_generate_secret_key(None).unwrap();
     let pk = accumulator_generate_public_key(sk.clone(), params.clone()).unwrap();
     (params, sk, pk)
 }
 
-pub fn get_universal_accum(sk: JsValue, params: js_sys::Uint8Array, max_size: u32) -> JsValue {
+pub fn get_universal_accum(sk: JsValue, params: Uint8Array, max_size: u32) -> JsValue {
     let initial_elements = (0..max_size + 1)
         .map(|_| random_ff(None))
         .collect::<Vec<_>>();

@@ -5,17 +5,7 @@ const {
     wasm, requireWasmInitialized
 } = require('./init_wasm');
 
-module.exports.boundCheckSnarkSetup = () => {
+module.exports.boundCheckSnarkSetup = (returnUncompressed) => {
     requireWasmInitialized();
-    return wasm.boundCheckSnarkSetup();
-};
-
-module.exports.boundCheckDecompressSnarkPk = (snarkPk) => {
-    requireWasmInitialized();
-    return wasm.boundCheckDecompressSnarkPk(snarkPk);
-};
-
-module.exports.boundCheckGetSnarkVkFromPk = (snarkPk) => {
-    requireWasmInitialized();
-    return wasm.boundCheckGetSnarkVkFromPk(snarkPk);
+    return wasm.boundCheckSnarkSetup(returnUncompressed);
 };

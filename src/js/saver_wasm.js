@@ -15,9 +15,9 @@ module.exports.saverGenerateChunkedCommitmentGenerators = (label) => {
     return wasm.saverGenerateChunkedCommitmentGenerators(label);
 };
 
-module.exports.saverDecryptorSetup = (chunkBitSize, encGens) => {
+module.exports.saverDecryptorSetup = (chunkBitSize, encGens, returnUncompressedSnarkPk) => {
     requireWasmInitialized();
-    return wasm.saverDecryptorSetup(chunkBitSize, encGens);
+    return wasm.saverDecryptorSetup(chunkBitSize, encGens, returnUncompressedSnarkPk);
 };
 
 module.exports.saverDecompressEncryptionGenerators = (encGens) => {
@@ -45,9 +45,14 @@ module.exports.saverDecompressSnarkPk = (snarkPk) => {
     return wasm.saverDecompressSnarkPk(snarkPk);
 };
 
-module.exports.saverGetSnarkVkFromPk = (snarkPk) => {
+module.exports.saverGetSnarkVkFromPk = (snarkPk, returnUncompressed) => {
     requireWasmInitialized();
-    return wasm.saverGetSnarkVkFromPk(snarkPk);
+    return wasm.saverGetSnarkVkFromPk(snarkPk, returnUncompressed);
+};
+
+module.exports.saverDecompressSnarkVk = (snarkVk) => {
+    requireWasmInitialized();
+    return wasm.saverDecompressSnarkVk(snarkVk);
 };
 
 module.exports.saverDecryptCiphertextUsingSnarkPk = (ciphertext, secretKey, decryptionKey, snarkPk, chunkBitSize, uncompressedPublicParams) => {
@@ -63,4 +68,9 @@ module.exports.saverDecryptCiphertextUsingSnarkVk = (ciphertext, secretKey, decr
 module.exports.saverVerifyDecryptionUsingSnarkPk = (ciphertext, message, nu, decryptionKey, snarkPk, encGens, chunkBitSize, uncompressedPublicParams) => {
     requireWasmInitialized();
     return wasm.saverVerifyDecryptionUsingSnarkPk(ciphertext, message, nu, decryptionKey, snarkPk, encGens, chunkBitSize, uncompressedPublicParams);
+};
+
+module.exports.saverVerifyDecryptionUsingSnarkVk = (ciphertext, message, nu, decryptionKey, snarkVk, encGens, chunkBitSize, uncompressedPublicParams) => {
+    requireWasmInitialized();
+    return wasm.saverVerifyDecryptionUsingSnarkVk(ciphertext, message, nu, decryptionKey, snarkVk, encGens, chunkBitSize, uncompressedPublicParams);
 };

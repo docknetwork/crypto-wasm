@@ -7,10 +7,24 @@ export function generatePoKBBSSignatureStatement(
     encodeMessages: boolean
 ): Uint8Array;
 
+export function generatePoKBBSSignatureStatementFromParamRefs(
+    params: number,
+    publicKey: number,
+    revealedMessages: Map<number, Uint8Array>,
+    encodeMessages: boolean
+): Uint8Array;
+
 export function generateAccumulatorMembershipStatement(
     params: Uint8Array,
     publicKey: Uint8Array,
     provingKey: Uint8Array,
+    accumulated: Uint8Array
+): Uint8Array;
+
+export function generateAccumulatorMembershipStatementFromParamRefs(
+    params: number,
+    publicKey: number,
+    provingKey: number,
     accumulated: Uint8Array
 ): Uint8Array;
 
@@ -21,8 +35,20 @@ export function generateAccumulatorNonMembershipStatement(
     accumulated: Uint8Array
 ): Uint8Array;
 
+export function generateAccumulatorNonMembershipStatementFromParamRefs(
+    params: number,
+    publicKey: number,
+    provingKey: number,
+    accumulated: Uint8Array
+): Uint8Array;
+
 export function generatePedersenCommitmentG1Statement(
     bases: Uint8Array[],
+    commitment: Uint8Array
+): Uint8Array;
+
+export function generatePedersenCommitmentG1StatementFromParamRefs(
+    bases: number,
     commitment: Uint8Array
 ): Uint8Array;
 
@@ -31,7 +57,12 @@ export function generatePedersenCommitmentG2Statement(
     commitment: Uint8Array
 ): Uint8Array;
 
-export function generateSaverStatement(
+export function generatePedersenCommitmentG2StatementFromParamRefs(
+    bases: number,
+    commitment: Uint8Array
+): Uint8Array;
+
+export function generateSaverProverStatement(
     chunkBitSize: number,
     encGens: Uint8Array,
     commGens: Uint8Array,
@@ -40,11 +71,55 @@ export function generateSaverStatement(
     uncompressedPublicParams: boolean
 ): Uint8Array;
 
-export function generateBoundCheckLegoStatement(
-    min: Uint8Array,
-    max: Uint8Array,
+export function generateSaverProverStatementFromParamRefs(
+    chunkBitSize: number,
+    encGens: number,
+    commGens: number,
+    encryptionKey: number,
+    snarkPk: number
+): Uint8Array;
+
+export function generateSaverVerifierStatement(
+    chunkBitSize: number,
+    encGens: Uint8Array,
+    commGens: Uint8Array,
+    encryptionKey: Uint8Array,
+    snarkVk: Uint8Array,
+    uncompressedPublicParams: boolean
+): Uint8Array;
+
+export function generateSaverVerifierStatementFromParamRefs(
+    chunkBitSize: number,
+    encGens: number,
+    commGens: number,
+    encryptionKey: number,
+    snarkVk: number
+): Uint8Array;
+
+export function generateBoundCheckLegoProverStatement(
+    min: number,
+    max: number,
     snarkPk: Uint8Array,
     uncompressedPublicParams: boolean
+): Uint8Array;
+
+export function generateBoundCheckLegoProverStatementFromParamRefs(
+    min: number,
+    max: number,
+    snarkPk: number
+): Uint8Array;
+
+export function generateBoundCheckLegoVerifierStatement(
+    min: number,
+    max: number,
+    snarkVk: Uint8Array,
+    uncompressedPublicParams: boolean
+): Uint8Array;
+
+export function generateBoundCheckLegoVerifierStatementFromParamRefs(
+    min: number,
+    max: number,
+    snarkVk: number
 ): Uint8Array;
 
 export function generateWitnessEqualityMetaStatement(
@@ -82,12 +157,14 @@ export function generateBoundCheckWitness(
 export function generateProofSpecG1(
     statements: Uint8Array[],
     metaStatements: Uint8Array[],
+    setupParams: Uint8Array[],
     context?: Uint8Array
 ): Uint8Array;
 
 export function generateProofSpecG2(
     statements: Uint8Array[],
     metaStatements: Uint8Array[],
+    setupParams: Uint8Array[],
     context?: Uint8Array
 ): Uint8Array;
 
@@ -118,6 +195,7 @@ export function verifyCompositeProofG2(
 export function generateCompositeProofG1WithDeconstructedProofSpec(
     statements: Uint8Array[],
     metaStatements: Uint8Array[],
+    setupParams: Uint8Array[],
     witnesses: Uint8Array[],
     context?: Uint8Array,
     nonce?: Uint8Array
@@ -127,6 +205,7 @@ export function verifyCompositeProofG1WithDeconstructedProofSpec(
     proof: Uint8Array,
     statements: Uint8Array[],
     metaStatements: Uint8Array[],
+    setupParams: Uint8Array[],
     context?: Uint8Array,
     nonce?: Uint8Array
 ): Required<VerifyResult>;

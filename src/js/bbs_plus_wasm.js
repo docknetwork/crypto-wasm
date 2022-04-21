@@ -98,26 +98,6 @@ module.exports.isBBSPublicKeyG2Valid = (publicKey) => {
     return wasm.isBBSPublicKeyG2Valid(publicKey);
 };
 
-module.exports.bbsPublicKeyG1ToBytes = (pk) => {
-    requireWasmInitialized();
-    return wasm.bbsPublicKeyG1ToBytes(pk);
-};
-
-module.exports.bbsPublicKeyG1FromBytes = (bytes) => {
-    requireWasmInitialized();
-    return wasm.bbsPublicKeyG1FromBytes(bytes);
-};
-
-module.exports.bbsPublicKeyG2ToBytes = (pk) => {
-    requireWasmInitialized();
-    return wasm.bbsPublicKeyG2ToBytes(pk);
-};
-
-module.exports.bbsPublicKeyG2FromBytes = (bytes) => {
-    requireWasmInitialized();
-    return wasm.bbsPublicKeyG2FromBytes(bytes);
-};
-
 module.exports.generateBBSKeyPairG1 = (params, seed) => {
     requireWasmInitialized();
     return wasm.generateBBSKeyPairG1(params, seed);

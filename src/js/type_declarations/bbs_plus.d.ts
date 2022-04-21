@@ -70,22 +70,6 @@ export function isBBSPublicKeyG2Valid(
     publicKey: Uint8Array
 ): boolean;
 
-export function bbsPublicKeyG1ToBytes(
-    publicKey: Uint8Array
-): Uint8Array;
-
-export function bbsPublicKeyG1FromBytes(
-    bytes: Uint8Array
-): Uint8Array;
-
-export function bbsPublicKeyG2ToBytes(
-    publicKey: Uint8Array
-): Uint8Array;
-
-export function bbsPublicKeyG2FromBytes(
-    bytes: Uint8Array
-): Uint8Array;
-
 export function generateBBSKeyPairG1(
     params: BbsSigParams,
     seed?: Uint8Array

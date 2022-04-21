@@ -24,7 +24,9 @@ module.exports = {
   ...require('./util_wasm'),
   ...require('./bbs_plus_wasm'),
   ...require('./accumulator_wasm'),
-  ...require('./proof_system_wasm'),
+  ...require('./composite_proof_system_wasm'),
   ...require('./saver_wasm'),
+  ...require('./legosnark_wasm'),
   ...require('./bound_check_wasm'),
+  ...require('./setup_params_wasm'),
 };

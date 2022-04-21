@@ -35,7 +35,6 @@ import {
   bbsSignatureParamsG1FromBytes,
   bbsSignatureParamsG2FromBytes,
   bbsSignatureParamsG2ToBytes,
-  bbsPublicKeyG1ToBytes, bbsPublicKeyG1FromBytes, bbsPublicKeyG2FromBytes, bbsPublicKeyG2ToBytes,
   BbsSigParams,
   initializeWasm,
 } from "../../lib";
@@ -121,20 +120,12 @@ describe("For BBS+ signatures", () => {
     pkG1 = generateBBSPublicKeyG1(sk, sigParamsG2);
     expect(pkG1).toBeInstanceOf(Uint8Array);
     expect(isBBSPublicKeyG1Valid(pkG1)).toBe(true);
-
-    const bytes = bbsPublicKeyG1ToBytes(pkG1);
-    const deserzPk = bbsPublicKeyG1FromBytes(bytes);
-    expect(pkG1).toEqual(deserzPk);
   });
 
   it("generate public key in G2 from secret key", () => {
     pkG2 = generateBBSPublicKeyG2(sk, sigParamsG1);
     expect(pkG2).toBeInstanceOf(Uint8Array);
     expect(isBBSPublicKeyG2Valid(pkG2)).toBe(true);
-
-    const bytes = bbsPublicKeyG2ToBytes(pkG2);
-    const deserzPk = bbsPublicKeyG2FromBytes(bytes);
-    expect(pkG2).toEqual(deserzPk);
   });
 
   it("generate keypair in G1 from given seed", () => {

@@ -1,27 +1,62 @@
 #![cfg(target_arch = "wasm32")]
 extern crate wasm_bindgen_test;
 
-use ark_bls12_381::Bls12_381;
-use ark_ec::PairingEngine;
 use ark_std::{collections::BTreeSet, vec};
-use proof_system::{statement, witness};
 use wasm_bindgen_test::*;
 use web_sys::console;
 
 use wasm::bbs_plus::{bbs_encode_message_for_signing, bbs_sign_g1};
 use wasm::bound_check::*;
-use wasm::common::{field_element_from_number, VerifyResponse};
-use wasm::proof_system::{
-    generate_bound_check_lego_statement, generate_bound_check_witness,
-    generate_composite_proof_g1_with_deconstructed_proof_spec, generate_pok_bbs_sig_statement,
+use wasm::common::VerifyResponse;
+use wasm::composite_proof_system::{
+    generate_bound_check_witness, generate_composite_proof_g1_with_deconstructed_proof_spec,
     generate_pok_bbs_sig_witness, verify_composite_proof_g1_with_deconstructed_proof_spec,
 };
-use wasm::utils::{field_element_from_u32, fr_to_jsvalue, random_bytes};
+use wasm::utils::{
+    field_element_from_u32, fr_to_uint8_array, js_array_of_bytearrays_from_vector_of_bytevectors,
+    random_bytes,
+};
 
 mod common;
 use common::{bbs_params_and_keys, get_revealed_unrevealed, get_witness_equality_statement};
+use wasm::composite_proof_system::statement::{
+    generate_bound_check_lego_prover_statement, generate_bound_check_lego_verifier_statement,
+    generate_pok_bbs_sig_statement, get_valid_min_max,
+};
+use wasm::legosnark::{legosnark_decompress_pk, legosnark_vk_from_pk};
 
 wasm_bindgen_test_configure!(run_in_browser);
+
+#[wasm_bindgen_test]
+pub fn min_max_values() {
+    assert!(get_valid_min_max(js_sys::Number::from(-1i32), js_sys::Number::from(120i32)).is_err());
+    assert!(get_valid_min_max(js_sys::Number::from(100i32), js_sys::Number::from(-5i32)).is_err());
+    assert!(
+        get_valid_min_max(js_sys::Number::from(100.1f32), js_sys::Number::from(200i32)).is_err()
+    );
+    assert!(
+        get_valid_min_max(js_sys::Number::from(100i32), js_sys::Number::from(200.3f32)).is_err()
+    );
+    assert!(get_valid_min_max(
+        js_sys::Number::from(100.1f32),
+        js_sys::Number::from(200.3f32)
+    )
+    .is_err());
+
+    for (i, j) in [
+        (100, 500),
+        (250000000, 60000000),
+        (4294967300, 4294967306),
+        (1641067913601, 1641087913601),
+    ] {
+        let (min, max) = get_valid_min_max(
+            js_sys::Number::from(i as f64),
+            js_sys::Number::from(j as f64),
+        )
+        .unwrap();
+        assert_eq!((min, max), (i, j));
+    }
+}
 
 #[wasm_bindgen_test]
 pub fn bbs_sig_and_bound_check_message() {
@@ -31,47 +66,56 @@ pub fn bbs_sig_and_bound_check_message() {
 
     let bounded_msg_idx = 3usize;
 
-    let min = field_element_from_number(100);
+    let min = js_sys::Number::from(100);
     let msg = 105;
-    let max = field_element_from_number(120);
+    let max = js_sys::Number::from(120);
     for i in 0..msg_count {
-        let encoded = if i == bounded_msg_idx {
-            fr_to_jsvalue(&field_element_from_u32(msg)).unwrap()
+        let byte_array = if i == bounded_msg_idx {
+            fr_to_uint8_array(&field_element_from_u32(msg)).unwrap()
         } else {
             let m = random_bytes();
             bbs_encode_message_for_signing(m).unwrap()
         };
-        let bytes: Vec<u8> = serde_wasm_bindgen::from_value(encoded).unwrap();
-        encoded_msgs.push(bytes);
+        encoded_msgs.push(byte_array.to_vec());
     }
 
-    let msgs_jsvalue = serde_wasm_bindgen::to_value(&encoded_msgs).unwrap();
-    let sig = bbs_sign_g1(msgs_jsvalue.clone(), sk.clone(), params.clone(), false).unwrap();
+    let messages_as_array =
+        js_array_of_bytearrays_from_vector_of_bytevectors(&encoded_msgs).unwrap();
+    let sig = bbs_sign_g1(messages_as_array.clone(), sk.clone(), params.clone(), false).unwrap();
     let mut revealed_indices = BTreeSet::new();
-    // revealed_indices.insert(0);
+    revealed_indices.insert(0);
     let (revealed_msgs, unrevealed_msgs) =
         get_revealed_unrevealed(&encoded_msgs, &revealed_indices);
 
     console::time_with_label("setup");
-    let snark_pk = bound_check_snark_setup().unwrap();
+    let snark_pk = bound_check_snark_setup(false).unwrap();
     console::time_end_with_label("setup");
 
-    console::time_with_label("decompresssion");
-    let snark_pk_decom = bound_check_decompress_snark_pk(snark_pk.clone()).unwrap();
-    console::time_end_with_label("decompresssion");
+    console::time_with_label("extract vk");
+    let snark_vk_decom = legosnark_vk_from_pk(snark_pk.clone(), true).unwrap();
+    console::time_end_with_label("extract vk");
+
+    console::time_with_label("pk decompresssion");
+    let snark_pk_decom = legosnark_decompress_pk(snark_pk.clone()).unwrap();
+    console::time_end_with_label("pk decompresssion");
 
     // Create statements
     let stmt_1 =
         generate_pok_bbs_sig_statement(params.clone(), pk.clone(), revealed_msgs.clone(), false)
             .unwrap();
-    console::time_with_label("bound check stmt");
-    let stmt_2 =
-        generate_bound_check_lego_statement(min, max, snark_pk_decom.clone(), true).unwrap();
-    console::time_end_with_label("bound check stmt");
+    console::time_with_label("bound check prover stmt");
+    let prover_stmt_2 = generate_bound_check_lego_prover_statement(
+        min.clone(),
+        max.clone(),
+        snark_pk_decom.clone(),
+        true,
+    )
+    .unwrap();
+    console::time_end_with_label("bound check verifier stmt");
 
-    let statements = js_sys::Array::new();
-    statements.push(&stmt_1);
-    statements.push(&stmt_2);
+    let prover_statements = js_sys::Array::new();
+    prover_statements.push(&stmt_1);
+    prover_statements.push(&prover_stmt_2);
 
     let meta_statements = js_sys::Array::new();
     // statement 0's `bounded_msg_idx`th index = statement 1st's 0th index
@@ -93,8 +137,9 @@ pub fn bbs_sig_and_bound_check_message() {
 
     console::time_with_label("proof gen");
     let proof = generate_composite_proof_g1_with_deconstructed_proof_spec(
-        statements.clone(),
+        prover_statements.clone(),
         meta_statements.clone(),
+        js_sys::Array::new(),
         witnesses,
         context.clone(),
         nonce.clone(),
@@ -102,11 +147,22 @@ pub fn bbs_sig_and_bound_check_message() {
     .unwrap();
     console::time_end_with_label("proof gen");
 
+    console::time_with_label("bound check verifier stmt");
+    let verifier_stmt_2 =
+        generate_bound_check_lego_verifier_statement(min, max, snark_vk_decom.clone(), true)
+            .unwrap();
+    console::time_end_with_label("bound check verifier stmt");
+
+    let verifier_statements = js_sys::Array::new();
+    verifier_statements.push(&stmt_1);
+    verifier_statements.push(&verifier_stmt_2);
+
     console::time_with_label("proof ver");
     let result = verify_composite_proof_g1_with_deconstructed_proof_spec(
         proof.clone(),
-        statements.clone(),
+        verifier_statements.clone(),
         meta_statements.clone(),
+        js_sys::Array::new(),
         context.clone(),
         nonce,
     )
