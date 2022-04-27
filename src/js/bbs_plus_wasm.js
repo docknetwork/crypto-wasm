@@ -15,6 +15,12 @@ const {
     wasm, requireWasmInitialized
 } = require('./init_wasm');
 
+function ensurePositiveInteger(num) {
+    if (!Number.isInteger(num) || num < 0) {
+        throw new Error(`Need a positive integer but found ${num} `);
+    }
+}
+
 module.exports.DEFAULT_BLS12381_PRIVATE_KEY_LENGTH = 32;
 
 module.exports.DEFAULT_BLS12381_G1_PUBLIC_KEY_LENGTH = 48;
@@ -30,6 +36,7 @@ module.exports.generateBBSSigningKey = (seed) => {
 
 module.exports.generateSignatureParamsG1 = (messageCount, label) => {
     requireWasmInitialized();
+    ensurePositiveInteger(messageCount);
     return wasm.generateSignatureParamsG1(messageCount, label);
 };
 
@@ -45,6 +52,7 @@ module.exports.bbsSignatureParamsG1MaxSupportedMsgs = (params) => {
 
 module.exports.generateSignatureParamsG2 = (messageCount, label) => {
     requireWasmInitialized();
+    ensurePositiveInteger(messageCount);
     return wasm.generateSignatureParamsG2(messageCount, label);
 };
 

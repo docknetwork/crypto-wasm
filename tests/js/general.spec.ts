@@ -1,4 +1,5 @@
 import {
+    generateFieldElementFromNumber,
     initializeWasm, isWasmInitialized, requireWasmInitialized
 } from "../../lib";
 
@@ -15,5 +16,18 @@ describe("For WASM initialization", () => {
         await initializeWasm();
         expect(isWasmInitialized()).toBe(true);
         requireWasmInitialized();
+    })
+});
+
+describe("For utils", () => {
+    beforeAll(async () => {
+        await initializeWasm();
+    });
+
+    it("generateFieldElementFromNumber only expects a positive integer of <= 32 bits", () => {
+        expect(() => generateFieldElementFromNumber(-20)).toThrow();
+        expect(() => generateFieldElementFromNumber(10.6)).toThrow();
+        expect(() => generateFieldElementFromNumber(1651153384148)).toThrow();
+        expect(() => generateFieldElementFromNumber(165)).not.toThrow();
     })
 });

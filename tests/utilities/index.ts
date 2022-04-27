@@ -11,46 +11,12 @@
  * limitations under the License.
  */
 
-import { Coder } from "@stablelib/base64";
-
-/**
- * Encodes a Uint8Array to a base64 string
- * @param bytes Input Uin8Array
- */
-export const base64Encode = (bytes: Uint8Array): string => {
-  const coder = new Coder();
-  return coder.encode(bytes);
-};
-/**
- * Decodes a base64 string to a Uint8Array
- * @param bytes Input base64 string
- */
-
-export const base64Decode = (string: string): Uint8Array => {
-  const coder = new Coder();
-  return coder.decode(string);
-};
-
 /**
  * Converts a UTF-8 Encoded string to a byte array
  * @param string
  */
 export const stringToBytes = (string: string): Uint8Array =>
   Uint8Array.from(Buffer.from(string, "utf-8"));
-
-export function areUint8ArraysEqual(arr1: Uint8Array, arr2: Uint8Array): boolean {
-  if (arr1.length !== arr2.length) {
-    return false;
-  }
-
-  for (let i = 0; i < arr1.length; i++) {
-    if (arr1[i] !== arr2[i]) {
-      return false;
-    }
-  }
-
-  return true;
-}
 
 export function getRevealedUnrevealed(messages: Uint8Array[], revealedIndices: Set<number>): [Map<number, Uint8Array>, Map<number, Uint8Array>] {
   const revealedMsgs = new Map();
@@ -65,3 +31,4 @@ export function getRevealedUnrevealed(messages: Uint8Array[], revealedIndices: S
 
   return [revealedMsgs, unrevealedMsgs];
 }
+

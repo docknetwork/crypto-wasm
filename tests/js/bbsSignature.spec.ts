@@ -78,6 +78,9 @@ describe("For BBS+ signatures", () => {
   });
 
   it("generate signature params in G1", () => {
+    expect(() => generateSignatureParamsG1(-5)).toThrow();
+    expect(() => generateSignatureParamsG1(6.3)).toThrow();
+
     const params0 = generateSignatureParamsG1(messageCount);
     expect(params0).toBeInstanceOf(Object);
     expect(params0.h.length).toEqual(messageCount);
@@ -98,6 +101,9 @@ describe("For BBS+ signatures", () => {
   });
 
   it("generate signature params in G2", () => {
+    expect(() => generateSignatureParamsG2(-5)).toThrow();
+    expect(() => generateSignatureParamsG2(6.3)).toThrow();
+
     const params0 = generateSignatureParamsG2(messageCount);
     expect(params0).toBeInstanceOf(Object);
     expect(params0.h.length).toEqual(messageCount);

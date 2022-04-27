@@ -86,7 +86,7 @@ export function bbsEncodeMessageForSigning(
 
 export function bbsEncodeMessagesForSigning(
     messages: Uint8Array[],
-    indicesToEncode: Set<number>
+    indicesToEncode: number[]
 ): Uint8Array[];
 
 export function bbsGetBasesForCommitmentG1(

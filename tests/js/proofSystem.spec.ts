@@ -312,18 +312,14 @@ describe("Proving knowledge of a BBS+ signature while requesting a partially bli
         revealedIndices1.add(0);
         const [revealedMsgs1, unrevealedMsgs1] = getRevealedUnrevealed(messages1, revealedIndices1);
 
-        const indicesToCommit = new Set<number>();
-        const indicesToCommitArr = new Array<number>();
-        indicesToCommit.add(0);
-        indicesToCommitArr.push(0);
-        indicesToCommit.add(1);
-        indicesToCommitArr.push(1);
-        indicesToCommit.add(5);
-        indicesToCommitArr.push(5);
+        const indicesToCommit = new Array<number>();
+        indicesToCommit.push(0);
+        indicesToCommit.push(1);
+        indicesToCommit.push(5);
         const msgsToCommit = new Map();
         const msgsToNotCommit = new Map();
         for (let i = 0; i < messageCount2; i++) {
-            if (indicesToCommit.has(i)) {
+            if (indicesToCommit.indexOf(i) !== -1) {
                 msgsToCommit.set(i, messages2[i]);
             } else {
                 msgsToNotCommit.set(i, messages2[i]);
@@ -332,7 +328,7 @@ describe("Proving knowledge of a BBS+ signature while requesting a partially bli
 
         const blinding = generateRandomFieldElement();
         const commitment = bbsCommitMsgsInG1(msgsToCommit, blinding, sigParams2, true);
-        const bases = bbsGetBasesForCommitmentG1(sigParams2, indicesToCommitArr);
+        const bases = bbsGetBasesForCommitmentG1(sigParams2, indicesToCommit);
 
         const statement1 = generatePoKBBSSignatureStatement(sigParams1, pk1, revealedMsgs1, true);
         const statement2 = generatePedersenCommitmentG1Statement(bases, commitment);

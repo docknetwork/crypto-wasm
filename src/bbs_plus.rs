@@ -226,7 +226,7 @@ pub fn bbs_encode_message_for_signing(message: Vec<u8>) -> Result<js_sys::Uint8A
 #[wasm_bindgen(js_name = bbsEncodeMessagesForSigning)]
 pub fn bbs_encode_messages_for_signing(
     messages: js_sys::Array,
-    indices_to_encode: js_sys::Set,
+    indices_to_encode: js_sys::Array,
 ) -> Result<js_sys::Array, JsValue> {
     set_panic_hook();
     let encoded = js_sys::Array::new();
