@@ -663,14 +663,12 @@ pub fn request_blind_bbs_sig() {
     let (revealed_msgs_1, unrevealed_msgs_1) = get_revealed_unrevealed(&msgs_1, &revealed_indices);
 
     let committed_indices = vec![0, 1, 5];
-    let indices_to_commit = js_sys::Set::new(&JsValue::undefined());
-    let indices_to_commit_arr = js_sys::Array::new();
+    let indices_to_commit = js_sys::Array::new();
     let msgs_to_commit = js_sys::Map::new();
     let msgs_to_not_commit = js_sys::Map::new();
     for i in 0..msg_count_2 {
         if committed_indices.contains(&i) {
-            indices_to_commit.add(&JsValue::from(i as u32));
-            indices_to_commit_arr.push(&JsValue::from(i as u32));
+            indices_to_commit.push(&JsValue::from(i as u32));
             msgs_to_commit.set(
                 &JsValue::from(i as u32),
                 &serde_wasm_bindgen::to_value(&msgs_2[i]).unwrap(),
@@ -703,7 +701,7 @@ pub fn request_blind_bbs_sig() {
     statements.push(&stmt_1);
 
     let bases =
-        bbs_get_bases_for_commitment_g1(params_2.clone(), indices_to_commit_arr.clone()).unwrap();
+        bbs_get_bases_for_commitment_g1(params_2.clone(), indices_to_commit.clone()).unwrap();
     let stmt_2 = generate_pedersen_commitment_g1_statement(bases, commitment.clone()).unwrap();
     statements.push(&stmt_2);
 

@@ -7,6 +7,7 @@ use proof_system::prelude::bound_check_legogroth16::{ProvingKey, VerifyingKey};
 pub(crate) type LegoProvingKey = ProvingKey<Bls12_381>;
 pub(crate) type LegoVerifyingKey = VerifyingKey<Bls12_381>;
 
+/// Takes a compressed proving key for Legosnark and return the uncompressed proving key
 #[wasm_bindgen(js_name = legosnarkDecompressPk)]
 pub fn legosnark_decompress_pk(
     snark_pk: js_sys::Uint8Array,
@@ -29,6 +30,7 @@ pub fn legosnark_vk_from_pk(
     })
 }
 
+/// Takes a compressed verifying key for Legosnark and return the uncompressed verifying key
 #[wasm_bindgen(js_name = legosnarkDecompressVk)]
 pub fn legosnark_decompress_vk(
     snark_vk: js_sys::Uint8Array,

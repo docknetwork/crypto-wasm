@@ -46,7 +46,7 @@ pub fn bbs_sig_and_verifiable_encryption() {
     let (revealed_msgs, unrevealed_msgs) =
         get_revealed_unrevealed(&encoded_msgs, &revealed_indices);
 
-    let chunk_bit_size = 8;
+    let chunk_bit_size = 16;
     let enc_gens = saver_generate_encryption_generators(None).unwrap();
     let comm_gens = saver_generate_chunked_commitment_generators(None).unwrap();
 

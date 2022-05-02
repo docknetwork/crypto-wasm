@@ -44,13 +44,14 @@ pub fn field_element_from_number(number: u32) -> js_sys::Uint8Array {
 #[wasm_bindgen(js_name = generateChallengeFromBytes)]
 pub fn generate_challenge_from_bytes(bytes: Vec<u8>) -> js_sys::Uint8Array {
     set_panic_hook();
-    fr_uin8_array_from_bytes(&bytes)
+    fr_uin8_array_from_bytes_hash(&bytes)
 }
 
+/// Hashes given bytes to get the field element thus can accept arbitrary sized bytearray.
 #[wasm_bindgen(js_name = generateFieldElementFromBytes)]
 pub fn generate_field_element_from_bytes(bytes: Vec<u8>) -> js_sys::Uint8Array {
     set_panic_hook();
-    fr_uin8_array_from_bytes(&bytes)
+    fr_uin8_array_from_bytes_hash(&bytes)
 }
 
 #[wasm_bindgen(js_name = fieldElementAsBytes)]
@@ -99,7 +100,7 @@ pub fn pedersen_commitment_g2(
     g2_affine_to_uint8_array(&comm)
 }
 
-fn fr_uin8_array_from_bytes(bytes: &[u8]) -> js_sys::Uint8Array {
+fn fr_uin8_array_from_bytes_hash(bytes: &[u8]) -> js_sys::Uint8Array {
     let f = dock_crypto_utils::hashing_utils::field_elem_from_seed::<Fr, Blake2b>(&bytes, &[]);
     fr_to_uint8_array(&f).unwrap()
 }

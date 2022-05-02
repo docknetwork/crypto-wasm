@@ -71,6 +71,14 @@ A typical use of accumulator looks like:
   - Verifier can verify above proof using the current accumulator, the parameters and signer's public key and is convinced 
     that the user knows of an element and its witness and the (non)-membership.
 
+### Verifiable encryption
+Allow a verifier to check that the plaintext satisfies some properties, and it correctly encrypted for a specified public key without 
+learning the plaintext itself. This is implemented using a protocol called [SAVER](https://eprint.iacr.org/2019/1270).  
+
+### Bound check
+Allow a verifier to check that some message satisfies given bounds `min` and `max`, i.e. `min <= message <= max` without 
+learning the message itself. This is implemented using a protocol called LegoGroth16, a protocol described in the SNARK framework [Legosnark](https://eprint.iacr.org/2019/142)
+
 ### Composite proofs
 The above primitives can be combined using the composite proof system. An example is (in zero knowledge) proving knowledge of 2 
 different signatures and the message lists. Another example is proving knowledge of the signature and messages and certain message's presence (absence) 
@@ -328,7 +336,8 @@ For those interested in more details, you might find the following resources hel
 - [Pairing Friendly Curves](https://tools.ietf.org/html/draft-irtf-cfrg-pairing-friendly-curves-01)
 - BBS+ signature defined in [Anonymous Attestation Using the Strong Diffie Hellman Assumption Revisited](https://eprint.iacr.org/2016/663)
 - Dynamic accumulator defined in [Dynamic Universal Accumulator with Batch Update over Bilinear Groups](https://eprint.iacr.org/2020/777)
-
+- Verifiable encryption using [SAVER](https://eprint.iacr.org/2019/1270)
+- LegoGroth16, described in the appending H.5 of the [Legosnark paper](https://eprint.iacr.org/2019/142)
 
 To build, use
 ```

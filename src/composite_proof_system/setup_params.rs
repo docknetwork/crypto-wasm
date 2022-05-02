@@ -123,6 +123,8 @@ pub fn generate_setup_param_for_pedersen_commitment_key_g2(
     )))
 }
 
+/// If `uncompressed` is true, expects the encryption generators to be in uncompressed form else
+/// they should be compressed.
 #[wasm_bindgen(js_name = generateSetupParamForSaverEncryptionGens)]
 pub fn generate_setup_param_for_saver_encryption_gens(
     enc_gens: js_sys::Uint8Array,
@@ -142,6 +144,8 @@ pub fn generate_setup_param_for_saver_encryption_gens(
     )))
 }
 
+/// If `uncompressed` is true, expects the commitment generators to be in uncompressed form else
+/// they should be compressed.
 #[wasm_bindgen(js_name = generateSetupParamForSaverCommitmentGens)]
 pub fn generate_setup_param_for_saver_commitment_gens(
     comm_gens: js_sys::Uint8Array,
@@ -161,6 +165,8 @@ pub fn generate_setup_param_for_saver_commitment_gens(
     )))
 }
 
+/// If `uncompressed` is true, expects the encryption key to be in uncompressed form else
+/// it should be compressed.
 #[wasm_bindgen(js_name = generateSetupParamForSaverEncryptionKey)]
 pub fn generate_setup_param_for_saver_encryption_key(
     key: js_sys::Uint8Array,
@@ -178,6 +184,8 @@ pub fn generate_setup_param_for_saver_encryption_key(
     >::SaverEncryptionKey(key)))
 }
 
+/// If `uncompressed` is true, expects the snark proving key to be in uncompressed form else
+/// it should be compressed.
 #[wasm_bindgen(js_name = generateSetupParamForSaverProvingKey)]
 pub fn generate_setup_param_for_saver_proving_key(
     key: js_sys::Uint8Array,
@@ -195,6 +203,8 @@ pub fn generate_setup_param_for_saver_proving_key(
     >::SaverProvingKey(key)))
 }
 
+/// If `uncompressed` is true, expects the snark verifying key to be in uncompressed form else
+/// it should be compressed.
 #[wasm_bindgen(js_name = generateSetupParamForSaverVerifyingKey)]
 pub fn generate_setup_param_for_saver_verifying_key(
     key: js_sys::Uint8Array,
@@ -212,6 +222,8 @@ pub fn generate_setup_param_for_saver_verifying_key(
     >::SaverVerifyingKey(key)))
 }
 
+/// If `uncompressed` is true, expects the legosnark proving key to be in uncompressed form else
+/// it should be compressed.
 #[wasm_bindgen(js_name = generateSetupParamForLegoProvingKey)]
 pub fn generate_setup_param_for_lego_proving_key(
     key: js_sys::Uint8Array,
@@ -231,6 +243,8 @@ pub fn generate_setup_param_for_lego_proving_key(
     )))
 }
 
+/// If `uncompressed` is true, expects the legosnark verifying key to be in uncompressed form else
+/// it should be compressed.
 #[wasm_bindgen(js_name = generateSetupParamForLegoVerifyingKey)]
 pub fn generate_setup_param_for_lego_verifying_key(
     key: js_sys::Uint8Array,

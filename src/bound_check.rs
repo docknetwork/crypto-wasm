@@ -1,6 +1,6 @@
 use ark_bls12_381::Bls12_381;
 use ark_serialize::CanonicalSerialize;
-use proof_system::prelude::bound_check::generate_snark_srs_bound_check;
+use proof_system::prelude::generate_snark_srs_bound_check;
 
 use crate::utils::{get_seeded_rng, set_panic_hook};
 use wasm_bindgen::prelude::*;

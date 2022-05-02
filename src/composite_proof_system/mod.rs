@@ -124,6 +124,9 @@ pub fn generate_composite_proof_g2(
     gen_proof::<<Bls12_381 as PairingEngine>::G2Affine>(proof_spec, witnesses, nonce)
 }
 
+/// Same as `generate_composite_proof_g1` but takes the statements, meta-statements, setup params, context and nonce
+/// separately rather than in a `ProofSpec`. Use this to save the serialization and deserialization cost of
+/// creating a `ProofSpec`.
 #[wasm_bindgen(js_name = generateCompositeProofG1WithDeconstructedProofSpec)]
 pub fn generate_composite_proof_g1_with_deconstructed_proof_spec(
     statements: js_sys::Array,
@@ -170,6 +173,9 @@ pub fn verify_composite_proof_g2(
     verify_proof::<<Bls12_381 as PairingEngine>::G2Affine>(proof_spec, proof, nonce)
 }
 
+/// Same as `verify_composite_proof_g1` but takes the statements, meta-statements, setup params, context and nonce
+/// separately rather than in a `ProofSpec`. Use this to save the serialization and deserialization cost of
+/// creating a `ProofSpec`.
 #[wasm_bindgen(js_name = verifyCompositeProofG1WithDeconstructedProofSpec)]
 pub fn verify_composite_proof_g1_with_deconstructed_proof_spec(
     proof: Uint8Array,
@@ -204,6 +210,7 @@ pub fn generate_saver_witness(message: Uint8Array) -> Result<JsValue, JsValue> {
     serde_wasm_bindgen::to_value(&witness).map_err(|e| JsValue::from(e))
 }
 
+/// From the composite proof, get the ciphertext for the statement at index `statement_index`
 #[wasm_bindgen(js_name = saverGetCiphertextFromProof)]
 pub fn saver_get_ciphertext_from_proof(
     proof: Uint8Array,

@@ -333,6 +333,8 @@ pub fn generate_saver_verifier_statement_from_param_refs(
     ))
 }
 
+/// If `uncompressed` is true, expects the legosnark proving key to be in uncompressed form else
+/// it should be compressed.
 #[wasm_bindgen(js_name = generateBoundCheckLegoProverStatement)]
 pub fn generate_bound_check_lego_prover_statement(
     min: js_sys::Number,
@@ -383,6 +385,8 @@ pub fn generate_bound_check_lego_prover_statement_from_param_refs(
     ))
 }
 
+/// If `uncompressed` is true, expects the legosnark verifying key to be in uncompressed form else
+/// it should be compressed.
 #[wasm_bindgen(js_name = generateBoundCheckLegoVerifierStatement)]
 pub fn generate_bound_check_lego_verifier_statement(
     min: js_sys::Number,

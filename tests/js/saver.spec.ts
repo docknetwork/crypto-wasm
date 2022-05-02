@@ -42,7 +42,7 @@ import {stringToBytes, getRevealedUnrevealed} from "../utilities";
 
 describe("Verifiable encryption of a signed message", () => {
     const messageCount = 5;
-    const chunkBitSize = 8;
+    const chunkBitSize = 16;
     const encMsgIdx = 0;
 
     let sigParams: BbsSigParams, sigSk: Uint8Array, sigPk: Uint8Array, sig: Uint8Array, proof: Uint8Array;

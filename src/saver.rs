@@ -45,6 +45,8 @@ pub fn saver_generate_chunked_commitment_generators(
     Ok(obj_to_uint8array!(&gens, "ChunkedCommitmentGenerators"))
 }
 
+/// Does setup for decryptor for the given chunk size and encryption generators. Creates snark SRS, secret key,
+/// encryption key and decryption key and returns them in an array of size 4.
 #[wasm_bindgen(js_name = saverDecryptorSetup)]
 pub fn saver_decryptor_setup(
     chunk_bit_size: u8,
@@ -72,6 +74,7 @@ pub fn saver_decryptor_setup(
     Ok(setup)
 }
 
+/// Takes compressed encryption generators and returns their uncompressed form
 #[wasm_bindgen(js_name = saverDecompressEncryptionGenerators)]
 pub fn saver_decompress_encryption_generators(
     enc_gens: js_sys::Uint8Array,
@@ -83,6 +86,7 @@ pub fn saver_decompress_encryption_generators(
     ))
 }
 
+/// Takes compressed chunked commitment generators and returns their uncompressed form
 #[wasm_bindgen(js_name = saverDecompressChunkedCommitmentGenerators)]
 pub fn saver_decompress_chunked_commitment_generators(
     comm_gens: js_sys::Uint8Array,
@@ -94,6 +98,7 @@ pub fn saver_decompress_chunked_commitment_generators(
     ))
 }
 
+/// Takes compressed encryption key and returns its uncompressed form
 #[wasm_bindgen(js_name = saverDecompressEncryptionKey)]
 pub fn saver_decompress_encryption_key(
     enc_key: js_sys::Uint8Array,
@@ -102,6 +107,7 @@ pub fn saver_decompress_encryption_key(
     Ok(obj_to_uint8array_unchecked!(&enc_key, "SaverEk"))
 }
 
+/// Takes compressed decryption key and returns its uncompressed form
 #[wasm_bindgen(js_name = saverDecompressDecryptionKey)]
 pub fn saver_decompress_decryption_key(
     dec_key: js_sys::Uint8Array,
@@ -110,6 +116,7 @@ pub fn saver_decompress_decryption_key(
     Ok(obj_to_uint8array_unchecked!(&dec_key, "SaverDk"))
 }
 
+/// Takes a compressed proving key for SAVER's snark and return the uncompressed proving key
 #[wasm_bindgen(js_name = saverDecompressSnarkPk)]
 pub fn saver_decompress_snark_pk(
     snark_pk: js_sys::Uint8Array,
@@ -132,6 +139,7 @@ pub fn saver_get_snark_vk_from_pk(
     })
 }
 
+/// Takes a compressed verifying key for SAVER's snark and return the uncompressed verifying key
 #[wasm_bindgen(js_name = saverDecompressSnarkVk)]
 pub fn saver_decompress_snark_vk(
     snark_vk: js_sys::Uint8Array,
@@ -140,6 +148,9 @@ pub fn saver_decompress_snark_vk(
     Ok(obj_to_uint8array_unchecked!(&snark_vk, "SaverSnarkVk"))
 }
 
+/// Decrypt the ciphertext using snark verification key. If `uncompressed_public_params` is true, it
+/// expects all relevant parameters in their uncompressed form else it expects them compressed.
+/// Returns the message and the commitment to the randomness
 #[wasm_bindgen(js_name = saverDecryptCiphertextUsingSnarkVk)]
 pub fn saver_decrypt_ciphertext_using_snark_vk(
     ciphertext: js_sys::Uint8Array,
@@ -165,6 +176,8 @@ pub fn saver_decrypt_ciphertext_using_snark_vk(
     )
 }
 
+/// Save as `saver_decrypt_ciphertext_using_snark_vk` but takes the snark proving key instead
+/// of verification key
 #[wasm_bindgen(js_name = saverDecryptCiphertextUsingSnarkPk)]
 pub fn saver_decrypt_ciphertext_using_snark_pk(
     ciphertext: js_sys::Uint8Array,
@@ -190,35 +203,9 @@ pub fn saver_decrypt_ciphertext_using_snark_pk(
     )
 }
 
-#[wasm_bindgen(js_name = saverVerifyDecryptionUsingSnarkPk)]
-pub fn saver_verify_decryption_using_snark_pk(
-    ciphertext: js_sys::Uint8Array,
-    decrypted_message: js_sys::Uint8Array,
-    nu: js_sys::Uint8Array,
-    decryption_key: js_sys::Uint8Array,
-    snark_pk: js_sys::Uint8Array,
-    enc_gens: js_sys::Uint8Array,
-    chunk_bit_size: u8,
-    uncompressed_public_params: bool,
-) -> Result<JsValue, JsValue> {
-    set_panic_hook();
-    let snark_pk = if uncompressed_public_params {
-        obj_from_uint8array_unchecked!(SaverSnarkPk, snark_pk, "SaverSnarkPk")
-    } else {
-        obj_from_uint8array!(SaverSnarkPk, snark_pk, "SaverSnarkPk")
-    };
-    verify_decryption(
-        ciphertext,
-        decrypted_message,
-        nu,
-        decryption_key,
-        &snark_pk.pk.vk,
-        enc_gens,
-        chunk_bit_size,
-        uncompressed_public_params,
-    )
-}
-
+/// Verify that the ciphertext did actually decrypt to the given decrypted message. If
+/// `uncompressed_public_params` is true, it expects all relevant parameters in their uncompressed
+/// form else it expects them compressed.
 #[wasm_bindgen(js_name = saverVerifyDecryptionUsingSnarkVk)]
 pub fn saver_verify_decryption_using_snark_vk(
     ciphertext: js_sys::Uint8Array,
@@ -242,6 +229,37 @@ pub fn saver_verify_decryption_using_snark_vk(
         nu,
         decryption_key,
         &snark_vk,
+        enc_gens,
+        chunk_bit_size,
+        uncompressed_public_params,
+    )
+}
+
+/// Same as `saver_verify_decryption_using_snark_vk` but takes the snark proving key instead
+/// of verification key
+#[wasm_bindgen(js_name = saverVerifyDecryptionUsingSnarkPk)]
+pub fn saver_verify_decryption_using_snark_pk(
+    ciphertext: js_sys::Uint8Array,
+    decrypted_message: js_sys::Uint8Array,
+    nu: js_sys::Uint8Array,
+    decryption_key: js_sys::Uint8Array,
+    snark_pk: js_sys::Uint8Array,
+    enc_gens: js_sys::Uint8Array,
+    chunk_bit_size: u8,
+    uncompressed_public_params: bool,
+) -> Result<JsValue, JsValue> {
+    set_panic_hook();
+    let snark_pk = if uncompressed_public_params {
+        obj_from_uint8array_unchecked!(SaverSnarkPk, snark_pk, "SaverSnarkPk")
+    } else {
+        obj_from_uint8array!(SaverSnarkPk, snark_pk, "SaverSnarkPk")
+    };
+    verify_decryption(
+        ciphertext,
+        decrypted_message,
+        nu,
+        decryption_key,
+        &snark_pk.pk.vk,
         enc_gens,
         chunk_bit_size,
         uncompressed_public_params,

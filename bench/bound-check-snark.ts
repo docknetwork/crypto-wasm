@@ -36,4 +36,6 @@ export const benchmarkBoundCheckSnark = async (
     const sigParams = generateSignatureParamsG1(1);
     const sigSk = generateBBSSigningKey();
     const sigPk = generateBBSPublicKeyG2(sigSk, sigParams);
+
+    // TODO:
 };

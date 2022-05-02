@@ -202,13 +202,15 @@ checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
 [[package]]
 name = "bbs_plus"
 version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0981c4942951d2f500ec90336b441c5d36941282b10389adf4e52753a846db37"
 dependencies = [
  "ark-ec",
  "ark-ff",
  "ark-serialize",
  "ark-std",
  "digest",
- "dock_crypto_utils",
+ "dock_crypto_utils 0.3.0",
  "schnorr_pok",
  "serde",
  "serde_with",
@@ -330,7 +332,25 @@ dependencies = [
 
 [[package]]
 name = "dock_crypto_utils"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f2c86d99df1bf5ecefd59247140d3d7ba9bb27f92f7cae37f61dfcd8a7765aa9"
+dependencies = [
+ "ark-ec",
+ "ark-ff",
+ "ark-serialize",
+ "ark-std",
+ "digest",
+ "hkdf",
+ "serde",
+ "serde_with",
+]
+
+[[package]]
+name = "dock_crypto_utils"
 version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e6287e2340beee5a99eb8bbf150f298194119a3d1f9c9bdd6ae52d8aae7617db"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -443,10 +463,10 @@ checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
 name = "legogroth16"
-version = "0.1.0"
-source = "git+https://github.com/lovesh/legogro16?rev=00dfaf6e75464b8a246db7912eeb48070d10e067#00dfaf6e75464b8a246db7912eeb48070d10e067"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b1a7e51d249cf9c01188dc0b57e9f09bb50890830366bfe6ff264f0c88f7d107"
 dependencies = [
- "ark-crypto-primitives",
  "ark-ec",
  "ark-ff",
  "ark-poly",
@@ -557,6 +577,8 @@ dependencies = [
 [[package]]
 name = "proof_system"
 version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "52764d7383d04a4ac6e9de6071778ec492cb5458b328bc7da94f51ecb4e59d34"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -567,7 +589,7 @@ dependencies = [
  "ark-std",
  "bbs_plus",
  "digest",
- "dock_crypto_utils",
+ "dock_crypto_utils 0.4.0",
  "legogroth16",
  "saver",
  "schnorr_pok",
@@ -676,6 +698,8 @@ checksum = "73b4b750c782965c211b42f022f59af1fbceabdd026623714f104152f1ec149f"
 [[package]]
 name = "saver"
 version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8be8f6394c9aca0910a14e484e435d13589540a300bb83e40043bccca2e4a537"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -685,7 +709,7 @@ dependencies = [
  "ark-serialize",
  "ark-std",
  "digest",
- "dock_crypto_utils",
+ "dock_crypto_utils 0.4.0",
  "legogroth16",
  "serde",
  "serde_with",
@@ -694,13 +718,15 @@ dependencies = [
 [[package]]
 name = "schnorr_pok"
 version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "75315124b0bd4969beca9ded16243426268df7a152c49b8899882496af1699e4"
 dependencies = [
  "ark-ec",
  "ark-ff",
  "ark-serialize",
  "ark-std",
  "digest",
- "dock_crypto_utils",
+ "dock_crypto_utils 0.3.0",
  "serde",
  "serde_with",
 ]
@@ -880,6 +906,8 @@ checksum = "8ccb82d61f80a663efe1f787a51b16b5a51e3314d6ac365b08639f52387b33f3"
 [[package]]
 name = "vb_accumulator"
 version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9e33d59ca684c800e35b07f0392930094e35cc322221d3313aaf86f9763ccc22"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -887,7 +915,7 @@ dependencies = [
  "ark-serialize",
  "ark-std",
  "digest",
- "dock_crypto_utils",
+ "dock_crypto_utils 0.3.0",
  "schnorr_pok",
  "serde",
  "serde_with",
@@ -923,7 +951,7 @@ dependencies = [
  "bbs_plus",
  "blake2",
  "console_error_panic_hook",
- "dock_crypto_utils",
+ "dock_crypto_utils 0.4.0",
  "getrandom 0.2.6",
  "js-sys",
  "proof_system",
