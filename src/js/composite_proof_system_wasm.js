@@ -141,9 +141,19 @@ module.exports.generateProofSpecG1 = (statements, metaStatements, setupParams, c
     return wasm.generateProofSpecG1(statements, metaStatements, setupParams, context);
 };
 
+module.exports.isProofSpecG1Valid = (proofSpec) => {
+    requireWasmInitialized();
+    return wasm.isProofSpecG1Valid(proofSpec);
+};
+
 module.exports.generateProofSpecG2 = (statements, metaStatements, setupParams, context) => {
     requireWasmInitialized();
     return wasm.generateProofSpecG2(statements, metaStatements, setupParams, context);
+};
+
+module.exports.isProofSpecG2Valid = (proofSpec) => {
+    requireWasmInitialized();
+    return wasm.isProofSpecG2Valid(proofSpec);
 };
 
 module.exports.generateCompositeProofG1 = (proofSpec, witnesses, nonce) => {

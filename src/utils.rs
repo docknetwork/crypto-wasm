@@ -256,6 +256,11 @@ pub fn field_element_from_u32(number: u32) -> Fr {
     Fr::from_repr(ark_ff::BigInteger256::from(number as u64)).unwrap()
 }
 
+pub fn field_element_from_u64(number: u64) -> Fr {
+    // Using BigInteger256 is fine as Bls12-381 curve
+    Fr::from_repr(ark_ff::BigInteger256::from(number)).unwrap()
+}
+
 pub fn get_seeded_rng() -> StdRng {
     let mut buf = [0u8; 32];
     use rand::thread_rng;

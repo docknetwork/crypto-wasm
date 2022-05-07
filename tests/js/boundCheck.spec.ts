@@ -22,7 +22,7 @@ import {
     generateSetupParamForLegoVerifyingKey, generateBoundCheckLegoVerifierStatementFromParamRefs,
     generateSetupParamForLegoProvingKey
 } from "../../lib";
-import {getRevealedUnrevealed} from "../utilities";
+import {getRevealedUnrevealed, stringToBytes} from "../utilities";
 
 describe("Prove and verify bounds on signed messages", () => {
     const messageCount = 5;
@@ -107,9 +107,11 @@ describe("Prove and verify bounds on signed messages", () => {
         const witnesses = [];
         witnesses.push(witness1);
         witnesses.push(witness2);
-
+        
+        const nonce = stringToBytes('test-nonce');
+        
         console.time("proof gen");
-        proof = generateCompositeProofG1WithDeconstructedProofSpec(proverStatements, metaStatements, [], witnesses);
+        proof = generateCompositeProofG1WithDeconstructedProofSpec(proverStatements, metaStatements, [], witnesses, undefined, nonce);
         console.timeEnd("proof gen");
 
         console.time("bound check verifier stmt");
@@ -121,7 +123,7 @@ describe("Prove and verify bounds on signed messages", () => {
         verifierStatements.push(statement3);
 
         console.time("proof ver");
-        const res = verifyCompositeProofG1WithDeconstructedProofSpec(proof, verifierStatements, metaStatements, []);
+        const res = verifyCompositeProofG1WithDeconstructedProofSpec(proof, verifierStatements, metaStatements, [], undefined, nonce);
         console.timeEnd("proof ver");
         expect(res.verified).toBe(true);
     }, 10000);
@@ -172,9 +174,11 @@ describe("Prove and verify bounds on signed messages", () => {
         witnesses.push(witness2);
         witnesses.push(witness3);
         witnesses.push(witness4);
+        
+        const nonce = stringToBytes('test-nonce');
 
         console.time("proof gen");
-        proof = generateCompositeProofG1WithDeconstructedProofSpec(proverStatements, metaStatements, provingSetupParams, witnesses);
+        proof = generateCompositeProofG1WithDeconstructedProofSpec(proverStatements, metaStatements, provingSetupParams, witnesses, undefined, nonce);
         console.timeEnd("proof gen");
 
         console.time("bound check verifier setup param");
@@ -193,7 +197,7 @@ describe("Prove and verify bounds on signed messages", () => {
         verifierStatements.push(statement7);
 
         console.time("proof ver");
-        const res = verifyCompositeProofG1WithDeconstructedProofSpec(proof, verifierStatements, metaStatements, verifierSetupParams);
+        const res = verifyCompositeProofG1WithDeconstructedProofSpec(proof, verifierStatements, metaStatements, verifierSetupParams, undefined, nonce);
         console.timeEnd("proof ver");
         expect(res.verified).toBe(true);
     }, 10000);

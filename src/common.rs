@@ -1,7 +1,7 @@
 use crate::utils::{
-    field_element_from_u32, fr_from_uint8_array, fr_to_uint8_array, g1_affine_to_uint8_array,
-    g2_affine_to_uint8_array, get_seeded_rng, js_array_to_fr_vec, js_array_to_g1_affine_vec,
-    js_array_to_g2_affine_vec, random_bytes, set_panic_hook,
+    field_element_from_u64, fr_from_uint8_array, fr_to_uint8_array, g1_affine_to_uint8_array,
+    g2_affine_to_uint8_array, get_seeded_rng, is_positive_safe_integer, js_array_to_fr_vec,
+    js_array_to_g1_affine_vec, js_array_to_g2_affine_vec, random_bytes, set_panic_hook,
 };
 use crate::{Fr, G1Proj, G2Proj};
 use ark_ec::msm::VariableBaseMSM;
@@ -36,9 +36,15 @@ pub fn generate_random_field_element(seed: Option<Vec<u8>>) -> Result<js_sys::Ui
 }
 
 #[wasm_bindgen(js_name = generateFieldElementFromNumber)]
-pub fn field_element_from_number(number: u32) -> js_sys::Uint8Array {
+pub fn field_element_from_number(number: js_sys::Number) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
-    fr_to_uint8_array(&field_element_from_u32(number)).unwrap()
+    if !is_positive_safe_integer(&number) {
+        return Err(JsValue::from(&format!(
+            "number should be a safe positive integers but instead found {:?}",
+            number
+        )));
+    }
+    fr_to_uint8_array(&field_element_from_u64(number.value_of() as u64))
 }
 
 #[wasm_bindgen(js_name = generateChallengeFromBytes)]

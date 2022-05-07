@@ -217,8 +217,12 @@ pub fn three_bbs_sigs_and_msg_equality() {
 #[wasm_bindgen_test]
 pub fn bbs_sig_and_accumulator() {
     fn run(use_setup_params: bool) {
-        let member_1 = field_element_as_bytes(field_element_from_number(5)).unwrap();
-        let member_2 = field_element_as_bytes(field_element_from_number(10)).unwrap();
+        let member_1 =
+            field_element_as_bytes(field_element_from_number(js_sys::Number::from(5)).unwrap())
+                .unwrap();
+        let member_2 =
+            field_element_as_bytes(field_element_from_number(js_sys::Number::from(10)).unwrap())
+                .unwrap();
         let member_3 = field_element_as_bytes(generate_field_element_from_bytes(
             "user_1232".as_bytes().to_vec(),
         ))

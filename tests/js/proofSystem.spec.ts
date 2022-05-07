@@ -61,7 +61,8 @@ import {
     generateSetupParamForVbAccumulatorNonMemProvingKey,
     generatePoKBBSSignatureStatementFromParamRefs,
     generateAccumulatorMembershipStatementFromParamRefs,
-    generateAccumulatorNonMembershipStatementFromParamRefs, IUniversalAccumulator
+    generateAccumulatorNonMembershipStatementFromParamRefs, IUniversalAccumulator,
+    isProofSpecG1Valid, isProofSpecG2Valid
 } from "../../lib";
 
 function setupMessages(messageCount: number, prefix: string, encode: boolean): Uint8Array[] {
@@ -153,6 +154,8 @@ describe("Proving knowledge of many BBS+ signatures", () => {
 
         const context = stringToBytes('test-context');
         const proofSpec = generateProofSpecG1(statements, metaStatements, [], context);
+        
+        expect(isProofSpecG1Valid(proofSpec)).toEqual(true);
 
         const witness1 = generatePoKBBSSignatureWitness(sig1, unrevealedMsgs1, encodeWhileSigning);
         const witness2 = generatePoKBBSSignatureWitness(sig2, unrevealedMsgs2, encodeWhileSigning);
@@ -271,6 +274,7 @@ describe("Proving knowledge of BBS+ signatures and accumulator membership and no
         statements.push(statement5);
 
         const proofSpec = generateProofSpecG1(statements, metaStatements, []);
+        expect(isProofSpecG1Valid(proofSpec)).toEqual(true);
 
         const witness1 = generatePoKBBSSignatureWitness(sig1, unrevealedMsgs1, false);
         const witness2 = generatePoKBBSSignatureWitness(sig2, unrevealedMsgs2, false);
@@ -345,6 +349,7 @@ describe("Proving knowledge of a BBS+ signature while requesting a partially bli
         metaStatements.push(generateWitnessEqualityMetaStatement(set));
 
         const proofSpec = generateProofSpecG1(statements, metaStatements, []);
+        expect(isProofSpecG1Valid(proofSpec)).toEqual(true);
 
         const witness1 = generatePoKBBSSignatureWitness(sig1, unrevealedMsgs1, true);
 
@@ -405,6 +410,7 @@ describe("Proving equality of openings of Pedersen commitments", () => {
         metaStatements.push(generateWitnessEqualityMetaStatement(set2));
 
         const proofSpec = generateProofSpecG1(statements, metaStatements, []);
+        expect(isProofSpecG1Valid(proofSpec)).toEqual(true);
 
         const witness1 = generatePedersenCommitmentWitness(m1);
         const witness2 = generatePedersenCommitmentWitness(m2);
@@ -445,6 +451,7 @@ describe("Proving equality of openings of Pedersen commitments", () => {
         metaStatements.push(generateWitnessEqualityMetaStatement(set2));
 
         const proofSpec = generateProofSpecG2(statements, metaStatements, []);
+        expect(isProofSpecG2Valid(proofSpec)).toEqual(true);
 
         const witness1 = generatePedersenCommitmentWitness(m1);
         const witness2 = generatePedersenCommitmentWitness(m2);
@@ -581,7 +588,8 @@ describe("Reusing setup params of BBS+ and accumulator", () => {
         statements.push(statement12);
 
         const proofSpec = generateProofSpecG1(statements, [], allSetupParams);
-
+        expect(isProofSpecG1Valid(proofSpec)).toEqual(true);
+        
         const witness1 = generatePoKBBSSignatureWitness(sig1, unrevealedMsgs1, false);
         const witness2 = generatePoKBBSSignatureWitness(sig2, unrevealedMsgs2, false);
         const witness3 = generatePoKBBSSignatureWitness(sig3, unrevealedMsgs3, false);

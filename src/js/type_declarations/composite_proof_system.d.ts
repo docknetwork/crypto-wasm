@@ -161,12 +161,20 @@ export function generateProofSpecG1(
     context?: Uint8Array
 ): Uint8Array;
 
+export function isProofSpecG1Valid(
+    proofSpec: Uint8Array
+): boolean;
+
 export function generateProofSpecG2(
     statements: Uint8Array[],
     metaStatements: Uint8Array[],
     setupParams: Uint8Array[],
     context?: Uint8Array
 ): Uint8Array;
+
+export function isProofSpecG2Valid(
+    proofSpec: Uint8Array
+): boolean;
 
 export function generateCompositeProofG1(
     proofSpec: Uint8Array,

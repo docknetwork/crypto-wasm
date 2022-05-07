@@ -88,6 +88,17 @@ pub fn generate_proof_spec_g1(
     )
 }
 
+#[wasm_bindgen(js_name = isProofSpecG1Valid)]
+pub fn is_proof_spec_g1_valid(proof_spec: Uint8Array) -> Result<bool, JsValue> {
+    set_panic_hook();
+    let proof_spec = obj_from_uint8array_unchecked!(
+        ProofSpec::<<Bls12_381 as PairingEngine>::G1Affine>,
+        proof_spec,
+        "ProofSpecG1"
+    );
+    Ok(proof_spec.is_valid())
+}
+
 #[wasm_bindgen(js_name = generateProofSpecG2)]
 pub fn generate_proof_spec_g2(
     statements: js_sys::Array,
@@ -102,6 +113,17 @@ pub fn generate_proof_spec_g2(
         setup_params,
         context,
     )
+}
+
+#[wasm_bindgen(js_name = isProofSpecG2Valid)]
+pub fn is_proof_spec_g2_valid(proof_spec: Uint8Array) -> Result<bool, JsValue> {
+    set_panic_hook();
+    let proof_spec = obj_from_uint8array_unchecked!(
+        ProofSpec::<<Bls12_381 as PairingEngine>::G2Affine>,
+        proof_spec,
+        "ProofSpecG2"
+    );
+    Ok(proof_spec.is_valid())
 }
 
 #[wasm_bindgen(js_name = generateCompositeProofG1)]

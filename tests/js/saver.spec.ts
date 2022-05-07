@@ -121,9 +121,11 @@ describe("Verifiable encryption of a signed message", () => {
         const witnesses = [];
         witnesses.push(witness1);
         witnesses.push(witness2);
+        
+        const nonce = stringToBytes('test-nonce');
 
         console.time("proof gen");
-        proof = generateCompositeProofG1WithDeconstructedProofSpec(proverStatements, metaStatements, [], witnesses);
+        proof = generateCompositeProofG1WithDeconstructedProofSpec(proverStatements, metaStatements, [], witnesses, undefined, nonce);
         console.timeEnd("proof gen");
 
         console.time("saver verifier stmt");
@@ -135,7 +137,7 @@ describe("Verifiable encryption of a signed message", () => {
         verifierStatements.push(statement3);
 
         console.time("proof ver");
-        const res = verifyCompositeProofG1WithDeconstructedProofSpec(proof, verifierStatements, metaStatements, []);
+        const res = verifyCompositeProofG1WithDeconstructedProofSpec(proof, verifierStatements, metaStatements, [], undefined, nonce);
         console.timeEnd("proof ver");
         expect(res.verified).toBe(true);
     }, 30000);
@@ -214,9 +216,11 @@ describe("Verifiable encryption of a signed message", () => {
         witnesses.push(witness2);
         witnesses.push(witness3);
         witnesses.push(witness4);
+        
+        const nonce = stringToBytes('test-nonce');
 
         console.time("proof gen");
-        proof = generateCompositeProofG1WithDeconstructedProofSpec(proverStatements, metaStatements, provingSetupParams, witnesses);
+        proof = generateCompositeProofG1WithDeconstructedProofSpec(proverStatements, metaStatements, provingSetupParams, witnesses, undefined, nonce);
         console.timeEnd("proof gen");
 
         console.time("saver verifier setup params");
@@ -238,7 +242,7 @@ describe("Verifiable encryption of a signed message", () => {
         verifierStatements.push(statement7);
 
         console.time("proof ver");
-        const res = verifyCompositeProofG1WithDeconstructedProofSpec(proof, verifierStatements, metaStatements, verifierSetupParams);
+        const res = verifyCompositeProofG1WithDeconstructedProofSpec(proof, verifierStatements, metaStatements, verifierSetupParams, undefined, nonce);
         console.timeEnd("proof ver");
         expect(res.verified).toBe(true);
     }, 90000);

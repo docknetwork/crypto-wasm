@@ -42,13 +42,6 @@ module.exports.generateChallengeFromBytes = (bytes) => {
 
 module.exports.generateFieldElementFromNumber = (num) => {
     requireWasmInitialized();
-    if (!Number.isInteger(num) || num < 0) {
-        throw new Error(`Need a positive integer to encode but found ${num} `);
-    }
-    // Following can be done using bit shifts, but they only work for small number of shifts. Checked in Chrome and FF
-    if (num.toString(2).length > 32) {
-        throw new Error(`Need a positive integer of at most 32 bits but found ${num}`);
-    }
     return wasm.generateFieldElementFromNumber(num);
 };
 

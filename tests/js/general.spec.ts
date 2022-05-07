@@ -24,10 +24,12 @@ describe("For utils", () => {
         await initializeWasm();
     });
 
-    it("generateFieldElementFromNumber only expects a positive integer of <= 32 bits", () => {
+    it("generateFieldElementFromNumber only expects a positive safe integer", () => {
+        expect(() => generateFieldElementFromNumber(165)).not.toThrow();
         expect(() => generateFieldElementFromNumber(-20)).toThrow();
         expect(() => generateFieldElementFromNumber(10.6)).toThrow();
-        expect(() => generateFieldElementFromNumber(1651153384148)).toThrow();
-        expect(() => generateFieldElementFromNumber(165)).not.toThrow();
+        const unsafeInteger = 9906920304888000;
+        expect(Number.isSafeInteger(unsafeInteger)).toEqual(false);
+        expect(() => generateFieldElementFromNumber(unsafeInteger)).toThrow();
     })
 });
