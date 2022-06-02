@@ -7,8 +7,7 @@ use ark_bls12_381::Bls12_381;
 use ark_ec::PairingEngine;
 use ark_serialize::CanonicalDeserialize;
 use ark_std::collections::BTreeSet;
-use proof_system::{statement, witness};
-use wasm::accumulator::{
+use dock_crypto_wasm::accumulator::{
     accumulator_derive_membership_proving_key_from_non_membership_key,
     generate_non_membership_proving_key, positive_accumulator_add,
     positive_accumulator_get_accumulated, positive_accumulator_initialize,
@@ -16,37 +15,38 @@ use wasm::accumulator::{
     universal_accumulator_compute_d, universal_accumulator_get_accumulated,
     universal_accumulator_membership_witness, universal_accumulator_non_membership_witness,
 };
-use wasm::bbs_plus::{
+use dock_crypto_wasm::bbs_plus::{
     bbs_blind_sign_g1, bbs_commit_to_message_in_g1, bbs_encode_message_for_signing,
     bbs_encode_messages_for_signing, bbs_get_bases_for_commitment_g1, bbs_sign_g1,
     bbs_unblind_sig_g1, bbs_verify_g1, encode_messages_as_js_map_to_fr_btreemap,
 };
-use wasm::common::{
+use dock_crypto_wasm::common::{
     field_element_as_bytes, field_element_from_number, generate_field_element_from_bytes,
     generate_random_field_element, generate_random_g1_element, generate_random_g2_element,
     pedersen_commitment_g1, pedersen_commitment_g2, VerifyResponse,
 };
-use wasm::composite_proof_system::setup_params::{
+use dock_crypto_wasm::composite_proof_system::setup_params::{
     generate_setup_param_for_vb_accumulator_mem_proving_key,
     generate_setup_param_for_vb_accumulator_non_mem_proving_key,
     generate_setup_param_for_vb_accumulator_params,
     generate_setup_param_for_vb_accumulator_public_key,
 };
-use wasm::composite_proof_system::{
+use dock_crypto_wasm::composite_proof_system::{
     generate_accumulator_membership_witness, generate_accumulator_non_membership_witness,
     generate_composite_proof_g1, generate_composite_proof_g2, generate_pedersen_commitment_witness,
     generate_pok_bbs_sig_witness, generate_proof_spec_g1, generate_proof_spec_g2,
     verify_composite_proof_g1, verify_composite_proof_g2, Witness,
 };
-use wasm::utils::{
+use dock_crypto_wasm::utils::{
     fr_from_jsvalue, js_array_of_bytearrays_from_vector_of_bytevectors, random_bytes,
 };
+use proof_system::{statement, witness};
 mod common;
 use common::{
     accum_params_and_keys, bbs_params_and_keys, gen_msgs, get_revealed_unrevealed,
     get_universal_accum, get_witness_equality_statement,
 };
-use wasm::composite_proof_system::statement::{
+use dock_crypto_wasm::composite_proof_system::statement::{
     generate_accumulator_membership_statement,
     generate_accumulator_membership_statement_from_param_refs,
     generate_accumulator_non_membership_statement,

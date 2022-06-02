@@ -12,13 +12,11 @@
  */
 
 import { randomBytes } from "crypto";
-import { Coder } from "@stablelib/base64";
 
 export const generateMessages = (
   numberOfMessages: number,
   messageSizeInBytes: number
 ): Uint8Array[] => {
-  const coder = new Coder();
   const messages: Uint8Array[] = [];
   for (let i = 0; i < numberOfMessages; i++) {
     messages[i] = randomBytes(messageSizeInBytes);

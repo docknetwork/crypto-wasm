@@ -1,4 +1,4 @@
-const wasm = require("./wasm.js");
+const wasm = require("./dock_crypto_wasm.js");
 
 let initializedWasmModule;
 

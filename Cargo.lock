@@ -201,19 +201,20 @@ checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
 
 [[package]]
 name = "bbs_plus"
-version = "0.6.0"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0981c4942951d2f500ec90336b441c5d36941282b10389adf4e52753a846db37"
+checksum = "d4badcefb9a3e89c73b3bca4facf460ca0d9c9f79dc8e55b075001d40217a950"
 dependencies = [
  "ark-ec",
  "ark-ff",
  "ark-serialize",
  "ark-std",
  "digest",
- "dock_crypto_utils 0.3.0",
+ "dock_crypto_utils",
  "schnorr_pok",
  "serde",
  "serde_with",
+ "zeroize",
 ]
 
 [[package]]
@@ -332,22 +333,6 @@ dependencies = [
 
 [[package]]
 name = "dock_crypto_utils"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f2c86d99df1bf5ecefd59247140d3d7ba9bb27f92f7cae37f61dfcd8a7765aa9"
-dependencies = [
- "ark-ec",
- "ark-ff",
- "ark-serialize",
- "ark-std",
- "digest",
- "hkdf",
- "serde",
- "serde_with",
-]
-
-[[package]]
-name = "dock_crypto_utils"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e6287e2340beee5a99eb8bbf150f298194119a3d1f9c9bdd6ae52d8aae7617db"
@@ -361,6 +346,35 @@ dependencies = [
  "hkdf",
  "serde",
  "serde_with",
+]
+
+[[package]]
+name = "dock_crypto_wasm"
+version = "0.9.0"
+dependencies = [
+ "ark-bls12-381",
+ "ark-ec",
+ "ark-ff",
+ "ark-serialize",
+ "ark-std",
+ "bbs_plus",
+ "blake2",
+ "console_error_panic_hook",
+ "dock_crypto_utils",
+ "getrandom 0.2.6",
+ "js-sys",
+ "proof_system",
+ "rand 0.7.3",
+ "saver",
+ "schnorr_pok",
+ "serde",
+ "serde-wasm-bindgen",
+ "serde_json",
+ "vb_accumulator",
+ "wasm-bindgen",
+ "wasm-bindgen-test",
+ "web-sys",
+ "wee_alloc",
 ]
 
 [[package]]
@@ -576,9 +590,9 @@ dependencies = [
 
 [[package]]
 name = "proof_system"
-version = "0.10.0"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "52764d7383d04a4ac6e9de6071778ec492cb5458b328bc7da94f51ecb4e59d34"
+checksum = "8e9778b528d6c10d63c1fa9f8c7ca89aac636dae4063f598c0ee449ad88e3c7d"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -589,13 +603,14 @@ dependencies = [
  "ark-std",
  "bbs_plus",
  "digest",
- "dock_crypto_utils 0.4.0",
+ "dock_crypto_utils",
  "legogroth16",
  "saver",
  "schnorr_pok",
  "serde",
  "serde_with",
  "vb_accumulator",
+ "zeroize",
 ]
 
 [[package]]
@@ -697,9 +712,9 @@ checksum = "73b4b750c782965c211b42f022f59af1fbceabdd026623714f104152f1ec149f"
 
 [[package]]
 name = "saver"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8be8f6394c9aca0910a14e484e435d13589540a300bb83e40043bccca2e4a537"
+checksum = "125788b4e4f636d02137ef35eece24e8a46fc325f96d84373a9a5a9fad17d6ef"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -709,26 +724,28 @@ dependencies = [
  "ark-serialize",
  "ark-std",
  "digest",
- "dock_crypto_utils 0.4.0",
+ "dock_crypto_utils",
  "legogroth16",
  "serde",
  "serde_with",
+ "zeroize",
 ]
 
 [[package]]
 name = "schnorr_pok"
-version = "0.5.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "75315124b0bd4969beca9ded16243426268df7a152c49b8899882496af1699e4"
+checksum = "55341da7a630eca8d0a5277cb1ee1cb3671069d364aef90bd3ddff35f49d292d"
 dependencies = [
  "ark-ec",
  "ark-ff",
  "ark-serialize",
  "ark-std",
  "digest",
- "dock_crypto_utils 0.3.0",
+ "dock_crypto_utils",
  "serde",
  "serde_with",
+ "zeroize",
 ]
 
 [[package]]
@@ -905,9 +922,9 @@ checksum = "8ccb82d61f80a663efe1f787a51b16b5a51e3314d6ac365b08639f52387b33f3"
 
 [[package]]
 name = "vb_accumulator"
-version = "0.7.0"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9e33d59ca684c800e35b07f0392930094e35cc322221d3313aaf86f9763ccc22"
+checksum = "53f92e5be2149e700e9ed2fc6b26ceb905661b816ca223c61c4e26d546f6793e"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -915,10 +932,11 @@ dependencies = [
  "ark-serialize",
  "ark-std",
  "digest",
- "dock_crypto_utils 0.3.0",
+ "dock_crypto_utils",
  "schnorr_pok",
  "serde",
  "serde_with",
+ "zeroize",
 ]
 
 [[package]]
@@ -938,35 +956,6 @@ name = "wasi"
 version = "0.10.2+wasi-snapshot-preview1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fd6fbd9a79829dd1ad0cc20627bf1ed606756a7f77edff7b66b7064f9cb327c6"
-
-[[package]]
-name = "wasm"
-version = "0.8.0"
-dependencies = [
- "ark-bls12-381",
- "ark-ec",
- "ark-ff",
- "ark-serialize",
- "ark-std",
- "bbs_plus",
- "blake2",
- "console_error_panic_hook",
- "dock_crypto_utils 0.4.0",
- "getrandom 0.2.6",
- "js-sys",
- "proof_system",
- "rand 0.7.3",
- "saver",
- "schnorr_pok",
- "serde",
- "serde-wasm-bindgen",
- "serde_json",
- "vb_accumulator",
- "wasm-bindgen",
- "wasm-bindgen-test",
- "web-sys",
- "wee_alloc",
-]
 
 [[package]]
 name = "wasm-bindgen"
@@ -1104,9 +1093,9 @@ checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
 
 [[package]]
 name = "zeroize"
-version = "1.5.4"
+version = "1.5.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7eb5728b8afd3f280a869ce1d4c554ffaed35f45c231fc41bfbd0381bef50317"
+checksum = "94693807d016b2f2d2e14420eb3bfcca689311ff775dcf113d74ea624b7cdf07"
 dependencies = [
  "zeroize_derive",
 ]

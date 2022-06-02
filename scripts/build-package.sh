@@ -4,8 +4,9 @@ set -e
 
 BUILD_MODE=$1
 
-SRC_WASM=lib/wasm.js
-SRC_WASM_CJS=lib/wasm_cjs.js
+SRC_WASM=lib/dock_crypto_wasm.js
+SRC_WASM_CJS=lib/dock_crypto_wasm_cjs.js
+NAME_WASM_BG=dock_crypto_wasm_bg
 
 # Add dev dependencies to current path
 export PATH="$PATH:node_modules/.bin"
@@ -46,13 +47,13 @@ echo "Packing WASM into b64"
 node ./scripts/pack-wasm-base64.js
 
 # Convert how the WASM is loaded in the CJS version to use the base64 packed version
-sed -i -e 's/input = new URL(.*/input = require(\".\/wasm_bs64.js\");/' $SRC_WASM_CJS
+sed -i -e 's/input = new URL(.*/input = require(\".\/dock_crypto_wasm_bs64.js\");/' $SRC_WASM_CJS
 
 # Delete the un-necessary files automatically created by wasm-pack
 rm lib/package.json lib/.gitignore lib/LICENSE lib/README.md
 
 # Delete the files not needed because using the CJS approach
-rm lib/wasm_bg.wasm lib/wasm_bg.wasm.d.ts lib/wasm.js
+rm lib/$NAME_WASM_BG.wasm lib/$NAME_WASM_BG.wasm.d.ts $SRC_WASM
 
 # Rename the CJS version over the old file
-mv lib/wasm_cjs.js lib/wasm.js
+mv $SRC_WASM_CJS $SRC_WASM

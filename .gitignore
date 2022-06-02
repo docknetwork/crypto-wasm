@@ -6,6 +6,6 @@ wasm-pack.log
 .idea/
 /node_modules
 /binaryen
-/.DS_Store
+.DS_Store
 /dist
 /lib

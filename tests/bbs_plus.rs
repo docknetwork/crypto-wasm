@@ -5,12 +5,12 @@ use js_sys::Uint8Array;
 use wasm_bindgen::JsValue;
 use wasm_bindgen_test::*;
 
-use wasm::bbs_plus::*;
-use wasm::common::{
+use dock_crypto_wasm::bbs_plus::*;
+use dock_crypto_wasm::common::{
     field_element_as_bytes, field_element_from_number, generate_challenge_from_bytes,
     generate_random_field_element, VerifyResponse,
 };
-use wasm::utils::js_array_of_bytearrays_from_vector_of_bytevectors;
+use dock_crypto_wasm::utils::js_array_of_bytearrays_from_vector_of_bytevectors;
 
 wasm_bindgen_test_configure!(run_in_browser);
 
