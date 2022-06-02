@@ -15,6 +15,7 @@ use saver::{
     setup::{setup_for_groth16, ChunkedCommitmentGens, EncryptionGens},
 };
 use wasm_bindgen::prelude::*;
+use zeroize::Zeroize;
 
 pub(crate) type EncGens = EncryptionGens<Bls12_381>;
 pub(crate) type ChunkedCommGens = ChunkedCommitmentGens<<Bls12_381 as PairingEngine>::G1Affine>;
@@ -32,7 +33,7 @@ pub fn saver_generate_encryption_generators(
     set_panic_hook();
     let label = label.unwrap_or_else(|| random_bytes());
     let gens = EncGens::new::<Blake2b>(&label);
-    Ok(obj_to_uint8array!(&gens, "EncryptionGenerators"))
+    Ok(obj_to_uint8array!(&gens, false, "EncryptionGenerators"))
 }
 
 #[wasm_bindgen(js_name = saverGenerateChunkedCommitmentGenerators)]
@@ -42,7 +43,11 @@ pub fn saver_generate_chunked_commitment_generators(
     set_panic_hook();
     let label = label.unwrap_or_else(|| random_bytes());
     let gens = ChunkedCommGens::new::<Blake2b>(&label);
-    Ok(obj_to_uint8array!(&gens, "ChunkedCommitmentGenerators"))
+    Ok(obj_to_uint8array!(
+        &gens,
+        false,
+        "ChunkedCommitmentGenerators"
+    ))
 }
 
 /// Does setup for decryptor for the given chunk size and encryption generators. Creates snark SRS, secret key,
@@ -54,7 +59,7 @@ pub fn saver_decryptor_setup(
     return_uncompressed_snark_pk: bool,
 ) -> Result<js_sys::Array, JsValue> {
     set_panic_hook();
-    let enc_gens = obj_from_uint8array!(EncGens, enc_gens, "EncryptionGenerators");
+    let enc_gens = obj_from_uint8array!(EncGens, enc_gens, false, "EncryptionGenerators");
     let mut rng = get_seeded_rng();
     let (snark_pk, sk, ek, dk) = setup_for_groth16(&mut rng, chunk_bit_size, &enc_gens)
         .map_err(|e| JsValue::from(&format!("Decryptor setup returned error: {:?}", e)))?;
@@ -62,13 +67,14 @@ pub fn saver_decryptor_setup(
     let snark_pk = if return_uncompressed_snark_pk {
         obj_to_uint8array_unchecked!(&snark_pk, "SaverSnarkPk")
     } else {
-        obj_to_uint8array!(&snark_pk, "SaverSnarkPk")
+        obj_to_uint8array!(&snark_pk, false, "SaverSnarkPk")
     };
-    let sk = obj_to_uint8array!(&sk, "SaverSk");
-    let ek = obj_to_uint8array!(&ek, "SaverEk");
-    let dk = obj_to_uint8array!(&dk, "SaverDk");
+    let sk = obj_to_uint8array!(&sk, true, "SaverSk");
+    let ek = obj_to_uint8array!(&ek, false, "SaverEk");
+    let dk = obj_to_uint8array!(&dk, false, "SaverDk");
     setup.push(&snark_pk);
     setup.push(&sk);
+    // Cannot zeroize sk here as that will make the `setup` array contain an all-0 value for `sk`
     setup.push(&ek);
     setup.push(&dk);
     Ok(setup)
@@ -79,7 +85,7 @@ pub fn saver_decryptor_setup(
 pub fn saver_decompress_encryption_generators(
     enc_gens: js_sys::Uint8Array,
 ) -> Result<js_sys::Uint8Array, JsValue> {
-    let enc_gens = obj_from_uint8array!(EncGens, enc_gens, "EncryptionGenerators");
+    let enc_gens = obj_from_uint8array!(EncGens, enc_gens, false, "EncryptionGenerators");
     Ok(obj_to_uint8array_unchecked!(
         &enc_gens,
         "EncryptionGenerators"
@@ -91,7 +97,12 @@ pub fn saver_decompress_encryption_generators(
 pub fn saver_decompress_chunked_commitment_generators(
     comm_gens: js_sys::Uint8Array,
 ) -> Result<js_sys::Uint8Array, JsValue> {
-    let comm_gens = obj_from_uint8array!(ChunkedCommGens, comm_gens, "ChunkedCommitmentGenerators");
+    let comm_gens = obj_from_uint8array!(
+        ChunkedCommGens,
+        comm_gens,
+        false,
+        "ChunkedCommitmentGenerators"
+    );
     Ok(obj_to_uint8array_unchecked!(
         &comm_gens,
         "ChunkedCommitmentGenerators"
@@ -103,7 +114,7 @@ pub fn saver_decompress_chunked_commitment_generators(
 pub fn saver_decompress_encryption_key(
     enc_key: js_sys::Uint8Array,
 ) -> Result<js_sys::Uint8Array, JsValue> {
-    let enc_key = obj_from_uint8array!(SaverEk, enc_key, "SaverEk");
+    let enc_key = obj_from_uint8array!(SaverEk, enc_key, false, "SaverEk");
     Ok(obj_to_uint8array_unchecked!(&enc_key, "SaverEk"))
 }
 
@@ -112,7 +123,7 @@ pub fn saver_decompress_encryption_key(
 pub fn saver_decompress_decryption_key(
     dec_key: js_sys::Uint8Array,
 ) -> Result<js_sys::Uint8Array, JsValue> {
-    let dec_key = obj_from_uint8array!(SaverDk, dec_key, "SaverDk");
+    let dec_key = obj_from_uint8array!(SaverDk, dec_key, false, "SaverDk");
     Ok(obj_to_uint8array_unchecked!(&dec_key, "SaverDk"))
 }
 
@@ -121,7 +132,7 @@ pub fn saver_decompress_decryption_key(
 pub fn saver_decompress_snark_pk(
     snark_pk: js_sys::Uint8Array,
 ) -> Result<js_sys::Uint8Array, JsValue> {
-    let snark_pk = obj_from_uint8array!(SaverSnarkPk, snark_pk, "SaverSnarkPk");
+    let snark_pk = obj_from_uint8array!(SaverSnarkPk, snark_pk, false, "SaverSnarkPk");
     Ok(obj_to_uint8array_unchecked!(&snark_pk, "SaverSnarkPk"))
 }
 
@@ -131,11 +142,11 @@ pub fn saver_get_snark_vk_from_pk(
     snark_pk: js_sys::Uint8Array,
     return_uncompressed: bool,
 ) -> Result<js_sys::Uint8Array, JsValue> {
-    let snark_pk = obj_from_uint8array!(SaverSnarkPk, snark_pk, "SaverSnarkPk");
+    let snark_pk = obj_from_uint8array!(SaverSnarkPk, snark_pk, false, "SaverSnarkPk");
     Ok(if return_uncompressed {
         obj_to_uint8array_unchecked!(&snark_pk.pk.vk, "SaverSnarkVk")
     } else {
-        obj_to_uint8array!(&snark_pk.pk.vk, "SaverSnarkVk")
+        obj_to_uint8array!(&snark_pk.pk.vk, false, "SaverSnarkVk")
     })
 }
 
@@ -144,7 +155,7 @@ pub fn saver_get_snark_vk_from_pk(
 pub fn saver_decompress_snark_vk(
     snark_vk: js_sys::Uint8Array,
 ) -> Result<js_sys::Uint8Array, JsValue> {
-    let snark_vk = obj_from_uint8array!(SaverSnarkVk, snark_vk, "SaverSnarkVk");
+    let snark_vk = obj_from_uint8array!(SaverSnarkVk, snark_vk, false, "SaverSnarkVk");
     Ok(obj_to_uint8array_unchecked!(&snark_vk, "SaverSnarkVk"))
 }
 
@@ -164,7 +175,7 @@ pub fn saver_decrypt_ciphertext_using_snark_vk(
     let snark_vk = if uncompressed_public_params {
         obj_from_uint8array_unchecked!(SaverSnarkVk, snark_vk, "SaverSnarkVk")
     } else {
-        obj_from_uint8array!(SaverSnarkVk, snark_vk, "SaverSnarkVk")
+        obj_from_uint8array!(SaverSnarkVk, snark_vk, false, "SaverSnarkVk")
     };
     decrypt(
         ciphertext,
@@ -191,7 +202,7 @@ pub fn saver_decrypt_ciphertext_using_snark_pk(
     let snark_pk = if uncompressed_public_params {
         obj_from_uint8array_unchecked!(SaverSnarkPk, snark_pk, "SaverSnarkPk")
     } else {
-        obj_from_uint8array!(SaverSnarkPk, snark_pk, "SaverSnarkPk")
+        obj_from_uint8array!(SaverSnarkPk, snark_pk, false, "SaverSnarkPk")
     };
     decrypt(
         ciphertext,
@@ -221,7 +232,7 @@ pub fn saver_verify_decryption_using_snark_vk(
     let snark_vk = if uncompressed_public_params {
         obj_from_uint8array_unchecked!(SaverSnarkVk, snark_vk, "SaverSnarkVk")
     } else {
-        obj_from_uint8array!(SaverSnarkVk, snark_vk, "SaverSnarkVk")
+        obj_from_uint8array!(SaverSnarkVk, snark_vk, false, "SaverSnarkVk")
     };
     verify_decryption(
         ciphertext,
@@ -252,7 +263,7 @@ pub fn saver_verify_decryption_using_snark_pk(
     let snark_pk = if uncompressed_public_params {
         obj_from_uint8array_unchecked!(SaverSnarkPk, snark_pk, "SaverSnarkPk")
     } else {
-        obj_from_uint8array!(SaverSnarkPk, snark_pk, "SaverSnarkPk")
+        obj_from_uint8array!(SaverSnarkPk, snark_pk, false, "SaverSnarkPk")
     };
     verify_decryption(
         ciphertext,
@@ -274,12 +285,12 @@ fn decrypt(
     chunk_bit_size: u8,
     uncompressed_public_params: bool,
 ) -> Result<js_sys::Array, JsValue> {
-    let ct = obj_from_uint8array!(SaverCiphertext, ciphertext, "SaverCiphertext");
-    let sk = obj_from_uint8array!(SaverSk, secret_key, "SaverSk");
+    let ct = obj_from_uint8array!(SaverCiphertext, ciphertext, false, "SaverCiphertext");
+    let sk = obj_from_uint8array!(SaverSk, secret_key, true, "SaverSk");
     let dk = if uncompressed_public_params {
         obj_from_uint8array_unchecked!(SaverDk, decryption_key, "SaverDk")
     } else {
-        obj_from_uint8array!(SaverDk, decryption_key, "SaverDk")
+        obj_from_uint8array!(SaverDk, decryption_key, false, "SaverDk")
     };
     let (decrypted_message, nu) = ct
         .decrypt_given_groth16_vk(&sk, &dk, snark_vk, chunk_bit_size)
@@ -309,12 +320,12 @@ fn verify_decryption(
         )
     } else {
         (
-            obj_from_uint8array!(EncGens, enc_gens, "EncryptionGenerators"),
-            obj_from_uint8array!(SaverDk, decryption_key, "SaverDk"),
+            obj_from_uint8array!(EncGens, enc_gens, false, "EncryptionGenerators"),
+            obj_from_uint8array!(SaverDk, decryption_key, false, "SaverDk"),
         )
     };
-    let ct = obj_from_uint8array!(SaverCiphertext, ciphertext, "SaverCiphertext");
-    let decrypted_message = fr_from_uint8_array(decrypted_message).unwrap();
+    let ct = obj_from_uint8array!(SaverCiphertext, ciphertext, false, "SaverCiphertext");
+    let decrypted_message = fr_from_uint8_array(decrypted_message, false).unwrap();
     let nu = g1_affine_from_uint8_array(nu).unwrap();
     match ct.verify_decryption_given_groth16_vk(
         &decrypted_message,

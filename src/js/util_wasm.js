@@ -15,14 +15,14 @@ module.exports.generateRandomFieldElement = (seed) => {
     return wasm.generateRandomFieldElement(seed);
 };
 
-module.exports.generateRandomG1Element = () => {
+module.exports.generateRandomG1Element = (seed) => {
     requireWasmInitialized();
-    return wasm.generateRandomG1Element();
+    return wasm.generateRandomG1Element(seed);
 };
 
-module.exports.generateRandomG2Element = () => {
+module.exports.generateRandomG2Element = (seed) => {
     requireWasmInitialized();
-    return wasm.generateRandomG2Element();
+    return wasm.generateRandomG2Element(seed);
 };
 
 module.exports.generateFieldElementFromBytes = (bytes) => {
@@ -30,9 +30,9 @@ module.exports.generateFieldElementFromBytes = (bytes) => {
     return wasm.generateFieldElementFromBytes(bytes);
 };
 
-module.exports.fieldElementAsBytes = (element) => {
+module.exports.fieldElementAsBytes = (element, elementIsSecure) => {
     requireWasmInitialized();
-    return wasm.fieldElementAsBytes(element);
+    return wasm.fieldElementAsBytes(element, elementIsSecure);
 };
 
 module.exports.generateChallengeFromBytes = (bytes) => {

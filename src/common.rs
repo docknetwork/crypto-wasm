@@ -1,38 +1,36 @@
 use crate::utils::{
     field_element_from_u64, fr_from_uint8_array, fr_to_uint8_array, g1_affine_to_uint8_array,
-    g2_affine_to_uint8_array, get_seeded_rng, is_positive_safe_integer, js_array_to_fr_vec,
+    g2_affine_to_uint8_array, is_positive_safe_integer, js_array_to_fr_vec,
     js_array_to_g1_affine_vec, js_array_to_g2_affine_vec, random_bytes, set_panic_hook,
 };
-use crate::{Fr, G1Proj, G2Proj};
+use crate::{Fr, G1Affine, G2Affine};
 use ark_ec::msm::VariableBaseMSM;
 use ark_ec::ProjectiveCurve;
 use ark_ff::PrimeField;
 use ark_serialize::CanonicalSerialize;
-use ark_std::UniformRand;
 use blake2::Blake2b;
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(js_name = generateRandomG1Element)]
-pub fn generate_random_g1_element() -> Result<js_sys::Uint8Array, JsValue> {
+pub fn generate_random_g1_element(seed: Option<Vec<u8>>) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
-    let mut rng = get_seeded_rng();
-    let g = G1Proj::rand(&mut rng).into_affine();
+    let g = random_g1(seed);
     g1_affine_to_uint8_array(&g)
 }
 
 #[wasm_bindgen(js_name = generateRandomG2Element)]
-pub fn generate_random_g2_element() -> Result<js_sys::Uint8Array, JsValue> {
+pub fn generate_random_g2_element(seed: Option<Vec<u8>>) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
-    let mut rng = get_seeded_rng();
-    let g = G2Proj::rand(&mut rng).into_affine();
+    let g = random_g2(seed);
     g2_affine_to_uint8_array(&g)
 }
 
 #[wasm_bindgen(js_name = generateRandomFieldElement)]
 pub fn generate_random_field_element(seed: Option<Vec<u8>>) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
-    fr_to_uint8_array(&random_ff(seed))
+    let f = random_ff(seed);
+    fr_to_uint8_array(&f)
 }
 
 #[wasm_bindgen(js_name = generateFieldElementFromNumber)]
@@ -61,9 +59,12 @@ pub fn generate_field_element_from_bytes(bytes: Vec<u8>) -> js_sys::Uint8Array {
 }
 
 #[wasm_bindgen(js_name = fieldElementAsBytes)]
-pub fn field_element_as_bytes(element: js_sys::Uint8Array) -> Result<js_sys::Uint8Array, JsValue> {
+pub fn field_element_as_bytes(
+    element: js_sys::Uint8Array,
+    element_is_secret: bool,
+) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
-    let f = fr_from_uint8_array(element)?;
+    let f = fr_from_uint8_array(element, element_is_secret)?;
     let mut bytes = vec![];
     f.serialize(&mut bytes).map_err(|e| {
         JsValue::from(&format!(
@@ -114,6 +115,20 @@ fn fr_uin8_array_from_bytes_hash(bytes: &[u8]) -> js_sys::Uint8Array {
 pub fn random_ff(seed: Option<Vec<u8>>) -> Fr {
     let seed = seed.unwrap_or_else(|| random_bytes());
     dock_crypto_utils::hashing_utils::field_elem_from_seed::<Fr, Blake2b>(&seed, &[])
+}
+
+pub fn random_g1(seed: Option<Vec<u8>>) -> G1Affine {
+    let seed = seed.unwrap_or_else(|| random_bytes());
+    dock_crypto_utils::hashing_utils::affine_group_elem_from_try_and_incr::<G1Affine, Blake2b>(
+        &seed,
+    )
+}
+
+pub fn random_g2(seed: Option<Vec<u8>>) -> G2Affine {
+    let seed = seed.unwrap_or_else(|| random_bytes());
+    dock_crypto_utils::hashing_utils::affine_group_elem_from_try_and_incr::<G2Affine, Blake2b>(
+        &seed,
+    )
 }
 
 #[derive(Debug, Deserialize, Serialize)]

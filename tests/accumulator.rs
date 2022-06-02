@@ -417,10 +417,10 @@ pub fn universal_accumulator_membership_non_membership() {
 
     let non_member = generate_random_field_element(None).unwrap();
     let members = vec![
-        fr_from_uint8_array(element_1.clone()).unwrap(),
-        fr_from_uint8_array(element_3.clone()).unwrap(),
-        fr_from_uint8_array(element_4.clone()).unwrap(),
-        fr_from_uint8_array(element_5.clone()).unwrap(),
+        fr_from_uint8_array(element_1.clone(), false).unwrap(),
+        fr_from_uint8_array(element_3.clone(), false).unwrap(),
+        fr_from_uint8_array(element_4.clone(), false).unwrap(),
+        fr_from_uint8_array(element_5.clone(), false).unwrap(),
     ];
     let d =
         universal_accumulator_compute_d(non_member.clone(), js_array_from_frs(&members).unwrap())
@@ -454,8 +454,8 @@ pub fn universal_accumulator_membership_non_membership() {
     let d1 = universal_accumulator_compute_d(
         non_member.clone(),
         js_array_from_frs(&[
-            fr_from_uint8_array(element_1).unwrap(),
-            fr_from_uint8_array(element_3).unwrap(),
+            fr_from_uint8_array(element_1, false).unwrap(),
+            fr_from_uint8_array(element_3, false).unwrap(),
         ])
         .unwrap(),
     )
@@ -463,8 +463,8 @@ pub fn universal_accumulator_membership_non_membership() {
     let d2 = universal_accumulator_compute_d(
         non_member.clone(),
         js_array_from_frs(&[
-            fr_from_uint8_array(element_4).unwrap(),
-            fr_from_uint8_array(element_5).unwrap(),
+            fr_from_uint8_array(element_4, false).unwrap(),
+            fr_from_uint8_array(element_5, false).unwrap(),
         ])
         .unwrap(),
     )

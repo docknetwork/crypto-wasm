@@ -6,6 +6,7 @@ use js_sys::Uint8Array;
 use proof_system::prelude::{EqualWitnesses, MetaStatement};
 use proof_system::statement;
 use wasm_bindgen::prelude::*;
+use zeroize::Zeroize;
 
 use crate::accumulator::{
     deserialize_params, deserialize_public_key, MembershipPrk, NonMembershipPrk,
@@ -45,7 +46,7 @@ pub fn generate_pok_bbs_sig_statement(
 ) -> Result<Uint8Array, JsValue> {
     set_panic_hook();
     let params: SigParamsG1 = serde_wasm_bindgen::from_value(params)?;
-    let pk = obj_from_uint8array!(BBSPlusPkG2, public_key, "BBSPlusPkG2");
+    let pk = obj_from_uint8array!(BBSPlusPkG2, public_key, false, "BBSPlusPkG2");
     let msgs = encode_messages_as_js_map_to_fr_btreemap(&revealed_msgs, encode_messages)?;
     let statement = PoKBBSSigStmt::new_statement_from_params::<G1Affine>(params, pk, msgs);
     Ok(obj_to_uint8array_unchecked!(&statement, "PokBBSStatement"))
@@ -76,7 +77,7 @@ pub fn generate_accumulator_membership_statement(
     let accumulated = g1_affine_from_uint8_array(accumulated)?;
     let pk = deserialize_public_key(public_key)?;
     let params = deserialize_params(params)?;
-    let prk = obj_from_uint8array!(MembershipPrk, proving_key, "MembershipPrk");
+    let prk = obj_from_uint8array!(MembershipPrk, proving_key, false, "MembershipPrk");
     let statement =
         AccumMemStmt::new_statement_from_params::<G1Affine>(params, pk, prk, accumulated);
     Ok(obj_to_uint8array_unchecked!(
@@ -117,7 +118,7 @@ pub fn generate_accumulator_non_membership_statement(
     let accumulated = g1_affine_from_uint8_array(accumulated)?;
     let pk = deserialize_public_key(public_key)?;
     let params = deserialize_params(params)?;
-    let prk = obj_from_uint8array!(NonMembershipPrk, proving_key, "NonMembershipPrk");
+    let prk = obj_from_uint8array!(NonMembershipPrk, proving_key, false, "NonMembershipPrk");
     let statement =
         AccumNonMemStmt::new_statement_from_params::<G1Affine>(params, pk, prk, accumulated);
     Ok(obj_to_uint8array_unchecked!(
@@ -228,7 +229,7 @@ pub fn generate_saver_prover_statement(
     let snark_pk = if uncompressed_public_params {
         obj_from_uint8array_unchecked!(SaverSnarkPk, snark_pk, "SaverSnarkPk")
     } else {
-        obj_from_uint8array!(SaverSnarkPk, snark_pk, "SaverSnarkPk")
+        obj_from_uint8array!(SaverSnarkPk, snark_pk, false, "SaverSnarkPk")
     };
     let (enc_gens, chunked_comm_gens, ek) = parse_saver_statement_input(
         enc_gens,
@@ -284,7 +285,7 @@ pub fn generate_saver_verifier_statement(
     let snark_vk = if uncompressed_public_params {
         obj_from_uint8array_unchecked!(SaverSnarkVk, snark_vk, "SaverSnarkVk")
     } else {
-        obj_from_uint8array!(SaverSnarkVk, snark_vk, "SaverSnarkVk")
+        obj_from_uint8array!(SaverSnarkVk, snark_vk, false, "SaverSnarkVk")
     };
     let (enc_gens, chunked_comm_gens, ek) = parse_saver_statement_input(
         enc_gens,
@@ -347,7 +348,7 @@ pub fn generate_bound_check_lego_prover_statement(
     let snark_pk = if uncompressed_public_params {
         obj_from_uint8array_unchecked!(LegoProvingKey, snark_pk, "LegoProvingKey")
     } else {
-        obj_from_uint8array!(LegoProvingKey, snark_pk, "LegoProvingKey")
+        obj_from_uint8array!(LegoProvingKey, snark_pk, false, "LegoProvingKey")
     };
     let statement =
         BoundCheckLegoProverStmt::new_statement_from_params::<G1Affine>(min, max, snark_pk)
@@ -399,7 +400,7 @@ pub fn generate_bound_check_lego_verifier_statement(
     let snark_vk = if uncompressed_public_params {
         obj_from_uint8array_unchecked!(LegoVerifyingKey, snark_vk, "LegoVerifyingKey")
     } else {
-        obj_from_uint8array!(LegoVerifyingKey, snark_vk, "LegoVerifyingKey")
+        obj_from_uint8array!(LegoVerifyingKey, snark_vk, false, "LegoVerifyingKey")
     };
     let statement =
         BoundCheckLegoVerifierStmt::new_statement_from_params::<G1Affine>(min, max, snark_vk)
@@ -455,13 +456,14 @@ fn parse_saver_statement_input(
         )
     } else {
         (
-            obj_from_uint8array!(EncGens, enc_gens, "EncryptionGenerators"),
+            obj_from_uint8array!(EncGens, enc_gens, false, "EncryptionGenerators"),
             obj_from_uint8array!(
                 ChunkedCommGens,
                 chunked_comm_gens,
+                false,
                 "ChunkedCommitmentGenerators"
             ),
-            obj_from_uint8array!(SaverEk, encryption_key, "SaverEk"),
+            obj_from_uint8array!(SaverEk, encryption_key, false, "SaverEk"),
         )
     };
     Ok((enc_gens, chunked_comm_gens, ek))

@@ -16,6 +16,7 @@ use js_sys::Uint8Array;
 use proof_system::prelude::{MetaStatement, MetaStatements, SetupParams, Statement, Statements};
 use proof_system::proof;
 use proof_system::witness;
+use zeroize::Zeroize;
 
 pub type Witness = witness::Witness<Bls12_381>;
 pub type Witnesses = witness::Witnesses<Bls12_381>;
@@ -34,7 +35,7 @@ pub fn generate_pok_bbs_sig_witness(
     encode_messages: bool,
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
-    let signature = obj_from_uint8array!(SigG1, signature);
+    let signature = obj_from_uint8array!(SigG1, signature, true);
     let msgs = encode_messages_as_js_map_to_fr_btreemap(&unrevealed_msgs, encode_messages)?;
     let witness = PoKBBSSigWit::new_as_witness(signature, msgs);
     serde_wasm_bindgen::to_value(&witness).map_err(|e| JsValue::from(e))
@@ -46,7 +47,7 @@ pub fn generate_accumulator_membership_witness(
     accum_witness: JsValue,
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
-    let element = fr_from_uint8_array(element)?;
+    let element = fr_from_uint8_array(element, true)?;
     let accum_witness: MembershipWit = serde_wasm_bindgen::from_value(accum_witness)?;
     let witness = AccumMemWit::new_as_witness(element, accum_witness);
     serde_wasm_bindgen::to_value(&witness).map_err(|e| JsValue::from(e))
@@ -58,7 +59,7 @@ pub fn generate_accumulator_non_membership_witness(
     accum_witness: JsValue,
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
-    let element = fr_from_uint8_array(element)?;
+    let element = fr_from_uint8_array(element, true)?;
     let accum_witness: NonMembershipWit = serde_wasm_bindgen::from_value(accum_witness)?;
     let witness = AccumNonMemWit::new_as_witness(element, accum_witness);
     serde_wasm_bindgen::to_value(&witness).map_err(|e| JsValue::from(e))
@@ -227,7 +228,7 @@ pub fn verify_composite_proof_g1_with_deconstructed_proof_spec(
 #[wasm_bindgen(js_name = generateSaverWitness)]
 pub fn generate_saver_witness(message: Uint8Array) -> Result<JsValue, JsValue> {
     set_panic_hook();
-    let message = fr_from_uint8_array(message)?;
+    let message = fr_from_uint8_array(message, true)?;
     let witness = Witness::Saver(message);
     serde_wasm_bindgen::to_value(&witness).map_err(|e| JsValue::from(e))
 }
@@ -239,12 +240,12 @@ pub fn saver_get_ciphertext_from_proof(
     statement_index: usize,
 ) -> Result<Uint8Array, JsValue> {
     set_panic_hook();
-    let proof = obj_from_uint8array!(ProofG1, proof);
+    let proof = obj_from_uint8array!(ProofG1, proof, false);
     let statement_proof = proof
         .statement_proof(statement_index)
         .map_err(|_| JsValue::from(&format!("Did not find StatementProof at the given index")))?;
     if let StatementProofG1::Saver(s) = statement_proof {
-        Ok(obj_to_uint8array!(&s.ciphertext, "SaverCiphertext"))
+        Ok(obj_to_uint8array!(&s.ciphertext, false, "SaverCiphertext"))
     } else {
         Err(JsValue::from(&format!("StatementProof wasn't for Saver")))
     }
@@ -253,7 +254,7 @@ pub fn saver_get_ciphertext_from_proof(
 #[wasm_bindgen(js_name = generateBoundCheckWitness)]
 pub fn generate_bound_check_witness(message: Uint8Array) -> Result<JsValue, JsValue> {
     set_panic_hook();
-    let message = fr_from_uint8_array(message)?;
+    let message = fr_from_uint8_array(message, true)?;
     let witness = Witness::BoundCheckLegoGroth16(message);
     serde_wasm_bindgen::to_value(&witness).map_err(|e| JsValue::from(e))
 }
@@ -338,7 +339,7 @@ fn gen_proof_given_proof_spec_obj<G: AffineCurve<ScalarField = Fr>>(
     let mut rng = get_seeded_rng();
     let proof = Proof::<G>::new(&mut rng, proof_spec, wits, nonce)
         .map_err(|e| JsValue::from(&format!("Generating proof returned error: {:?}", e)))?;
-    Ok(obj_to_uint8array!(&proof, "Proof"))
+    Ok(obj_to_uint8array!(&proof, false, "Proof"))
 }
 
 fn verify_proof_given_proof_spec_obj<G: AffineCurve<ScalarField = Fr>>(
@@ -346,7 +347,7 @@ fn verify_proof_given_proof_spec_obj<G: AffineCurve<ScalarField = Fr>>(
     proof: Uint8Array,
     nonce: Option<Vec<u8>>,
 ) -> Result<JsValue, JsValue> {
-    let proof = obj_from_uint8array!(Proof<G>, proof);
+    let proof = obj_from_uint8array!(Proof<G>, proof, false);
     match proof.verify(proof_spec, nonce) {
         Ok(_) => Ok(serde_wasm_bindgen::to_value(&VerifyResponse {
             verified: true,

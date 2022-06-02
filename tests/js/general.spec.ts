@@ -1,5 +1,5 @@
 import {
-    generateFieldElementFromNumber,
+    generateFieldElementFromNumber, fieldElementAsBytes,
     initializeWasm, isWasmInitialized, requireWasmInitialized
 } from "../../lib";
 
@@ -31,5 +31,16 @@ describe("For utils", () => {
         const unsafeInteger = 9906920304888000;
         expect(Number.isSafeInteger(unsafeInteger)).toEqual(false);
         expect(() => generateFieldElementFromNumber(unsafeInteger)).toThrow();
+    })
+
+    it("fieldElementAsBytes does not clear the input", () => {
+        let x = generateFieldElementFromNumber(165);
+        expect(x[0]).toEqual(165);
+        let y = fieldElementAsBytes(x, false);
+        expect(y[0]).toEqual(165);
+        expect(x[0]).toEqual(165);
+        let z = fieldElementAsBytes(x, true);
+        expect(z[0]).toEqual(165);
+        expect(x[0]).toEqual(165);
     })
 });

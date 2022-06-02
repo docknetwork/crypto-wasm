@@ -217,15 +217,20 @@ pub fn three_bbs_sigs_and_msg_equality() {
 #[wasm_bindgen_test]
 pub fn bbs_sig_and_accumulator() {
     fn run(use_setup_params: bool) {
-        let member_1 =
-            field_element_as_bytes(field_element_from_number(js_sys::Number::from(5)).unwrap())
-                .unwrap();
-        let member_2 =
-            field_element_as_bytes(field_element_from_number(js_sys::Number::from(10)).unwrap())
-                .unwrap();
-        let member_3 = field_element_as_bytes(generate_field_element_from_bytes(
-            "user_1232".as_bytes().to_vec(),
-        ))
+        let member_1 = field_element_as_bytes(
+            field_element_from_number(js_sys::Number::from(5)).unwrap(),
+            true,
+        )
+        .unwrap();
+        let member_2 = field_element_as_bytes(
+            field_element_from_number(js_sys::Number::from(10)).unwrap(),
+            true,
+        )
+        .unwrap();
+        let member_3 = field_element_as_bytes(
+            generate_field_element_from_bytes("user_1232".as_bytes().to_vec()),
+            true,
+        )
         .unwrap();
 
         let msg_count_1 = 5;
@@ -761,15 +766,15 @@ pub fn pedersen_commitment_opening_equality() {
     msgs_2.push(&m_3);
 
     let bases_1 = js_sys::Array::new();
-    bases_1.push(&generate_random_g1_element().unwrap());
-    bases_1.push(&generate_random_g1_element().unwrap());
+    bases_1.push(&generate_random_g1_element(None).unwrap());
+    bases_1.push(&generate_random_g1_element(None).unwrap());
 
     let comm_1 = pedersen_commitment_g1(bases_1.clone(), msgs_1.clone()).unwrap();
 
     let bases_2 = js_sys::Array::new();
-    bases_2.push(&generate_random_g1_element().unwrap());
-    bases_2.push(&generate_random_g1_element().unwrap());
-    bases_2.push(&generate_random_g1_element().unwrap());
+    bases_2.push(&generate_random_g1_element(None).unwrap());
+    bases_2.push(&generate_random_g1_element(None).unwrap());
+    bases_2.push(&generate_random_g1_element(None).unwrap());
 
     let comm_2 = pedersen_commitment_g1(bases_2.clone(), msgs_2.clone()).unwrap();
 
@@ -796,15 +801,15 @@ pub fn pedersen_commitment_opening_equality() {
     r.validate();
 
     let bases_1 = js_sys::Array::new();
-    bases_1.push(&generate_random_g2_element().unwrap());
-    bases_1.push(&generate_random_g2_element().unwrap());
+    bases_1.push(&generate_random_g2_element(None).unwrap());
+    bases_1.push(&generate_random_g2_element(None).unwrap());
 
     let comm_1 = pedersen_commitment_g2(bases_1.clone(), msgs_1.clone()).unwrap();
 
     let bases_2 = js_sys::Array::new();
-    bases_2.push(&generate_random_g2_element().unwrap());
-    bases_2.push(&generate_random_g2_element().unwrap());
-    bases_2.push(&generate_random_g2_element().unwrap());
+    bases_2.push(&generate_random_g2_element(None).unwrap());
+    bases_2.push(&generate_random_g2_element(None).unwrap());
+    bases_2.push(&generate_random_g2_element(None).unwrap());
 
     let comm_2 = pedersen_commitment_g2(bases_2.clone(), msgs_2.clone()).unwrap();
 

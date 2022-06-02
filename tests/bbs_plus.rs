@@ -161,10 +161,12 @@ pub fn bbs_sign_verify() {
     for i in 1..=message_count {
         if i == 1 {
             // Msg is an integer
-            let bytes =
-                field_element_as_bytes(field_element_from_number(js_sys::Number::from(1)).unwrap())
-                    .unwrap()
-                    .to_vec();
+            let bytes = field_element_as_bytes(
+                field_element_from_number(js_sys::Number::from(1)).unwrap(),
+                true,
+            )
+            .unwrap()
+            .to_vec();
             msgs.push(bytes);
         } else {
             // Messages are encoded from text
@@ -394,10 +396,12 @@ pub fn bbs_proof_of_knowledge() {
     for i in 1..=message_count {
         if i == 1 {
             // Msg is an integer
-            let bytes =
-                field_element_as_bytes(field_element_from_number(js_sys::Number::from(1)).unwrap())
-                    .unwrap()
-                    .to_vec();
+            let bytes = field_element_as_bytes(
+                field_element_from_number(js_sys::Number::from(1)).unwrap(),
+                true,
+            )
+            .unwrap()
+            .to_vec();
             messages.push(bytes);
         } else {
             // Messages are encoded from text

@@ -4,6 +4,7 @@ use proof_system::prelude::generate_snark_srs_bound_check;
 
 use crate::utils::{get_seeded_rng, set_panic_hook};
 use wasm_bindgen::prelude::*;
+use zeroize::Zeroize;
 
 /// Setup snark and generate compressed or uncompressed SNARK proving key
 #[wasm_bindgen(js_name = boundCheckSnarkSetup)]
@@ -19,6 +20,6 @@ pub fn bound_check_snark_setup(return_uncompressed: bool) -> Result<js_sys::Uint
     Ok(if return_uncompressed {
         obj_to_uint8array_unchecked!(&snark_pk, "LegoProvingKey")
     } else {
-        obj_to_uint8array!(&snark_pk, "LegoProvingKey")
+        obj_to_uint8array!(&snark_pk, false, "LegoProvingKey")
     })
 }

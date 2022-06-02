@@ -16,6 +16,7 @@ use ark_ff::PrimeField;
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use ark_std::rand::prelude::{RngCore, SeedableRng, StdRng};
 use wasm_bindgen::prelude::*;
+use zeroize::Zeroize;
 
 pub fn set_panic_hook() {
     // When the `console_error_panic_hook` feature is enabled, we can call the
@@ -86,15 +87,25 @@ pub fn fr_to_uint8_array(elem: &Fr) -> Result<js_sys::Uint8Array, JsValue> {
     Ok(js_sys::Uint8Array::from(bytes.as_slice()))
 }
 
-pub fn fr_from_uint8_array(value: js_sys::Uint8Array) -> Result<Fr, JsValue> {
-    // TODO: Is there a better way to get byte slice from `value` without creating a Vec
-    let bytes: Vec<u8> = value.to_vec();
+/// If `value_is_secret` is true, the temporary bytearrary created from `value` is zeroized.
+/// `value` is never modified as this might not be expected by the calling JS code.
+pub fn fr_from_uint8_array(
+    value: js_sys::Uint8Array,
+    value_is_secret: bool,
+) -> Result<Fr, JsValue> {
+    // TODO: Is there a better way to get byte slice from `value` without creating a Vec?
+    // Looking at https://github.com/rustwasm/wasm-bindgen/issues/5 and other links from this page,
+    // this isn't easily doable
+    let mut bytes: Vec<u8> = value.to_vec();
     let elem = Fr::deserialize(&bytes[..]).map_err(|e| {
         JsValue::from(&format!(
             "Cannot deserialize {:?} to Fr due to error: {:?}",
             bytes, e
         ))
     })?;
+    if value_is_secret {
+        bytes.zeroize();
+    }
     Ok(elem)
 }
 
@@ -261,6 +272,10 @@ pub fn field_element_from_u64(number: u64) -> Fr {
     Fr::from_repr(ark_ff::BigInteger256::from(number)).unwrap()
 }
 
+pub fn zeroize_uint8array(value: js_sys::Uint8Array) {
+    value.fill(0, 0, value.length());
+}
+
 pub fn get_seeded_rng() -> StdRng {
     let mut buf = [0u8; 32];
     use rand::thread_rng;
@@ -286,7 +301,7 @@ pub fn is_positive_safe_integer(num: &js_sys::Number) -> bool {
 
 #[macro_export]
 macro_rules! obj_to_uint8array {
-    ($obj:expr) => {{
+    ($obj:expr, $value_is_secret: expr) => {{
         let mut serz = vec![];
         CanonicalSerialize::serialize($obj, &mut serz).map_err(|e| {
             JsValue::from(format!(
@@ -294,10 +309,14 @@ macro_rules! obj_to_uint8array {
                 e
             ))
         })?;
-        js_sys::Uint8Array::from(serz.as_slice())
+        let s = js_sys::Uint8Array::from(serz.as_slice());
+        if $value_is_secret {
+            serz.zeroize();
+        }
+        s
     }};
 
-    ($obj:expr, $obj_name:expr) => {{
+    ($obj:expr, $value_is_secret: expr, $obj_name:expr) => {{
         let mut serz = vec![];
         CanonicalSerialize::serialize($obj, &mut serz).map_err(|e| {
             JsValue::from(format!(
@@ -305,31 +324,41 @@ macro_rules! obj_to_uint8array {
                 $obj_name, e
             ))
         })?;
-        js_sys::Uint8Array::from(serz.as_slice())
+        let s = js_sys::Uint8Array::from(serz.as_slice());
+        if $value_is_secret {
+            serz.zeroize();
+        }
+        s
     }};
 }
 
 #[macro_export]
 macro_rules! obj_from_uint8array {
-    ($obj_type:ty, $uint8array:expr) => {{
-        let serz = $uint8array.to_vec();
+    ($obj_type:ty, $uint8array:expr, $value_is_secret: expr) => {{
+        let mut serz = $uint8array.to_vec();
         let deserz: $obj_type = CanonicalDeserialize::deserialize(&serz[..]).map_err(|e| {
             JsValue::from(format!(
                 "Failed to deserialize from bytes due to error: {:?}",
                 e
             ))
         })?;
+        if $value_is_secret {
+            serz.zeroize();
+        }
         deserz
     }};
 
-    ($obj_type:ty, $uint8array:expr, $obj_name:expr) => {{
-        let serz = $uint8array.to_vec();
+    ($obj_type:ty, $uint8array:expr, $value_is_secret: expr, $obj_name:expr) => {{
+        let mut serz = $uint8array.to_vec();
         let deserz: $obj_type = CanonicalDeserialize::deserialize(&serz[..]).map_err(|e| {
             JsValue::from(format!(
                 "Failed to deserialize a {} from bytes due to error: {:?}",
                 $obj_name, e
             ))
         })?;
+        if $value_is_secret {
+            serz.zeroize();
+        }
         deserz
     }};
 }

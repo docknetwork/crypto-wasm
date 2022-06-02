@@ -33,6 +33,4 @@ pub mod saver;
 // Trying to keep types at one place so changing the curve is easier
 pub(crate) type Fr = <Bls12_381 as PairingEngine>::Fr;
 pub(crate) type G1Affine = <Bls12_381 as PairingEngine>::G1Affine;
-pub(crate) type G1Proj = <Bls12_381 as PairingEngine>::G1Projective;
 pub(crate) type G2Affine = <Bls12_381 as PairingEngine>::G2Affine;
-pub(crate) type G2Proj = <Bls12_381 as PairingEngine>::G2Projective;
