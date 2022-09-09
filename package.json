@@ -1,6 +1,6 @@
 {
   "name": "@docknetwork/crypto-wasm",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "author": "Dock.io",
   "license": "Apache-2.0",
   "private": false,
@@ -27,6 +27,7 @@
     "clean": "rm -rf target && rm -rf lib",
     "build": "./scripts/build-package.sh DEBUG",
     "build:release": "./scripts/build-package.sh RELEASE",
+    "build:profiling": "./scripts/build-package.sh PROFILING",
     "test": "yarn test:browser && yarn test:wasm",
     "test:browser": "./scripts/test-browser.sh",
     "test:wasm": "yarn jest",
@@ -48,6 +49,7 @@
     "jest": "^27.3.0",
     "prettier": "2.0.4",
     "pretty-quick": "2.0.1",
+    "r1csfile": "^0.0.41",
     "rollup": "2.49.0",
     "text-encoding": "0.7.0",
     "ts-jest": "^27.0.7",

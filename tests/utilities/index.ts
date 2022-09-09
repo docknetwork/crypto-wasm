@@ -32,3 +32,31 @@ export function getRevealedUnrevealed(messages: Uint8Array[], revealedIndices: S
   return [revealedMsgs, unrevealedMsgs];
 }
 
+export function areUint8ArraysEqual(arr1: Uint8Array, arr2: Uint8Array): boolean {
+  if (arr1.length !== arr2.length) {
+    return false;
+  }
+
+  for (let i = 0; i < arr1.length; i++) {
+    if (arr1[i] !== arr2[i]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
+ * Convert little-endian bytearray to BigInt
+ * @param arr
+ * @returns
+ */
+export function fromLeToBigInt(arr: Uint8Array): BigInt {
+  let r = BigInt(0);
+  let m = BigInt(1);
+  for (let i = 0; i < arr.length; i++) {
+    r += m * BigInt(arr[i]);
+    m <<= BigInt(8);
+  }
+  return r;
+}

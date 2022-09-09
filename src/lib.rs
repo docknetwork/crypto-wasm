@@ -28,6 +28,7 @@ pub mod bound_check;
 pub mod common;
 pub mod composite_proof_system;
 pub mod legosnark;
+pub mod r1cs;
 pub mod saver;
 
 // Trying to keep types at one place so changing the curve is easier

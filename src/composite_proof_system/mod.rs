@@ -13,7 +13,9 @@ use ark_ec::{AffineCurve, PairingEngine};
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use blake2::Blake2b;
 use js_sys::Uint8Array;
-use proof_system::prelude::{MetaStatement, MetaStatements, SetupParams, Statement, Statements};
+use proof_system::prelude::{
+    MetaStatement, MetaStatements, R1CSCircomWitness, SetupParams, Statement, Statements,
+};
 use proof_system::proof;
 use proof_system::witness;
 use zeroize::Zeroize;
@@ -256,6 +258,20 @@ pub fn generate_bound_check_witness(message: Uint8Array) -> Result<JsValue, JsVa
     set_panic_hook();
     let message = fr_from_uint8_array(message, true)?;
     let witness = Witness::BoundCheckLegoGroth16(message);
+    serde_wasm_bindgen::to_value(&witness).map_err(|e| JsValue::from(e))
+}
+
+#[wasm_bindgen(js_name = generateR1CSCircomWitness)]
+pub fn generate_r1cs_circom_witness(input_wires: js_sys::Map) -> Result<JsValue, JsValue> {
+    set_panic_hook();
+    let mut r1cs_wit = R1CSCircomWitness::<Bls12_381>::new();
+    for e in input_wires.entries() {
+        let arr = js_sys::Array::from(&e.unwrap());
+        let name: String = serde_wasm_bindgen::from_value(arr.get(0))?;
+        let vals = js_sys::Array::from(&arr.get(1));
+        r1cs_wit.set_private(name, js_array_to_fr_vec(&vals)?);
+    }
+    let witness = Witness::R1CSLegoGroth16(r1cs_wit);
     serde_wasm_bindgen::to_value(&witness).map_err(|e| JsValue::from(e))
 }
 

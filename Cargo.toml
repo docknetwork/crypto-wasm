@@ -5,7 +5,7 @@ edition = "2021"
 license = "Apache-2.0"
 name = "dock_crypto_wasm"
 repository = "https://github.com/docknetwork/crypto-wasm"
-version = "0.10.0"
+version = "0.11.0"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -20,23 +20,26 @@ js-sys = "0.3"
 rand = { version = "0.7", features = ["wasm-bindgen"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0"}
-serde-wasm-bindgen = "0.4.2"
-wasm-bindgen = "= 0.2.79"
+serde-wasm-bindgen = "0.4.3"
+wasm-bindgen = "= 0.2.82"
 wee_alloc = { version = "0.4.5", optional = true }
-bbs_plus = { version = "0.7.0", default-features = false }
-vb_accumulator = { version = "0.8.0", default-features = false }
-schnorr_pok = { version = "0.6.0", default-features = false }
-proof_system = { version = "0.11.0", default-features = false }
-dock_crypto_utils = { version = "0.4.0", default-features = false }
-saver = { version = "0.3.0", default-features = false }
-# bbs_plus = { path = "../crypto/bbs_plus", default-features = false }
-# vb_accumulator = { path = "../crypto/vb_accumulator", default-features = false }
-# schnorr_pok = { path = "../crypto/schnorr_pok", default-features = false }
-# proof_system = { path = "../crypto/proof_system", default-features = false }
-# dock_crypto_utils = { path = "../crypto/utils", default-features = false }
-# saver = { path = "../crypto/saver", default-features = false }
+#bbs_plus = { version = "0.7.0", default-features = false }
+#vb_accumulator = { version = "0.8.0", default-features = false }
+#schnorr_pok = { version = "0.6.0", default-features = false }
+#proof_system = { version = "0.11.0", default-features = false }
+#dock_crypto_utils = { version = "0.4.0", default-features = false }
+#saver = { version = "0.3.0", default-features = false }
+bbs_plus = { git = "https://github.com/docknetwork/crypto", branch = "circom", default-features = false }
+vb_accumulator = { git = "https://github.com/docknetwork/crypto", branch = "circom", default-features = false }
+schnorr_pok = { git = "https://github.com/docknetwork/crypto", branch = "circom", default-features = false }
+proof_system = { git = "https://github.com/docknetwork/crypto", branch = "circom", default-features = false, features = ["wasmer-js"] }
+dock_crypto_utils = { git = "https://github.com/docknetwork/crypto", branch = "circom", default-features = false }
+saver = { git = "https://github.com/docknetwork/crypto", branch = "circom", default-features = false }
+legogroth16 = {git = "https://github.com/lovesh/legogro16", branch = "circom", default-features = false, features = ["circom", "wasmer-js"]}
+
 ark-ec = { version = "^0.3.0", default-features = false }
 ark-ff = { version = "^0.3.0", default-features = false }
+ark-relations = { version = "^0.3.0", default-features = false }
 ark-bls12-381 = { version = "^0.3.0", default-features = false, features = [ "curve" ] }
 ark-serialize = { version = "^0.3.0", default-features = false, features = [ "derive" ] }
 blake2 = { version = "0.9", default-features = false }
@@ -45,7 +48,7 @@ ark-std = { version = "^0.3.0", default-features = false }
 zeroize = { version = "1.5.5", features = ["derive"] }
 
 [dev-dependencies]
-wasm-bindgen-test = "0.3.29"
+wasm-bindgen-test = "0.3.32"
 
 [dev-dependencies.web-sys]
 version = "0.3"
@@ -56,3 +59,34 @@ features = [
 [profile.release]
 lto = true
 opt-level = 3
+
+[package.metadata.wasm-pack.profile.dev]
+# Should `wasm-opt` be used to further optimize the wasm binary generated after
+# the Rust compiler has finished? Using `wasm-opt` can often further decrease
+# binary size or do clever tricks that haven't made their way into LLVM yet.
+#
+# Configuration is set to `false` by default for the dev profile, but it can
+# be set to an array of strings which are explicit arguments to pass to
+# `wasm-opt`. For example `['-Os']` would optimize for size while `['-O4']`
+# would execute very expensive optimizations passes
+wasm-opt = false
+
+[package.metadata.wasm-pack.profile.dev.wasm-bindgen]
+# Should we enable wasm-bindgen's debug assertions in its generated JS glue?
+debug-js-glue = true
+# Should wasm-bindgen demangle the symbols in the "name" custom section?
+demangle-name-section = true
+
+[package.metadata.wasm-pack.profile.profiling]
+wasm-opt = ['-O4']
+
+[package.metadata.wasm-pack.profile.profiling.wasm-bindgen]
+debug-js-glue = false
+demangle-name-section = false
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ['-O']
+
+[package.metadata.wasm-pack.profile.release.wasm-bindgen]
+debug-js-glue = false
+demangle-name-section = true

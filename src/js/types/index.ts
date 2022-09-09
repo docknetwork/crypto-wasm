@@ -19,3 +19,4 @@ export {IKeypair} from "./IKeypair";
 export { VerifyResult } from "./VerifyResult";
 export { IUniversalAccumulator } from "./IUniversalAccumulator";
 export { INonMembershipWitness } from "./INonMembershipWitness";
+export { LCTerm, LC, Constraint, R1CS} from "./R1CS";

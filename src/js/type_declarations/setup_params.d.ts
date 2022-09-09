@@ -1,4 +1,4 @@
-import {BbsSigParams} from "../types";
+import {BbsSigParams, Constraint} from "../types";
 
 export function generateSetupParamForBBSSignatureParametersG1(
     params: BbsSigParams
@@ -65,4 +65,16 @@ export function generateSetupParamForLegoProvingKey(
 export function generateSetupParamForLegoVerifyingKey(
     verifyingKey: Uint8Array,
     uncompressed: boolean
+): Uint8Array;
+
+export function generateSetupParamForR1CS(
+    curveName: string, numPublic: number, numPrivate: number, constraints: Constraint[]
+): Uint8Array;
+
+export function generateSetupParamForBytes(
+    bytes: Uint8Array
+): Uint8Array;
+
+export function generateSetupParamForFieldElemVec(
+    arr: Uint8Array[]
 ): Uint8Array;

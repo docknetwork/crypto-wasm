@@ -196,8 +196,7 @@ pub fn positive_accumulator_verify_membership(
 #[wasm_bindgen(js_name = universalAccumulatorFixedInitialElements)]
 pub fn universal_accumulator_fixed_initial_elements() -> Result<js_sys::Array, JsValue> {
     let initial = vb_accumulator::initial_elements_for_bls12_381!(Fr);
-    let a = js_array_from_frs(&initial)?;
-    Ok(a)
+    js_array_from_frs(&initial)
 }
 
 #[wasm_bindgen(js_name = universalAccumulatorComputeInitialFv)]
@@ -500,7 +499,7 @@ pub fn universal_accumulator_compute_d_for_batch(
     let non_members = js_array_to_fr_vec(&non_members)?;
     let members = js_array_to_fr_vec(&members)?;
     let d = UniversalAccum::compute_d_for_batch_given_members(&non_members, &members);
-    js_array_from_frs(&d).map_err(|e| JsValue::from(e))
+    js_array_from_frs(&d)
 }
 
 #[wasm_bindgen(js_name = universalAccumulatorCombineMultipleDForBatch)]
@@ -530,7 +529,7 @@ pub fn universal_accumulator_combine_multiple_d_for_batch(
             products[i as usize] *= d;
         }
     }
-    js_array_from_frs(&products).map_err(|e| JsValue::from(e))
+    js_array_from_frs(&products)
 }
 
 #[wasm_bindgen(js_name = universalAccumulatorNonMembershipWitnessesForBatch)]

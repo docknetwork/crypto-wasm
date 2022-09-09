@@ -81,7 +81,7 @@ fn test_bbs_statement(stmt_j: js_sys::Uint8Array, revealed_msgs: js_sys::Map) {
 fn test_bbs_witness(wit_j: JsValue, unrevealed_msgs: js_sys::Map) {
     let wit: Witness = serde_wasm_bindgen::from_value(wit_j).unwrap();
     match wit {
-        witness::Witness::PoKBBSSignatureG1(s) => {
+        Witness::PoKBBSSignatureG1(s) => {
             assert_eq!(s.unrevealed_messages.len() as u32, unrevealed_msgs.size());
             for (i, m) in s.unrevealed_messages.iter() {
                 assert_eq!(

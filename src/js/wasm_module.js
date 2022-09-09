@@ -29,4 +29,5 @@ module.exports = {
   ...require('./legosnark_wasm'),
   ...require('./bound_check_wasm'),
   ...require('./setup_params_wasm'),
+  ...require('./r1cs_wasm'),
 };

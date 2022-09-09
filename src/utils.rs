@@ -204,7 +204,7 @@ pub fn g2_affine_from_uint8_array(value: js_sys::Uint8Array) -> Result<G2Affine,
     Ok(elem)
 }
 
-pub fn js_array_to_fr_vec(array: &js_sys::Array) -> Result<Vec<Fr>, serde_wasm_bindgen::Error> {
+pub fn js_array_to_fr_vec(array: &js_sys::Array) -> Result<Vec<Fr>, JsValue> {
     let mut frs = Vec::with_capacity(array.length() as usize);
     for a in array.values() {
         frs.push(fr_from_jsvalue(a.unwrap())?);
@@ -212,7 +212,7 @@ pub fn js_array_to_fr_vec(array: &js_sys::Array) -> Result<Vec<Fr>, serde_wasm_b
     Ok(frs)
 }
 
-pub fn js_array_from_frs(frs: &[Fr]) -> Result<js_sys::Array, serde_wasm_bindgen::Error> {
+pub fn js_array_from_frs(frs: &[Fr]) -> Result<js_sys::Array, JsValue> {
     let array = js_sys::Array::new();
     for fr in frs {
         array.push(&fr_to_jsvalue(fr)?);
@@ -222,7 +222,7 @@ pub fn js_array_from_frs(frs: &[Fr]) -> Result<js_sys::Array, serde_wasm_bindgen
 
 pub fn js_array_of_bytearrays_to_vector_of_bytevectors(
     array: &js_sys::Array,
-) -> Result<Vec<Vec<u8>>, serde_wasm_bindgen::Error> {
+) -> Result<Vec<Vec<u8>>, JsValue> {
     let mut r = Vec::with_capacity(array.length() as usize);
     for a in array.values() {
         let b = js_sys::Uint8Array::new(&a.unwrap());
@@ -233,7 +233,7 @@ pub fn js_array_of_bytearrays_to_vector_of_bytevectors(
 
 pub fn js_array_of_bytearrays_from_vector_of_bytevectors(
     vector: &Vec<Vec<u8>>,
-) -> Result<js_sys::Array, serde_wasm_bindgen::Error> {
+) -> Result<js_sys::Array, JsValue> {
     let r = js_sys::Array::new_with_length(vector.len() as u32);
     for (i, v) in vector.iter().enumerate() {
         let b = js_sys::Uint8Array::from(v.as_slice());
@@ -242,9 +242,7 @@ pub fn js_array_of_bytearrays_from_vector_of_bytevectors(
     Ok(r)
 }
 
-pub fn js_array_to_g1_affine_vec(
-    array: &js_sys::Array,
-) -> Result<Vec<G1Affine>, serde_wasm_bindgen::Error> {
+pub fn js_array_to_g1_affine_vec(array: &js_sys::Array) -> Result<Vec<G1Affine>, JsValue> {
     let mut g1s = Vec::with_capacity(array.length() as usize);
     for a in array.values() {
         g1s.push(g1_affine_from_jsvalue(a.unwrap())?);
@@ -252,9 +250,7 @@ pub fn js_array_to_g1_affine_vec(
     Ok(g1s)
 }
 
-pub fn js_array_to_g2_affine_vec(
-    array: &js_sys::Array,
-) -> Result<Vec<G2Affine>, serde_wasm_bindgen::Error> {
+pub fn js_array_to_g2_affine_vec(array: &js_sys::Array) -> Result<Vec<G2Affine>, JsValue> {
     let mut g2s = Vec::with_capacity(array.length() as usize);
     for a in array.values() {
         g2s.push(g2_affine_from_jsvalue(a.unwrap())?);

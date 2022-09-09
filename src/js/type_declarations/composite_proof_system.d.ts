@@ -1,4 +1,4 @@
-import {BbsSigParams, INonMembershipWitness, VerifyResult} from "../types";
+import {BbsSigParams, INonMembershipWitness, VerifyResult, Constraint} from "../types";
 
 export function generatePoKBBSSignatureStatement(
     params: BbsSigParams,
@@ -122,6 +122,33 @@ export function generateBoundCheckLegoVerifierStatementFromParamRefs(
     snarkVk: number
 ): Uint8Array;
 
+export function generateR1CSCircomProverStatement(
+    curveName: string,
+    numPublic: number,
+    numPrivate: number,
+    constraints: Constraint[],
+    wasmBytes: Uint8Array,
+    snarkPk: Uint8Array,
+    uncompressedPublicParams: boolean
+): Uint8Array;
+
+export function generateR1CSCircomProverStatementFromParamRefs(
+    r1cs: number,
+    wasmBytes: number,
+    snarkPk: number,
+): Uint8Array;
+
+export function generateR1CSCircomVerifierStatement(
+    publicInputs: Uint8Array[],
+    snarkVk: Uint8Array,
+    uncompressedPublicParams: boolean
+): Uint8Array;
+
+export function generateR1CSCircomVerifierStatementFromParamRefs(
+    publicInputs: number,
+    snarkVk: number,
+): Uint8Array;
+
 export function generateWitnessEqualityMetaStatement(
     equalities: Set<[number, number]>,
 ): Uint8Array;
@@ -152,6 +179,10 @@ export function generateSaverWitness(
 
 export function generateBoundCheckWitness(
     message: Uint8Array
+): Uint8Array;
+
+export function generateR1CSCircomWitness(
+    inputWires: Map<string, Uint8Array[]>
 ): Uint8Array;
 
 export function generateProofSpecG1(

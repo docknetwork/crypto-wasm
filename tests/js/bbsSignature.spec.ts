@@ -181,8 +181,8 @@ describe("For BBS+ signatures", () => {
     const params2 = bbsAdaptSigParamsG1ForMsgCount(params1, label, 2);
     expect(bbsSignatureParamsG1MaxSupportedMsgs(params2)).toBe(2);
     expect(isSignatureParamsG1Valid(params2)).toBe(true);
-    expect(params1.h[0]).toEqual(params2.h[0])
-    expect(params1.h[1]).toEqual(params2.h[1])
+    expect(params1.h[0]).toEqual(params2.h[0]);
+    expect(params1.h[1]).toEqual(params2.h[1]);
   });
 
   it("extend signature params in G2", () => {
@@ -198,8 +198,8 @@ describe("For BBS+ signatures", () => {
     const params2 = bbsAdaptSigParamsG2ForMsgCount(params1, label, 2);
     expect(bbsSignatureParamsG2MaxSupportedMsgs(params2)).toBe(2);
     expect(isSignatureParamsG2Valid(params2)).toBe(true);
-    expect(params1.h[0]).toEqual(params2.h[0])
-    expect(params1.h[1]).toEqual(params2.h[1])
+    expect(params1.h[0]).toEqual(params2.h[0]);
+    expect(params1.h[1]).toEqual(params2.h[1]);
   });
 
   it("generate and verify a blind signature in G1", () => {
@@ -215,8 +215,19 @@ describe("For BBS+ signatures", () => {
     msgsNotToCommit.set(4, messages[4]);
 
     const blinding = generateRandomFieldElement();
-    const commitment = bbsCommitMsgsInG1(msgsToCommit, blinding, sigParamsG1, true);
-    const blindSig = bbsBlindSignG1(commitment, msgsNotToCommit, sk, sigParamsG1, true);
+    const commitment = bbsCommitMsgsInG1(
+      msgsToCommit,
+      blinding,
+      sigParamsG1,
+      true
+    );
+    const blindSig = bbsBlindSignG1(
+      commitment,
+      msgsNotToCommit,
+      sk,
+      sigParamsG1,
+      true
+    );
     const sig = bbsUnblindSigG1(blindSig, blinding);
     const res = bbsVerifyG1(messages, sig, pkG2, sigParamsG1, true);
     expect(res.verified).toBe(true);
@@ -235,8 +246,19 @@ describe("For BBS+ signatures", () => {
     msgsNotToCommit.set(4, messages[4]);
 
     const blinding = generateRandomFieldElement();
-    const commitment = bbsCommitMsgsInG2(msgsToCommit, blinding, sigParamsG2, true);
-    const blindSig = bbsBlindSignG2(commitment, msgsNotToCommit, sk, sigParamsG2, true);
+    const commitment = bbsCommitMsgsInG2(
+      msgsToCommit,
+      blinding,
+      sigParamsG2,
+      true
+    );
+    const blindSig = bbsBlindSignG2(
+      commitment,
+      msgsNotToCommit,
+      sk,
+      sigParamsG2,
+      true
+    );
     const sig = bbsUnblindSigG2(blindSig, blinding);
     const res = bbsVerifyG2(messages, sig, pkG1, sigParamsG2, true);
     expect(res.verified).toBe(true);
@@ -260,19 +282,42 @@ describe("For BBS+ signatures", () => {
     revealedMsgs.set(0, messages[0]);
     revealedMsgs.set(2, messages[2]);
 
-    const protocol = bbsInitializeProofOfKnowledgeOfSignature(sig, sigParamsG1, messages, blindings, revealed, true);
-    const pBytes = bbsChallengeContributionFromProtocol(protocol, revealedMsgs, sigParamsG1, true);
+    const protocol = bbsInitializeProofOfKnowledgeOfSignature(
+      sig,
+      sigParamsG1,
+      messages,
+      blindings,
+      revealed,
+      true
+    );
+    const pBytes = bbsChallengeContributionFromProtocol(
+      protocol,
+      revealedMsgs,
+      sigParamsG1,
+      true
+    );
     expect(pBytes).toBeInstanceOf(Uint8Array);
     const proverChallenge = generateChallengeFromBytes(pBytes);
     const proof = bbsGenProofOfKnowledgeOfSignature(protocol, proverChallenge);
 
-    const vBytes = bbsChallengeContributionFromProof(proof, revealedMsgs, sigParamsG1, true);
+    const vBytes = bbsChallengeContributionFromProof(
+      proof,
+      revealedMsgs,
+      sigParamsG1,
+      true
+    );
     expect(vBytes).toBeInstanceOf(Uint8Array);
     expect(pBytes).toEqual(vBytes);
     const verifierChallenge = generateChallengeFromBytes(vBytes);
     expect(proverChallenge).toEqual(verifierChallenge);
-    const result = bbsVerifyProofOfKnowledgeOfSignature(proof, revealedMsgs, verifierChallenge, pkG2, sigParamsG1, true);
+    const result = bbsVerifyProofOfKnowledgeOfSignature(
+      proof,
+      revealedMsgs,
+      verifierChallenge,
+      pkG2,
+      sigParamsG1,
+      true
+    );
     expect(result.verified).toBe(true);
   });
-
 });

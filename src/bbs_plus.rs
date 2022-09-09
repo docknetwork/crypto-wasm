@@ -676,7 +676,7 @@ pub fn encode_messages_as_js_array_to_fr_vec(
 pub fn encode_messages_as_js_map_to_fr_btreemap(
     messages: &js_sys::Map,
     encode_messages: bool,
-) -> Result<BTreeMap<usize, Fr>, serde_wasm_bindgen::Error> {
+) -> Result<BTreeMap<usize, Fr>, JsValue> {
     let mut msgs = BTreeMap::new();
     for e in messages.entries() {
         let arr = js_sys::Array::from(&e.unwrap());
