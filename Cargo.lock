@@ -232,7 +232,6 @@ dependencies = [
 [[package]]
 name = "bbs_plus"
 version = "0.7.0"
-source = "git+https://github.com/docknetwork/crypto?branch=circom#c2784928adbef406e7f94dc760cbcb032a9c0b18"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -409,7 +408,6 @@ dependencies = [
 [[package]]
 name = "dock_crypto_utils"
 version = "0.4.0"
-source = "git+https://github.com/docknetwork/crypto?branch=circom#c2784928adbef406e7f94dc760cbcb032a9c0b18"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -841,7 +839,6 @@ dependencies = [
 [[package]]
 name = "proof_system"
 version = "0.12.0"
-source = "git+https://github.com/docknetwork/crypto?branch=circom#c2784928adbef406e7f94dc760cbcb032a9c0b18"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -1034,7 +1031,6 @@ checksum = "4501abdff3ae82a1c1b477a17252eb69cee9e66eb915c1abaa4f44d873df9f09"
 [[package]]
 name = "saver"
 version = "0.4.0"
-source = "git+https://github.com/docknetwork/crypto?branch=circom#c2784928adbef406e7f94dc760cbcb032a9c0b18"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -1054,7 +1050,6 @@ dependencies = [
 [[package]]
 name = "schnorr_pok"
 version = "0.6.0"
-source = "git+https://github.com/docknetwork/crypto?branch=circom#c2784928adbef406e7f94dc760cbcb032a9c0b18"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -1299,7 +1294,6 @@ checksum = "957e51f3646910546462e67d5f7599b9e4fb8acdd304b087a6494730f9eebf04"
 [[package]]
 name = "vb_accumulator"
 version = "0.8.0"
-source = "git+https://github.com/docknetwork/crypto?branch=circom#c2784928adbef406e7f94dc760cbcb032a9c0b18"
 dependencies = [
  "ark-ec",
  "ark-ff",

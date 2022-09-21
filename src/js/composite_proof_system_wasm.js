@@ -156,9 +156,9 @@ module.exports.generateBoundCheckWitness = (message) => {
     return wasm.generateBoundCheckWitness(message);
 };
 
-module.exports.generateR1CSCircomWitness = (inputWires) => {
+module.exports.generateR1CSCircomWitness = (inputWires, privates, publics = []) => {
     requireWasmInitialized();
-    return wasm.generateR1CSCircomWitness(inputWires);
+    return wasm.generateR1CSCircomWitness(inputWires, privates, publics);
 };
 
 module.exports.generateProofSpecG1 = (statements, metaStatements, setupParams, context) => {

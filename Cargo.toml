@@ -26,16 +26,16 @@ wee_alloc = { version = "0.4.5", optional = true }
 #bbs_plus = { version = "0.7.0", default-features = false }
 #vb_accumulator = { version = "0.8.0", default-features = false }
 #schnorr_pok = { version = "0.6.0", default-features = false }
-#proof_system = { version = "0.11.0", default-features = false }
+#proof_system = { version = "0.12.0", default-features = false }
 #dock_crypto_utils = { version = "0.4.0", default-features = false }
-#saver = { version = "0.3.0", default-features = false }
+#saver = { version = "0.4.0", default-features = false }
 bbs_plus = { git = "https://github.com/docknetwork/crypto", branch = "circom", default-features = false }
 vb_accumulator = { git = "https://github.com/docknetwork/crypto", branch = "circom", default-features = false }
 schnorr_pok = { git = "https://github.com/docknetwork/crypto", branch = "circom", default-features = false }
 proof_system = { git = "https://github.com/docknetwork/crypto", branch = "circom", default-features = false, features = ["wasmer-js"] }
 dock_crypto_utils = { git = "https://github.com/docknetwork/crypto", branch = "circom", default-features = false }
 saver = { git = "https://github.com/docknetwork/crypto", branch = "circom", default-features = false }
-legogroth16 = {git = "https://github.com/lovesh/legogro16", branch = "circom", default-features = false, features = ["circom", "wasmer-js"]}
+legogroth16 = {version = "0.3.0", default-features = false, features = ["circom", "wasmer-js"]}
 
 ark-ec = { version = "^0.3.0", default-features = false }
 ark-ff = { version = "^0.3.0", default-features = false }

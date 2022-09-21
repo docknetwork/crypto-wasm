@@ -511,7 +511,7 @@ describe("Proof generation and verification from R1CS and WASM file", () => {
     const inputWires = new Map<string, Uint8Array[]>();
     inputWires.set("a", [messages[in1Index]]);
     inputWires.set("b", [messages[in2Index]]);
-    const witness2 = generateR1CSCircomWitness(inputWires);
+    const witness2 = generateR1CSCircomWitness(inputWires, ["a", "b"]);
 
     const witnesses: Uint8Array[] = [];
     witnesses.push(witness1);
@@ -619,7 +619,7 @@ describe("Proof generation and verification from R1CS and WASM file", () => {
     const inputWires = new Map<string, Uint8Array[]>();
     inputWires.set("a", [messages[in1Index]]);
     inputWires.set("b", [messages[in2Index]]);
-    const witness2 = generateR1CSCircomWitness(inputWires);
+    const witness2 = generateR1CSCircomWitness(inputWires, ["a", "b"]);
 
     const witnesses: Uint8Array[] = [];
     witnesses.push(witness1);
@@ -721,7 +721,7 @@ describe("Proof generation and verification from R1CS and WASM file", () => {
     const inputWires = new Map<string, Uint8Array[]>();
     inputWires.set("a", [messages[in1Index]]);
     inputWires.set("b", [publicGt]);
-    const witness2 = generateR1CSCircomWitness(inputWires);
+    const witness2 = generateR1CSCircomWitness(inputWires, ["a"], ["b"]);
 
     const witnesses: Uint8Array[] = [];
     witnesses.push(witness1);
@@ -827,7 +827,7 @@ describe("Proof generation and verification from R1CS and WASM file", () => {
       const inputWires = new Map<string, Uint8Array[]>();
       inputWires.set("a", [messages[i]]);
       inputWires.set("b", [publicGt]);
-      witnesses.push(generateR1CSCircomWitness(inputWires));
+      witnesses.push(generateR1CSCircomWitness(inputWires, ["a"], ["b"]));
     }
 
     console.time("proof gen");
@@ -939,7 +939,7 @@ describe("Proof generation and verification from R1CS and WASM file", () => {
     const witness1 = generatePoKBBSSignatureWitness(sig, unrevealedMsgs, false);
     const inputWires = new Map<string, Uint8Array[]>();
     inputWires.set("x", [messages[idx]]);
-    const witness2 = generateR1CSCircomWitness(inputWires);
+    const witness2 = generateR1CSCircomWitness(inputWires, ["x"]);
 
     const witnesses: Uint8Array[] = [];
     witnesses.push(witness1);

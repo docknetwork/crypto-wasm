@@ -182,7 +182,9 @@ export function generateBoundCheckWitness(
 ): Uint8Array;
 
 export function generateR1CSCircomWitness(
-    inputWires: Map<string, Uint8Array[]>
+    inputWires: Map<string, Uint8Array[]>,
+    privates: string[],
+    publics?: string[],
 ): Uint8Array;
 
 export function generateProofSpecG1(
