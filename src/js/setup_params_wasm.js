@@ -76,3 +76,18 @@ module.exports.generateSetupParamForLegoVerifyingKey = (verifyingKey, uncompress
     requireWasmInitialized();
     return wasm.generateSetupParamForLegoVerifyingKey(verifyingKey, uncompressed);
 };
+
+module.exports.generateSetupParamForR1CS = (curveName, numPublic, numPrivate, constraints) => {
+    requireWasmInitialized();
+    return wasm.generateSetupParamForR1CS(curveName, numPublic, numPrivate, constraints);
+};
+
+module.exports.generateSetupParamForBytes = (bytes) => {
+    requireWasmInitialized();
+    return wasm.generateSetupParamForBytes(bytes);
+};
+
+module.exports.generateSetupParamForFieldElemVec = (arr) => {
+    requireWasmInitialized();
+    return wasm.generateSetupParamForFieldElemVec(arr);
+};

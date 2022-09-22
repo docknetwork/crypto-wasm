@@ -153,10 +153,22 @@ yarn install --frozen-lockfile
 
 #### Build
 
-To build the project for debug run:
+To build the project for debug, run:
 
 ```
 yarn build
+```
+
+To build the project for release, run:
+
+```
+yarn build:release
+```
+
+To build the project for profiling (slower to build, faster to run), run:
+
+```
+yarn build:profiling
 ```
 
 #### Test
@@ -348,6 +360,12 @@ or
 
 ```
 BUILD_MODE=RELEASE ./scripts/build-package.sh 
+```
+
+or
+
+```
+BUILD_MODE=PROFILING ./scripts/build-package.sh 
 ```
 
 To run jest tests, build with target nodejs as `wasm-pack build --out-dir lib --target nodejs` 

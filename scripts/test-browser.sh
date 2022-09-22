@@ -3,4 +3,4 @@
 set -e
 
 echo "*** Testing WASM on chrome"
-rustup run stable wasm-pack test --release --headless --chrome
+WASM_BINDGEN_TEST_TIMEOUT=360 rustup run stable wasm-pack test --release --headless --chrome

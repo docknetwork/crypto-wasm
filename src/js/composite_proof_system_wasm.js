@@ -101,6 +101,26 @@ module.exports.generateBoundCheckLegoVerifierStatementFromParamRefs = (min, max,
     return wasm.generateBoundCheckLegoVerifierStatementFromParamRefs(min, max, snarkVk);
 };
 
+module.exports.generateR1CSCircomProverStatement = (curveName, numPublic, numPrivate, constraints, wasmBytes, snarkPk, uncompressedPublicParams) => {
+    requireWasmInitialized();
+    return wasm.generateR1CSCircomProverStatement(curveName, numPublic, numPrivate, constraints, wasmBytes, snarkPk, uncompressedPublicParams);
+};
+
+module.exports.generateR1CSCircomProverStatementFromParamRefs = (r1cs, wasmBytes, snarkPk) => {
+    requireWasmInitialized();
+    return wasm.generateR1CSCircomProverStatementFromParamRefs(r1cs, wasmBytes, snarkPk);
+};
+
+module.exports.generateR1CSCircomVerifierStatement = (publicInputs, snarkVk, uncompressedPublicParams) => {
+    requireWasmInitialized();
+    return wasm.generateR1CSCircomVerifierStatement(publicInputs, snarkVk, uncompressedPublicParams);
+};
+
+module.exports.generateR1CSCircomVerifierStatementFromParamRefs = (publicInputs, snarkVk) => {
+    requireWasmInitialized();
+    return wasm.generateR1CSCircomVerifierStatementFromParamRefs(publicInputs, snarkVk);
+};
+
 module.exports.generateWitnessEqualityMetaStatement = (equalities) => {
     requireWasmInitialized();
     return wasm.generateWitnessEqualityMetaStatement(equalities);
@@ -134,6 +154,11 @@ module.exports.generateSaverWitness = (message) => {
 module.exports.generateBoundCheckWitness = (message) => {
     requireWasmInitialized();
     return wasm.generateBoundCheckWitness(message);
+};
+
+module.exports.generateR1CSCircomWitness = (inputWires, privates, publics = []) => {
+    requireWasmInitialized();
+    return wasm.generateR1CSCircomWitness(inputWires, privates, publics);
 };
 
 module.exports.generateProofSpecG1 = (statements, metaStatements, setupParams, context) => {
