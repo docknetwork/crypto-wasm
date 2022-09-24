@@ -1,6 +1,6 @@
 {
   "name": "@docknetwork/crypto-wasm",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "author": "Dock.io",
   "license": "Apache-2.0",
   "private": false,
@@ -32,8 +32,7 @@
     "test:browser": "./scripts/test-browser.sh",
     "test:wasm": "yarn jest",
     "benchmark:wasm": "ts-node ./bench/index.ts",
-    "publish:unstable": "./scripts/publish-unstable.sh",
-    "publish:release": "./scripts/publish.sh",
+    "publish:release": "yarn build:release && yarn publish",
     "version": "conventional-changelog -p angular -i CHANGELOG.md -s && git add CHANGELOG.md",
     "version:release": "yarn version --minor --message \"chore(release): publish\""
   },
