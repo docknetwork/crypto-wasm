@@ -231,9 +231,9 @@ dependencies = [
 
 [[package]]
 name = "bbs_plus"
-version = "0.7.0"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d4badcefb9a3e89c73b3bca4facf460ca0d9c9f79dc8e55b075001d40217a950"
+checksum = "b4761f8af58a2d7d8b75e984738f7efb690ad20d729a0091fad3f65df09c211a"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -412,9 +412,9 @@ dependencies = [
 
 [[package]]
 name = "dock_crypto_utils"
-version = "0.4.0"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e6287e2340beee5a99eb8bbf150f298194119a3d1f9c9bdd6ae52d8aae7617db"
+checksum = "54f00091dc5566eca96ccc1ee4c6633a1616a87f5de0cf72c0a4410a34b855ae"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -429,7 +429,7 @@ dependencies = [
 
 [[package]]
 name = "dock_crypto_wasm"
-version = "0.12.0"
+version = "0.13.0"
 dependencies = [
  "ark-bls12-381",
  "ark-ec",
@@ -840,9 +840,9 @@ dependencies = [
 
 [[package]]
 name = "proof_system"
-version = "0.12.0"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1424bf0417b7aa5b47b635453aef587fa438e928c38304ed80bd66c7acec707a"
+checksum = "5c39db046ea8929b0274987274961a58fcd5926bf7d448694d086372f116c8b2"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -1034,9 +1034,9 @@ checksum = "4501abdff3ae82a1c1b477a17252eb69cee9e66eb915c1abaa4f44d873df9f09"
 
 [[package]]
 name = "saver"
-version = "0.4.0"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e53cc7c64517840f23f443571128d91d70bfbd67b36576176b9eccff9088734a"
+checksum = "60ce2123dac553fd1e328a261e7307ea83d4e879af7cc73a09f1e52d8851aa4e"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -1055,9 +1055,9 @@ dependencies = [
 
 [[package]]
 name = "schnorr_pok"
-version = "0.6.0"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "55341da7a630eca8d0a5277cb1ee1cb3671069d364aef90bd3ddff35f49d292d"
+checksum = "fe1cf4ca7245fb3ef380610b369871f4bd2de69c01d1a40296928bf6c31a7062"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -1301,9 +1301,9 @@ checksum = "f962df74c8c05a667b5ee8bcf162993134c104e96440b663c8daa176dc772d8c"
 
 [[package]]
 name = "vb_accumulator"
-version = "0.8.0"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "53f92e5be2149e700e9ed2fc6b26ceb905661b816ca223c61c4e26d546f6793e"
+checksum = "6051225cfb36f3cdc2cd98799341aedcb87b2f3f5284543a7258e8a67730bcd9"
 dependencies = [
  "ark-ec",
  "ark-ff",
