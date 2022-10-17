@@ -256,3 +256,7 @@ export function saverGetCiphertextFromProof(
     statementIndex: number
 ): Uint8Array;
 
+export function saverGetCiphertextsFromProof(
+    proof: Uint8Array,
+    statementIndices: number[]
+): Uint8Array[];

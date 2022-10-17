@@ -32,13 +32,14 @@ import {
   saverGenerateChunkedCommitmentGenerators,
   saverGenerateEncryptionGenerators,
   saverGetCiphertextFromProof,
+  saverGetCiphertextsFromProof,
   saverGetSnarkVkFromPk,
   saverVerifyDecryptionUsingSnarkPk,
   saverVerifyDecryptionUsingSnarkVk,
   verifyCompositeProofG1WithDeconstructedProofSpec,
 } from "../../lib";
 
-import { stringToBytes, getRevealedUnrevealed } from "../utilities";
+import {stringToBytes, getRevealedUnrevealed, areUint8ArraysEqual} from "../utilities";
 
 describe("Verifiable encryption of a signed message", () => {
   const messageCount = 5;
@@ -193,6 +194,8 @@ describe("Verifiable encryption of a signed message", () => {
 
   it("decrypt and verify", () => {
     const ct = saverGetCiphertextFromProof(proof, 1);
+    const ct1 = saverGetCiphertextsFromProof(proof, [1]);
+    expect(areUint8ArraysEqual(ct, ct1[0])).toEqual(true);
 
     console.time("decrypt using pk");
     const [decryptedMessage, nu] = saverDecryptCiphertextUsingSnarkPk(

@@ -243,14 +243,22 @@ pub fn saver_get_ciphertext_from_proof(
 ) -> Result<Uint8Array, JsValue> {
     set_panic_hook();
     let proof = obj_from_uint8array!(ProofG1, proof, false);
-    let statement_proof = proof
-        .statement_proof(statement_index)
-        .map_err(|_| JsValue::from(&format!("Did not find StatementProof at the given index")))?;
-    if let StatementProofG1::Saver(s) = statement_proof {
-        Ok(obj_to_uint8array!(&s.ciphertext, false, "SaverCiphertext"))
-    } else {
-        Err(JsValue::from(&format!("StatementProof wasn't for Saver")))
+    get_ciphertext_from_proof(&proof, statement_index)
+}
+
+/// From the composite proof, get the ciphertext for the statement indices `statement_indices`
+#[wasm_bindgen(js_name = saverGetCiphertextsFromProof)]
+pub fn saver_get_ciphertexts_from_proof(
+    proof: Uint8Array,
+    statement_indices: Vec<usize>,
+) -> Result<js_sys::Array, JsValue> {
+    set_panic_hook();
+    let proof = obj_from_uint8array!(ProofG1, proof, false);
+    let statement_proofs = js_sys::Array::new();
+    for i in statement_indices {
+        statement_proofs.push(&JsValue::from(get_ciphertext_from_proof(&proof, i)?));
     }
+    Ok(statement_proofs)
 }
 
 #[wasm_bindgen(js_name = generateBoundCheckWitness)]
@@ -281,12 +289,6 @@ pub fn generate_r1cs_circom_witness(
         let name: String = serde_wasm_bindgen::from_value(name_as_js_val)?;
         r1cs_wit.set_public(name, js_array_to_fr_vec(&vals)?);
     }
-    // for e in input_wires.entries() {
-    //     let arr = js_sys::Array::from(&e.unwrap());
-    //     let name: String = serde_wasm_bindgen::from_value(arr.get(0))?;
-    //     let vals = js_sys::Array::from(&arr.get(1));
-    //     r1cs_wit.set_private(name, js_array_to_fr_vec(&vals)?);
-    // }
     let witness = Witness::R1CSLegoGroth16(r1cs_wit);
     serde_wasm_bindgen::to_value(&witness).map_err(|e| JsValue::from(e))
 }
@@ -391,5 +393,16 @@ fn verify_proof_given_proof_spec_obj<G: AffineCurve<ScalarField = Fr>>(
             error: Some(format!("Verifying proof returned error {:?}", e)),
         })
         .unwrap()),
+    }
+}
+
+fn get_ciphertext_from_proof(proof: &ProofG1, statement_index: usize) -> Result<Uint8Array, JsValue> {
+    let statement_proof = proof
+        .statement_proof(statement_index)
+        .map_err(|_| JsValue::from(&format!("Did not find StatementProof at the given index {}", statement_index)))?;
+    if let StatementProofG1::Saver(s) = statement_proof {
+        Ok(obj_to_uint8array!(&s.ciphertext, false, "SaverCiphertext"))
+    } else {
+        Err(JsValue::from(&format!("StatementProof at index {} wasn't for Saver", statement_index)))
     }
 }

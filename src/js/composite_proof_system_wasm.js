@@ -215,3 +215,8 @@ module.exports.saverGetCiphertextFromProof = (proof, statementIndex) => {
     requireWasmInitialized();
     return wasm.saverGetCiphertextFromProof(proof, statementIndex);
 };
+
+module.exports.saverGetCiphertextsFromProof = (proof, statementIndices) => {
+    requireWasmInitialized();
+    return wasm.saverGetCiphertextsFromProof(proof, statementIndices);
+};
