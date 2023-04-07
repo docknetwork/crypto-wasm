@@ -1,5 +1,5 @@
 use ark_bls12_381::Bls12_381;
-use ark_ec::PairingEngine;
+use ark_ec::pairing::Pairing;
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use ark_std::collections::BTreeSet;
 use js_sys::Uint8Array;
@@ -25,9 +25,9 @@ pub(crate) type PoKBBSSigStmt = statement::bbs_plus::PoKBBSSignatureG1<Bls12_381
 pub(crate) type AccumMemStmt = statement::accumulator::AccumulatorMembership<Bls12_381>;
 pub(crate) type AccumNonMemStmt = statement::accumulator::AccumulatorNonMembership<Bls12_381>;
 pub(crate) type PedCommG1Stmt =
-    statement::ped_comm::PedersenCommitment<<Bls12_381 as PairingEngine>::G1Affine>;
+    statement::ped_comm::PedersenCommitment<<Bls12_381 as Pairing>::G1Affine>;
 pub(crate) type PedCommG2Stmt =
-    statement::ped_comm::PedersenCommitment<<Bls12_381 as PairingEngine>::G2Affine>;
+    statement::ped_comm::PedersenCommitment<<Bls12_381 as Pairing>::G2Affine>;
 pub(crate) type SaverProverStmt = statement::saver::SaverProver<Bls12_381>;
 pub(crate) type SaverVerifierStmt = statement::saver::SaverVerifier<Bls12_381>;
 pub(crate) type BoundCheckLegoProverStmt =

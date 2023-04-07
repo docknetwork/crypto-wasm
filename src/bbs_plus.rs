@@ -5,19 +5,20 @@ use crate::utils::{
     js_array_of_bytearrays_to_vector_of_bytevectors, random_bytes, set_panic_hook,
 };
 
+use bbs_plus::proof::MessageOrBlinding;
 use wasm_bindgen::prelude::*;
 
 use crate::common::VerifyResponse;
 use crate::{Fr, G1Affine, G2Affine};
 use ark_bls12_381::Bls12_381;
-use ark_ff::to_bytes;
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use ark_std::collections::{BTreeMap, BTreeSet};
 use bbs_plus::prelude::{
     KeypairG1, KeypairG2, PoKOfSignatureG1Proof, PoKOfSignatureG1Protocol, PublicKeyG1,
     PublicKeyG2, SecretKey, SignatureG1, SignatureG2, SignatureParamsG1, SignatureParamsG2,
 };
-use blake2::Blake2b;
+use blake2::Blake2b512;
+use dock_crypto_utils::concat_slices;
 use dock_crypto_utils::hashing_utils::affine_group_elem_from_try_and_incr;
 use zeroize::Zeroize;
 
@@ -38,7 +39,7 @@ pub fn bbs_generate_g1_params(
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
     let label = label.unwrap_or_else(|| random_bytes());
-    let params = SigParamsG1::new::<Blake2b>(&label, message_count);
+    let params = SigParamsG1::new::<Blake2b512>(&label, message_count);
     serde_wasm_bindgen::to_value(&params).map_err(|e| JsValue::from(e))
 }
 
@@ -63,7 +64,7 @@ pub fn bbs_generate_g2_params(
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
     let label = label.unwrap_or_else(|| random_bytes());
-    let params = SigParamsG2::new::<Blake2b>(&label, message_count);
+    let params = SigParamsG2::new::<Blake2b512>(&label, message_count);
     serde_wasm_bindgen::to_value(&params).map_err(|e| JsValue::from(e))
 }
 
@@ -113,7 +114,7 @@ pub fn bbs_params_g2_from_bytes(bytes: js_sys::Uint8Array) -> Result<JsValue, Js
 pub fn bbs_generate_secret_key(seed: Option<Vec<u8>>) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let seed = seed.unwrap_or_else(|| random_bytes());
-    let sk = BBSPlusSk::generate_using_seed::<Blake2b>(&seed);
+    let sk = BBSPlusSk::generate_using_seed::<Blake2b512>(&seed);
     Ok(obj_to_uint8array!(&sk, true, "BBSPlusSk"))
 }
 
@@ -160,7 +161,7 @@ pub fn bbs_generate_g1_keypair(params: JsValue, seed: Option<Vec<u8>>) -> Result
     set_panic_hook();
     let params: SigParamsG2 = serde_wasm_bindgen::from_value(params)?;
     let mut seed = seed.unwrap_or(random_bytes());
-    let keypair = KeypairG1::generate_using_seed::<Blake2b>(&seed, &params);
+    let keypair = KeypairG1::generate_using_seed::<Blake2b512>(&seed, &params);
     seed.zeroize();
     serde_wasm_bindgen::to_value(&keypair).map_err(|e| JsValue::from(e))
 }
@@ -170,7 +171,7 @@ pub fn bbs_generate_g2_keypair(params: JsValue, seed: Option<Vec<u8>>) -> Result
     set_panic_hook();
     let params: SigParamsG1 = serde_wasm_bindgen::from_value(params)?;
     let mut seed = seed.unwrap_or(random_bytes());
-    let keypair = KeypairG2::generate_using_seed::<Blake2b>(&seed, &params);
+    let keypair = KeypairG2::generate_using_seed::<Blake2b512>(&seed, &params);
     seed.zeroize();
     serde_wasm_bindgen::to_value(&keypair).map_err(|e| JsValue::from(e))
 }
@@ -368,7 +369,7 @@ pub fn bbs_verify_g1(
     let params: SigParamsG1 = serde_wasm_bindgen::from_value(params)?;
     let messages = encode_messages_as_js_array_to_fr_vec(&messages, encode_messages)?;
 
-    match signature.verify(messages.as_slice(), &pk, &params) {
+    match signature.verify(messages.as_slice(), pk.clone(), params.clone()) {
         Ok(_) => Ok(serde_wasm_bindgen::to_value(&VerifyResponse {
             verified: true,
             error: None,
@@ -490,7 +491,7 @@ pub fn bbs_initialize_proof_of_knowledge_of_signature(
     let signature = obj_from_uint8array!(SigG1, signature, true);
     let params: SigParamsG1 = serde_wasm_bindgen::from_value(params)?;
     // TODO: Avoid this hack of passing false, create separate method to parse
-    let blindings = encode_messages_as_js_map_to_fr_btreemap(&blindings, false)?;
+    let mut blindings = encode_messages_as_js_map_to_fr_btreemap(&blindings, false)?;
     let messages = encode_messages_as_js_array_to_fr_vec(&messages, encode_messages)?;
 
     let mut indices = BTreeSet::new();
@@ -498,8 +499,22 @@ pub fn bbs_initialize_proof_of_knowledge_of_signature(
         let index: usize = serde_wasm_bindgen::from_value(i.unwrap()).unwrap();
         indices.insert(index);
     }
+    // TODO!
     let mut rng = get_seeded_rng();
-    match PoKOfSigProtocol::init(&mut rng, &signature, &params, &messages, blindings, indices) {
+    match PoKOfSigProtocol::init(
+        &mut rng,
+        &signature,
+        &params,
+        messages.iter().enumerate().map(|(idx, message)| {
+            if indices.contains(&idx) {
+                MessageOrBlinding::RevealMessage(message)
+            } else if let Some(blinding) = blindings.remove(&idx) {
+                MessageOrBlinding::BlindMessageWithConcreteBlinding { message, blinding }
+            } else {
+                MessageOrBlinding::BlindMessageRandomly(message)
+            }
+        }),
+    ) {
         Ok(sig) => Ok(serde_wasm_bindgen::to_value(&sig)
             .map_err(|e| JsValue::from(e))
             .unwrap()),
@@ -540,7 +555,7 @@ pub fn bbs_verify_proof(
 
     let msgs = encode_messages_as_js_map_to_fr_btreemap(&revealed_msgs, encode_messages)?;
 
-    match proof.verify(&msgs, &challenge, &public_key, &params) {
+    match proof.verify(&msgs, &challenge, public_key.clone(), params.clone()) {
         Ok(_) => Ok(serde_wasm_bindgen::to_value(&VerifyResponse {
             verified: true,
             error: None,
@@ -635,8 +650,8 @@ mod macros {
             } else if current_count < $new_count {
                 let generating_label = $generating_label.to_vec();
                 for i in current_count + 1..=$new_count {
-                    let h = affine_group_elem_from_try_and_incr::<$sig_group, Blake2b>(
-                        &to_bytes![&generating_label, " : h_".as_bytes(), i as u64].unwrap(),
+                    let h = affine_group_elem_from_try_and_incr::<$sig_group, Blake2b512>(
+                        &concat_slices!(&generating_label, b" : h_", i.to_be_bytes()),
                     );
                     params.h.push(h);
                 }
@@ -656,7 +671,7 @@ pub fn messages_as_bytes_to_fr_vec(
             if encode_messages {
                 encode_message_for_signing(m)
             } else {
-                Fr::deserialize(m.as_slice()).map_err(|e| {
+                Fr::deserialize_compressed(m.as_slice()).map_err(|e| {
                     JsValue::from(&format!("Cannot deserialize to Fr due to error: {:?}", e))
                 })?
             }
@@ -685,7 +700,7 @@ pub fn encode_messages_as_js_map_to_fr_btreemap(
         let m = if encode_messages {
             encode_message_for_signing(&msg)
         } else {
-            Fr::deserialize(msg.as_slice()).map_err(|e| {
+            Fr::deserialize_compressed(msg.as_slice()).map_err(|e| {
                 JsValue::from(&format!("Cannot deserialize to Fr due to error: {:?}", e))
             })?
         };
@@ -698,8 +713,7 @@ pub fn encode_messages_as_js_map_to_fr_btreemap(
 /// not preimage-resistant and thus use of hash function is not necessary. However, the encoding must
 /// be constant time
 pub fn encode_message_for_signing(msg: &[u8]) -> Fr {
-    dock_crypto_utils::hashing_utils::field_elem_from_seed::<Fr, Blake2b>(
-        msg,
-        "BBS+ message".as_bytes(),
+    dock_crypto_utils::hashing_utils::field_elem_from_try_and_incr::<Fr, Blake2b512>(
+        &concat_slices!(msg, b"BBS+ message"),
     )
 }

@@ -3,12 +3,12 @@ use crate::utils::{
     g2_affine_to_uint8_array, is_positive_safe_integer, js_array_to_fr_vec,
     js_array_to_g1_affine_vec, js_array_to_g2_affine_vec, random_bytes, set_panic_hook,
 };
-use crate::{Fr, G1Affine, G2Affine};
-use ark_ec::msm::VariableBaseMSM;
-use ark_ec::ProjectiveCurve;
+use crate::{Fr, G1Affine, G1Projective, G2Affine, G2Projective};
+use ark_ec::CurveGroup;
+use ark_ec::VariableBaseMSM;
 use ark_ff::PrimeField;
 use ark_serialize::CanonicalSerialize;
-use blake2::Blake2b;
+use blake2::Blake2b512;
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 
@@ -66,7 +66,7 @@ pub fn field_element_as_bytes(
     set_panic_hook();
     let f = fr_from_uint8_array(element, element_is_secret)?;
     let mut bytes = vec![];
-    f.serialize(&mut bytes).map_err(|e| {
+    f.serialize_compressed(&mut bytes).map_err(|e| {
         JsValue::from(&format!(
             "Serializing field element to bytes returned error: {:?}",
             e
@@ -83,11 +83,8 @@ pub fn pedersen_commitment_g1(
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let bases = js_array_to_g1_affine_vec(&bases)?;
-    let messages = js_array_to_fr_vec(&messages)?
-        .into_iter()
-        .map(|s| s.into_repr())
-        .collect::<Vec<_>>();
-    let comm = VariableBaseMSM::multi_scalar_mul(&bases, &messages).into_affine();
+    let messages = js_array_to_fr_vec(&messages)?;
+    let comm = G1Projective::msm_unchecked(&bases, &messages).into_affine();
     g1_affine_to_uint8_array(&comm)
 }
 
@@ -99,34 +96,32 @@ pub fn pedersen_commitment_g2(
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let bases = js_array_to_g2_affine_vec(&bases)?;
-    let messages = js_array_to_fr_vec(&messages)?
-        .into_iter()
-        .map(|s| s.into_repr())
-        .collect::<Vec<_>>();
-    let comm = VariableBaseMSM::multi_scalar_mul(&bases, &messages).into_affine();
+    let messages = js_array_to_fr_vec(&messages)?;
+    let comm = G2Projective::msm_unchecked(&bases, &messages).into_affine();
     g2_affine_to_uint8_array(&comm)
 }
 
 fn fr_uin8_array_from_bytes_hash(bytes: &[u8]) -> js_sys::Uint8Array {
-    let f = dock_crypto_utils::hashing_utils::field_elem_from_seed::<Fr, Blake2b>(&bytes, &[]);
+    let f =
+        dock_crypto_utils::hashing_utils::field_elem_from_try_and_incr::<Fr, Blake2b512>(&bytes);
     fr_to_uint8_array(&f).unwrap()
 }
 
 pub fn random_ff(seed: Option<Vec<u8>>) -> Fr {
     let seed = seed.unwrap_or_else(|| random_bytes());
-    dock_crypto_utils::hashing_utils::field_elem_from_seed::<Fr, Blake2b>(&seed, &[])
+    dock_crypto_utils::hashing_utils::field_elem_from_try_and_incr::<Fr, Blake2b512>(&seed)
 }
 
 pub fn random_g1(seed: Option<Vec<u8>>) -> G1Affine {
     let seed = seed.unwrap_or_else(|| random_bytes());
-    dock_crypto_utils::hashing_utils::affine_group_elem_from_try_and_incr::<G1Affine, Blake2b>(
+    dock_crypto_utils::hashing_utils::affine_group_elem_from_try_and_incr::<G1Affine, Blake2b512>(
         &seed,
     )
 }
 
 pub fn random_g2(seed: Option<Vec<u8>>) -> G2Affine {
     let seed = seed.unwrap_or_else(|| random_bytes());
-    dock_crypto_utils::hashing_utils::affine_group_elem_from_try_and_incr::<G2Affine, Blake2b>(
+    dock_crypto_utils::hashing_utils::affine_group_elem_from_try_and_incr::<G2Affine, Blake2b512>(
         &seed,
     )
 }

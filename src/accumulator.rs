@@ -5,12 +5,13 @@ use crate::utils::{
 };
 
 use ark_bls12_381::Bls12_381;
-use ark_ec::PairingEngine;
+use ark_ec::pairing::Pairing;
+use dock_crypto_utils::concat_slices;
 use wasm_bindgen::prelude::*;
 
-use ark_ff::{field_new, One};
+use ark_ff::One;
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
-use blake2::Blake2b;
+use blake2::Blake2b512;
 use vb_accumulator::prelude::{
     Accumulator, Keypair, MembershipProof, MembershipProofProtocol, MembershipProvingKey,
     MembershipWitness, NonMembershipProof, NonMembershipProofProtocol, NonMembershipProvingKey,
@@ -23,16 +24,16 @@ use crate::Fr;
 
 // Trying to keep types at one place so changing the curve is easier
 pub(crate) type AccumSk = SecretKey<Fr>;
-pub type AccumPk = PublicKey<<Bls12_381 as PairingEngine>::G2Affine>;
+pub type AccumPk = PublicKey<Bls12_381>;
 pub type AccumSetupParams = SetupParams<Bls12_381>;
 pub(crate) type AccumKeypair = Keypair<Bls12_381>;
 pub(crate) type PositiveAccum = PositiveAccumulator<Bls12_381>;
 pub(crate) type UniversalAccum = UniversalAccumulator<Bls12_381>;
-pub(crate) type MembershipWit = MembershipWitness<<Bls12_381 as PairingEngine>::G1Affine>;
-pub(crate) type NonMembershipWit = NonMembershipWitness<<Bls12_381 as PairingEngine>::G1Affine>;
-pub(crate) type Omega = Omega_<<Bls12_381 as PairingEngine>::G1Affine>;
-pub type MembershipPrk = MembershipProvingKey<<Bls12_381 as PairingEngine>::G1Affine>;
-pub type NonMembershipPrk = NonMembershipProvingKey<<Bls12_381 as PairingEngine>::G1Affine>;
+pub(crate) type MembershipWit = MembershipWitness<<Bls12_381 as Pairing>::G1Affine>;
+pub(crate) type NonMembershipWit = NonMembershipWitness<<Bls12_381 as Pairing>::G1Affine>;
+pub(crate) type Omega = Omega_<<Bls12_381 as Pairing>::G1Affine>;
+pub type MembershipPrk = MembershipProvingKey<<Bls12_381 as Pairing>::G1Affine>;
+pub type NonMembershipPrk = NonMembershipProvingKey<<Bls12_381 as Pairing>::G1Affine>;
 pub(crate) type MemProtocol = MembershipProofProtocol<Bls12_381>;
 pub(crate) type MemProof = MembershipProof<Bls12_381>;
 pub(crate) type NonMemProtocol = NonMembershipProofProtocol<Bls12_381>;
@@ -46,7 +47,7 @@ use crate::common::VerifyResponse;
 pub fn generate_accumulator_params(label: Option<Vec<u8>>) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let label = label.unwrap_or_else(|| random_bytes());
-    let params = AccumSetupParams::new::<Blake2b>(&label);
+    let params = AccumSetupParams::new::<Blake2b512>(&label);
     Ok(obj_to_uint8array!(&params, false, "SetupParams"))
 }
 
@@ -65,7 +66,7 @@ pub fn accumulator_is_params_valid(params: js_sys::Uint8Array) -> Result<bool, J
 pub fn accumulator_generate_secret_key(seed: Option<Vec<u8>>) -> Result<JsValue, JsValue> {
     set_panic_hook();
     let mut seed = seed.unwrap_or_else(|| random_bytes());
-    let sk = AccumSk::generate_using_seed::<Blake2b>(&seed);
+    let sk = AccumSk::generate_using_seed::<Blake2b512>(&seed);
     seed.zeroize();
     serde_wasm_bindgen::to_value(&sk).map_err(|e| JsValue::from(e))
 }
@@ -102,7 +103,7 @@ pub fn accumulator_generate_keypair(
     set_panic_hook();
     let params = deserialize_params(params)?;
     let seed = seed.unwrap_or(random_bytes());
-    let keypair = AccumKeypair::generate_using_seed::<Blake2b>(&seed, &params);
+    let keypair = AccumKeypair::generate_using_seed::<Blake2b512>(&seed, &params);
     serde_wasm_bindgen::to_value(&keypair).map_err(|e| JsValue::from(e))
 }
 
@@ -195,6 +196,7 @@ pub fn positive_accumulator_verify_membership(
 /// This function generates them for the BLS12-381 curve *only*.
 #[wasm_bindgen(js_name = universalAccumulatorFixedInitialElements)]
 pub fn universal_accumulator_fixed_initial_elements() -> Result<js_sys::Array, JsValue> {
+    use ark_ff::MontFp;
     let initial = vb_accumulator::initial_elements_for_bls12_381!(Fr);
     js_array_from_frs(&initial)
 }
@@ -725,7 +727,7 @@ pub fn generate_membership_proving_key(
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let label = label.unwrap_or_else(|| random_bytes());
-    let prk = MembershipPrk::new::<Blake2b>(&label);
+    let prk = MembershipPrk::new::<Blake2b512>(&label);
     Ok(obj_to_uint8array!(&prk, false, "MembershipProvingKey"))
 }
 
@@ -735,7 +737,7 @@ pub fn generate_non_membership_proving_key(
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let label = label.unwrap_or_else(|| random_bytes());
-    let prk = NonMembershipPrk::new::<Blake2b>(&label);
+    let prk = NonMembershipPrk::new::<Blake2b512>(&label);
     Ok(obj_to_uint8array!(&prk, false, "NonMembershipProvingKey"))
 }
 
@@ -958,7 +960,7 @@ pub fn accumulator_challenge_contribution_from_non_membership_proof(
 }
 
 pub(crate) fn deserialize_params(bytes: js_sys::Uint8Array) -> Result<AccumSetupParams, JsValue> {
-    CanonicalDeserialize::deserialize(&bytes.to_vec()[..]).map_err(|e| {
+    CanonicalDeserialize::deserialize_compressed(&bytes.to_vec()[..]).map_err(|e| {
         JsValue::from(&format!(
             "Failed to deserialize accumulator params from bytes due to error: {:?}",
             e
@@ -967,7 +969,7 @@ pub(crate) fn deserialize_params(bytes: js_sys::Uint8Array) -> Result<AccumSetup
 }
 
 pub(crate) fn deserialize_public_key(bytes: js_sys::Uint8Array) -> Result<AccumPk, JsValue> {
-    CanonicalDeserialize::deserialize(&bytes.to_vec()[..]).map_err(|e| {
+    CanonicalDeserialize::deserialize_compressed(&bytes.to_vec()[..]).map_err(|e| {
         JsValue::from(&format!(
             "Failed to deserialize accumulator public key from bytes due to error: {:?}",
             e
@@ -1052,7 +1054,7 @@ mod macros {
             let element = fr_from_uint8_array($element, true)?;
             let additions = js_array_to_fr_vec(&$additions)?;
             let removals = js_array_to_fr_vec(&$removals)?;
-            let public_info: Omega = CanonicalDeserialize::deserialize(&$public_info.to_vec()[..]).map_err(|e| {
+            let public_info: Omega = CanonicalDeserialize::deserialize_compressed(&$public_info.to_vec()[..]).map_err(|e| {
                 JsValue::from(&format!(
                     "Failed to deserialize public info from bytes due to error: {:?}",
                     e
@@ -1081,7 +1083,7 @@ mod macros {
                     let adds = js_array_to_fr_vec(&js_sys::Array::from(&$additions.get(i)))?;
                     let rems = js_array_to_fr_vec(&js_sys::Array::from(&$removals.get(i)))?;
                     let bytes: Vec<u8> = serde_wasm_bindgen::from_value($public_info.get(i))?;
-                    let p: Omega = CanonicalDeserialize::deserialize(&bytes[..]).map_err(|e| JsValue::from(&format!(
+                    let p: Omega = CanonicalDeserialize::deserialize_compressed(&bytes[..]).map_err(|e| JsValue::from(&format!(
                             "Failed to deserialize public info from bytes due to error: {:?}",
                             e
                         )))?;
@@ -1135,7 +1137,7 @@ mod macros {
             let pk = deserialize_public_key($public_key)?;
             let params = deserialize_params($params)?;
 
-            match $proof.verify(&accumulated, &challenge, &pk, &params, &$prk) {
+            match $proof.verify(&accumulated, &challenge, pk.clone(), params.clone(), &$prk) {
                 Ok(_) => Ok(serde_wasm_bindgen::to_value(&VerifyResponse {
                     verified: true,
                     error: None,
@@ -1186,8 +1188,7 @@ mod macros {
 }
 
 pub fn encode_bytes_as_accumulator_member(bytes: &[u8]) -> Fr {
-    dock_crypto_utils::hashing_utils::field_elem_from_seed::<Fr, Blake2b>(
-        bytes,
-        "Accumulator element".as_bytes(),
+    dock_crypto_utils::hashing_utils::field_elem_from_try_and_incr::<Fr, Blake2b512>(
+        &concat_slices!(bytes, b"Accumulator element"),
     )
 }

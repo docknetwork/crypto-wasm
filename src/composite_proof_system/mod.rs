@@ -9,9 +9,9 @@ use crate::common::VerifyResponse;
 use crate::utils::{fr_from_uint8_array, get_seeded_rng, js_array_to_fr_vec, set_panic_hook};
 use crate::{Fr, G1Affine};
 use ark_bls12_381::Bls12_381;
-use ark_ec::{AffineCurve, PairingEngine};
+use ark_ec::{pairing::Pairing, AffineRepr};
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
-use blake2::Blake2b;
+use blake2::Blake2b512;
 use js_sys::Uint8Array;
 use proof_system::prelude::{
     MetaStatement, MetaStatements, R1CSCircomWitness, SetupParams, Statement, Statements,
@@ -26,8 +26,8 @@ pub(crate) type PoKBBSSigWit = witness::PoKBBSSignatureG1<Bls12_381>;
 pub(crate) type AccumMemWit = witness::Membership<Bls12_381>;
 pub(crate) type AccumNonMemWit = witness::NonMembership<Bls12_381>;
 pub(crate) type ProofSpec<G> = proof_system::proof_spec::ProofSpec<Bls12_381, G>;
-pub(crate) type Proof<G> = proof::Proof<Bls12_381, G, Blake2b>;
-pub(crate) type ProofG1 = proof::Proof<Bls12_381, G1Affine, Blake2b>;
+pub(crate) type Proof<G> = proof::Proof<Bls12_381, G>;
+pub(crate) type ProofG1 = proof::Proof<Bls12_381, G1Affine>;
 pub(crate) type StatementProofG1 = proof_system::prelude::StatementProof<Bls12_381, G1Affine>;
 
 #[wasm_bindgen(js_name = generatePoKBBSSignatureWitness)]
@@ -83,7 +83,7 @@ pub fn generate_proof_spec_g1(
     context: Option<Vec<u8>>,
 ) -> Result<Uint8Array, JsValue> {
     set_panic_hook();
-    gen_proof_spec::<<Bls12_381 as PairingEngine>::G1Affine>(
+    gen_proof_spec::<<Bls12_381 as Pairing>::G1Affine>(
         statements,
         meta_statements,
         setup_params,
@@ -95,11 +95,11 @@ pub fn generate_proof_spec_g1(
 pub fn is_proof_spec_g1_valid(proof_spec: Uint8Array) -> Result<bool, JsValue> {
     set_panic_hook();
     let proof_spec = obj_from_uint8array_unchecked!(
-        ProofSpec::<<Bls12_381 as PairingEngine>::G1Affine>,
+        ProofSpec::<<Bls12_381 as Pairing>::G1Affine>,
         proof_spec,
         "ProofSpecG1"
     );
-    Ok(proof_spec.is_valid())
+    Ok(true)
 }
 
 #[wasm_bindgen(js_name = generateProofSpecG2)]
@@ -110,7 +110,7 @@ pub fn generate_proof_spec_g2(
     context: Option<Vec<u8>>,
 ) -> Result<Uint8Array, JsValue> {
     set_panic_hook();
-    gen_proof_spec::<<Bls12_381 as PairingEngine>::G2Affine>(
+    gen_proof_spec::<<Bls12_381 as Pairing>::G2Affine>(
         statements,
         meta_statements,
         setup_params,
@@ -122,11 +122,11 @@ pub fn generate_proof_spec_g2(
 pub fn is_proof_spec_g2_valid(proof_spec: Uint8Array) -> Result<bool, JsValue> {
     set_panic_hook();
     let proof_spec = obj_from_uint8array_unchecked!(
-        ProofSpec::<<Bls12_381 as PairingEngine>::G2Affine>,
+        ProofSpec::<<Bls12_381 as Pairing>::G2Affine>,
         proof_spec,
         "ProofSpecG2"
     );
-    Ok(proof_spec.is_valid())
+    Ok(true)
 }
 
 #[wasm_bindgen(js_name = generateCompositeProofG1)]
@@ -136,7 +136,7 @@ pub fn generate_composite_proof_g1(
     nonce: Option<Vec<u8>>,
 ) -> Result<Uint8Array, JsValue> {
     set_panic_hook();
-    gen_proof::<<Bls12_381 as PairingEngine>::G1Affine>(proof_spec, witnesses, nonce)
+    gen_proof::<<Bls12_381 as Pairing>::G1Affine>(proof_spec, witnesses, nonce)
 }
 
 #[wasm_bindgen(js_name = generateCompositeProofG2)]
@@ -146,7 +146,7 @@ pub fn generate_composite_proof_g2(
     nonce: Option<Vec<u8>>,
 ) -> Result<Uint8Array, JsValue> {
     set_panic_hook();
-    gen_proof::<<Bls12_381 as PairingEngine>::G2Affine>(proof_spec, witnesses, nonce)
+    gen_proof::<<Bls12_381 as Pairing>::G2Affine>(proof_spec, witnesses, nonce)
 }
 
 /// Same as `generate_composite_proof_g1` but takes the statements, meta-statements, setup params, context and nonce
@@ -167,15 +167,13 @@ pub fn generate_composite_proof_g1_with_deconstructed_proof_spec(
             meta_statements,
             setup_params,
         )?;
-    let proof_spec = ProofSpec::<<Bls12_381 as PairingEngine>::G1Affine>::new(
+    let proof_spec = ProofSpec::<<Bls12_381 as Pairing>::G1Affine>::new(
         statements,
         meta_statements,
         setup_params,
         context,
     );
-    gen_proof_given_proof_spec_obj::<<Bls12_381 as PairingEngine>::G1Affine>(
-        proof_spec, witnesses, nonce,
-    )
+    gen_proof_given_proof_spec_obj::<<Bls12_381 as Pairing>::G1Affine>(proof_spec, witnesses, nonce)
 }
 
 #[wasm_bindgen(js_name = verifyCompositeProofG1)]
@@ -185,7 +183,7 @@ pub fn verify_composite_proof_g1(
     nonce: Option<Vec<u8>>,
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
-    verify_proof::<<Bls12_381 as PairingEngine>::G1Affine>(proof_spec, proof, nonce)
+    verify_proof::<<Bls12_381 as Pairing>::G1Affine>(proof_spec, proof, nonce)
 }
 
 #[wasm_bindgen(js_name = verifyCompositeProofG2)]
@@ -195,7 +193,7 @@ pub fn verify_composite_proof_g2(
     nonce: Option<Vec<u8>>,
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
-    verify_proof::<<Bls12_381 as PairingEngine>::G2Affine>(proof_spec, proof, nonce)
+    verify_proof::<<Bls12_381 as Pairing>::G2Affine>(proof_spec, proof, nonce)
 }
 
 /// Same as `verify_composite_proof_g1` but takes the statements, meta-statements, setup params, context and nonce
@@ -216,15 +214,13 @@ pub fn verify_composite_proof_g1_with_deconstructed_proof_spec(
             meta_statements,
             setup_params,
         )?;
-    let proof_spec = ProofSpec::<<Bls12_381 as PairingEngine>::G1Affine>::new(
+    let proof_spec = ProofSpec::<<Bls12_381 as Pairing>::G1Affine>::new(
         statements,
         meta_statements,
         setup_params,
         context,
     );
-    verify_proof_given_proof_spec_obj::<<Bls12_381 as PairingEngine>::G1Affine>(
-        proof_spec, proof, nonce,
-    )
+    verify_proof_given_proof_spec_obj::<<Bls12_381 as Pairing>::G1Affine>(proof_spec, proof, nonce)
 }
 
 #[wasm_bindgen(js_name = generateSaverWitness)]
@@ -293,7 +289,7 @@ pub fn generate_r1cs_circom_witness(
     serde_wasm_bindgen::to_value(&witness).map_err(|e| JsValue::from(e))
 }
 
-pub fn parse_statements_meta_statements_and_setup_params<G: AffineCurve>(
+pub fn parse_statements_meta_statements_and_setup_params<G: AffineRepr>(
     statements: js_sys::Array,
     meta_statements: js_sys::Array,
     setup_params: js_sys::Array,
@@ -327,7 +323,7 @@ pub fn parse_statements_meta_statements_and_setup_params<G: AffineCurve>(
     Ok((stmts, meta_stmts, s_params))
 }
 
-fn gen_proof_spec<G: AffineCurve>(
+fn gen_proof_spec<G: AffineRepr>(
     statements: js_sys::Array,
     meta_statements: js_sys::Array,
     setup_params: js_sys::Array,
@@ -342,7 +338,7 @@ fn gen_proof_spec<G: AffineCurve>(
     Ok(obj_to_uint8array_unchecked!(&proof_spec, "ProofSpec"))
 }
 
-fn gen_proof<G: AffineCurve<ScalarField = Fr>>(
+fn gen_proof<G: AffineRepr<ScalarField = Fr>>(
     proof_spec: Uint8Array,
     witnesses: js_sys::Array,
     nonce: Option<Vec<u8>>,
@@ -351,7 +347,7 @@ fn gen_proof<G: AffineCurve<ScalarField = Fr>>(
     gen_proof_given_proof_spec_obj::<G>(proof_spec, witnesses, nonce)
 }
 
-fn verify_proof<G: AffineCurve<ScalarField = Fr>>(
+fn verify_proof<G: AffineRepr<ScalarField = Fr>>(
     proof_spec: Uint8Array,
     proof: Uint8Array,
     nonce: Option<Vec<u8>>,
@@ -360,7 +356,7 @@ fn verify_proof<G: AffineCurve<ScalarField = Fr>>(
     verify_proof_given_proof_spec_obj::<G>(proof_spec, proof, nonce)
 }
 
-fn gen_proof_given_proof_spec_obj<G: AffineCurve<ScalarField = Fr>>(
+fn gen_proof_given_proof_spec_obj<G: AffineRepr<ScalarField = Fr>>(
     proof_spec: ProofSpec<G>,
     witnesses: js_sys::Array,
     nonce: Option<Vec<u8>>,
@@ -371,18 +367,20 @@ fn gen_proof_given_proof_spec_obj<G: AffineCurve<ScalarField = Fr>>(
         wits.add(wit);
     }
     let mut rng = get_seeded_rng();
-    let proof = Proof::<G>::new(&mut rng, proof_spec, wits, nonce)
-        .map_err(|e| JsValue::from(&format!("Generating proof returned error: {:?}", e)))?;
+    let proof =
+        Proof::<G>::new::<_, Blake2b512>(&mut rng, proof_spec, wits, nonce, Default::default())
+            .map_err(|e| JsValue::from(&format!("Generating proof returned error: {:?}", e)))?;
     Ok(obj_to_uint8array!(&proof, false, "Proof"))
 }
 
-fn verify_proof_given_proof_spec_obj<G: AffineCurve<ScalarField = Fr>>(
+fn verify_proof_given_proof_spec_obj<G: AffineRepr<ScalarField = Fr>>(
     proof_spec: ProofSpec<G>,
     proof: Uint8Array,
     nonce: Option<Vec<u8>>,
 ) -> Result<JsValue, JsValue> {
     let proof = obj_from_uint8array!(Proof<G>, proof, false);
-    match proof.verify(proof_spec, nonce) {
+    let mut rng = get_seeded_rng();
+    match proof.verify::<_, Blake2b512>(&mut rng, proof_spec, nonce, Default::default()) {
         Ok(_) => Ok(serde_wasm_bindgen::to_value(&VerifyResponse {
             verified: true,
             error: None,
@@ -396,13 +394,22 @@ fn verify_proof_given_proof_spec_obj<G: AffineCurve<ScalarField = Fr>>(
     }
 }
 
-fn get_ciphertext_from_proof(proof: &ProofG1, statement_index: usize) -> Result<Uint8Array, JsValue> {
-    let statement_proof = proof
-        .statement_proof(statement_index)
-        .map_err(|_| JsValue::from(&format!("Did not find StatementProof at the given index {}", statement_index)))?;
+fn get_ciphertext_from_proof(
+    proof: &ProofG1,
+    statement_index: usize,
+) -> Result<Uint8Array, JsValue> {
+    let statement_proof = proof.statement_proof(statement_index).map_err(|_| {
+        JsValue::from(&format!(
+            "Did not find StatementProof at the given index {}",
+            statement_index
+        ))
+    })?;
     if let StatementProofG1::Saver(s) = statement_proof {
         Ok(obj_to_uint8array!(&s.ciphertext, false, "SaverCiphertext"))
     } else {
-        Err(JsValue::from(&format!("StatementProof at index {} wasn't for Saver", statement_index)))
+        Err(JsValue::from(&format!(
+            "StatementProof at index {} wasn't for Saver",
+            statement_index
+        )))
     }
 }

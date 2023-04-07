@@ -4,7 +4,7 @@ extern crate wasm_bindgen_test;
 use web_sys::console;
 
 use ark_bls12_381::Bls12_381;
-use ark_ec::PairingEngine;
+use ark_ec::pairing::Pairing;
 use ark_serialize::CanonicalDeserialize;
 use ark_std::collections::BTreeSet;
 use dock_crypto_wasm::accumulator::{
@@ -62,8 +62,8 @@ wasm_bindgen_test_configure!(run_in_browser);
 fn test_bbs_statement(stmt_j: js_sys::Uint8Array, revealed_msgs: js_sys::Map) {
     let s = js_sys::Uint8Array::new(&stmt_j);
     let serz = s.to_vec();
-    let stmt: statement::Statement<Bls12_381, <Bls12_381 as PairingEngine>::G1Affine> =
-        CanonicalDeserialize::deserialize_unchecked(&serz[..]).unwrap();
+    let stmt: statement::Statement<Bls12_381, <Bls12_381 as Pairing>::G1Affine> =
+        CanonicalDeserialize::deserialize_compressed(&serz[..]).unwrap();
     match stmt {
         statement::Statement::PoKBBSSignatureG1(s) => {
             assert_eq!(s.revealed_messages.len() as u32, revealed_msgs.size());

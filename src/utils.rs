@@ -55,7 +55,7 @@ macro_rules! console_log {
 
 pub fn fr_to_jsvalue(elem: &Fr) -> Result<JsValue, JsValue> {
     let mut bytes = vec![];
-    elem.serialize(&mut bytes).map_err(|e| {
+    elem.serialize_compressed(&mut bytes).map_err(|e| {
         JsValue::from(&format!(
             "Cannot serialize {:?} Fr due to error: {:?}",
             elem, e
@@ -67,7 +67,7 @@ pub fn fr_to_jsvalue(elem: &Fr) -> Result<JsValue, JsValue> {
 
 pub fn fr_from_jsvalue(value: JsValue) -> Result<Fr, JsValue> {
     let bytes: Vec<u8> = serde_wasm_bindgen::from_value(value)?;
-    let elem = Fr::deserialize(&bytes[..]).map_err(|e| {
+    let elem = Fr::deserialize_compressed(&bytes[..]).map_err(|e| {
         JsValue::from(&format!(
             "Cannot deserialize {:?} to Fr due to error: {:?}",
             bytes, e
@@ -78,7 +78,7 @@ pub fn fr_from_jsvalue(value: JsValue) -> Result<Fr, JsValue> {
 
 pub fn fr_to_uint8_array(elem: &Fr) -> Result<js_sys::Uint8Array, JsValue> {
     let mut bytes = vec![];
-    elem.serialize(&mut bytes).map_err(|e| {
+    elem.serialize_compressed(&mut bytes).map_err(|e| {
         JsValue::from(&format!(
             "Cannot serialize {:?} Fr due to error: {:?}",
             elem, e
@@ -97,7 +97,7 @@ pub fn fr_from_uint8_array(
     // Looking at https://github.com/rustwasm/wasm-bindgen/issues/5 and other links from this page,
     // this isn't easily doable
     let mut bytes: Vec<u8> = value.to_vec();
-    let elem = Fr::deserialize(&bytes[..]).map_err(|e| {
+    let elem = Fr::deserialize_compressed(&bytes[..]).map_err(|e| {
         JsValue::from(&format!(
             "Cannot deserialize {:?} to Fr due to error: {:?}",
             bytes, e
@@ -111,7 +111,7 @@ pub fn fr_from_uint8_array(
 
 pub fn frs_from_jsvalue(value: JsValue) -> Result<Vec<Fr>, JsValue> {
     let bytes: Vec<u8> = serde_wasm_bindgen::from_value(value)?;
-    let elem = <Vec<Fr>>::deserialize(&bytes[..]).map_err(|e| {
+    let elem = <Vec<Fr>>::deserialize_compressed(&bytes[..]).map_err(|e| {
         JsValue::from(&format!(
             "Cannot deserialize to Fr vector due to error: {:?}",
             e
@@ -123,7 +123,7 @@ pub fn frs_from_jsvalue(value: JsValue) -> Result<Vec<Fr>, JsValue> {
 pub fn frs_to_jsvalue(elems: &[Fr]) -> Result<JsValue, JsValue> {
     let mut bytes = vec![];
     elems
-        .serialize(&mut bytes)
+        .serialize_compressed(&mut bytes)
         .map_err(|e| JsValue::from(&format!("Cannot serialize Fr vector due to error: {:?}", e)))?;
     // Following unwrap won't fail as its serializing only bytes
     Ok(serde_wasm_bindgen::to_value(&bytes).unwrap())
@@ -131,7 +131,7 @@ pub fn frs_to_jsvalue(elems: &[Fr]) -> Result<JsValue, JsValue> {
 
 pub fn g1_affine_to_jsvalue(elem: &G1Affine) -> Result<JsValue, JsValue> {
     let mut bytes = vec![];
-    elem.serialize(&mut bytes)
+    elem.serialize_compressed(&mut bytes)
         .map_err(|e| JsValue::from(&format!("Cannot serialize G1Affine due to error: {:?}", e)))?;
     // Following unwrap won't fail as its serializing only bytes
     Ok(serde_wasm_bindgen::to_value(&bytes).unwrap())
@@ -139,7 +139,7 @@ pub fn g1_affine_to_jsvalue(elem: &G1Affine) -> Result<JsValue, JsValue> {
 
 pub fn g1_affine_from_jsvalue(value: JsValue) -> Result<G1Affine, JsValue> {
     let bytes: Vec<u8> = serde_wasm_bindgen::from_value(value)?;
-    let elem = G1Affine::deserialize(&bytes[..]).map_err(|e| {
+    let elem = G1Affine::deserialize_compressed(&bytes[..]).map_err(|e| {
         JsValue::from(&format!(
             "Cannot deserialize to G1Affine due to error: {:?}",
             e
@@ -150,7 +150,7 @@ pub fn g1_affine_from_jsvalue(value: JsValue) -> Result<G1Affine, JsValue> {
 
 pub fn g1_affine_to_uint8_array(elem: &G1Affine) -> Result<js_sys::Uint8Array, JsValue> {
     let mut bytes = vec![];
-    elem.serialize(&mut bytes)
+    elem.serialize_compressed(&mut bytes)
         .map_err(|e| JsValue::from(&format!("Cannot serialize G1Affine due to error: {:?}", e)))?;
     Ok(js_sys::Uint8Array::from(bytes.as_slice()))
 }
@@ -158,7 +158,7 @@ pub fn g1_affine_to_uint8_array(elem: &G1Affine) -> Result<js_sys::Uint8Array, J
 pub fn g1_affine_from_uint8_array(value: js_sys::Uint8Array) -> Result<G1Affine, JsValue> {
     // TODO: Is there a better way to get byte slice from `value` without creating a Vec
     let bytes: Vec<u8> = value.to_vec();
-    let elem = G1Affine::deserialize(&bytes[..]).map_err(|e| {
+    let elem = G1Affine::deserialize_compressed(&bytes[..]).map_err(|e| {
         JsValue::from(&format!(
             "Cannot deserialize to G1Affine due to error: {:?}",
             e
@@ -169,7 +169,7 @@ pub fn g1_affine_from_uint8_array(value: js_sys::Uint8Array) -> Result<G1Affine,
 
 pub fn g2_affine_to_jsvalue(elem: &G2Affine) -> Result<JsValue, JsValue> {
     let mut bytes = vec![];
-    elem.serialize(&mut bytes)
+    elem.serialize_compressed(&mut bytes)
         .map_err(|e| JsValue::from(&format!("Cannot serialize G2Affine due to error: {:?}", e)))?;
     // Following unwrap won't fail as its serializing only bytes
     Ok(serde_wasm_bindgen::to_value(&bytes).unwrap())
@@ -177,7 +177,7 @@ pub fn g2_affine_to_jsvalue(elem: &G2Affine) -> Result<JsValue, JsValue> {
 
 pub fn g2_affine_from_jsvalue(value: JsValue) -> Result<G2Affine, JsValue> {
     let bytes: Vec<u8> = serde_wasm_bindgen::from_value(value)?;
-    let elem = G2Affine::deserialize(&bytes[..]).map_err(|e| {
+    let elem = G2Affine::deserialize_compressed(&bytes[..]).map_err(|e| {
         JsValue::from(&format!(
             "Cannot deserialize to G2Affine due to error: {:?}",
             e
@@ -188,14 +188,14 @@ pub fn g2_affine_from_jsvalue(value: JsValue) -> Result<G2Affine, JsValue> {
 
 pub fn g2_affine_to_uint8_array(elem: &G2Affine) -> Result<js_sys::Uint8Array, JsValue> {
     let mut bytes = vec![];
-    elem.serialize(&mut bytes)
+    elem.serialize_compressed(&mut bytes)
         .map_err(|e| JsValue::from(&format!("Cannot serialize G2Affine due to error: {:?}", e)))?;
     Ok(js_sys::Uint8Array::from(bytes.as_slice()))
 }
 
 pub fn g2_affine_from_uint8_array(value: js_sys::Uint8Array) -> Result<G2Affine, JsValue> {
     let bytes: Vec<u8> = value.to_vec();
-    let elem = G2Affine::deserialize(&bytes[..]).map_err(|e| {
+    let elem = G2Affine::deserialize_compressed(&bytes[..]).map_err(|e| {
         JsValue::from(&format!(
             "Cannot deserialize to G2Affine due to error: {:?}",
             e
@@ -260,12 +260,12 @@ pub fn js_array_to_g2_affine_vec(array: &js_sys::Array) -> Result<Vec<G2Affine>,
 
 pub fn field_element_from_u32(number: u32) -> Fr {
     // Using BigInteger256 is fine as Bls12-381 curve
-    Fr::from_repr(ark_ff::BigInteger256::from(number as u64)).unwrap()
+    Fr::from(number as u64)
 }
 
 pub fn field_element_from_u64(number: u64) -> Fr {
     // Using BigInteger256 is fine as Bls12-381 curve
-    Fr::from_repr(ark_ff::BigInteger256::from(number)).unwrap()
+    Fr::from(number)
 }
 
 pub fn zeroize_uint8array(value: js_sys::Uint8Array) {
@@ -299,7 +299,7 @@ pub fn is_positive_safe_integer(num: &js_sys::Number) -> bool {
 macro_rules! obj_to_uint8array {
     ($obj:expr, $value_is_secret: expr) => {{
         let mut serz = vec![];
-        CanonicalSerialize::serialize($obj, &mut serz).map_err(|e| {
+        CanonicalSerialize::serialize_compressed($obj, &mut serz).map_err(|e| {
             JsValue::from(format!(
                 "Failed to serialize to bytes due to error: {:?}",
                 e
@@ -314,7 +314,7 @@ macro_rules! obj_to_uint8array {
 
     ($obj:expr, $value_is_secret: expr, $obj_name:expr) => {{
         let mut serz = vec![];
-        CanonicalSerialize::serialize($obj, &mut serz).map_err(|e| {
+        CanonicalSerialize::serialize_compressed($obj, &mut serz).map_err(|e| {
             JsValue::from(format!(
                 "Failed to serialize a {} to bytes due to error: {:?}",
                 $obj_name, e
@@ -332,12 +332,13 @@ macro_rules! obj_to_uint8array {
 macro_rules! obj_from_uint8array {
     ($obj_type:ty, $uint8array:expr, $value_is_secret: expr) => {{
         let mut serz = $uint8array.to_vec();
-        let deserz: $obj_type = CanonicalDeserialize::deserialize(&serz[..]).map_err(|e| {
-            JsValue::from(format!(
-                "Failed to deserialize from bytes due to error: {:?}",
-                e
-            ))
-        })?;
+        let deserz: $obj_type =
+            CanonicalDeserialize::deserialize_compressed(&serz[..]).map_err(|e| {
+                JsValue::from(format!(
+                    "Failed to deserialize from bytes due to error: {:?}",
+                    e
+                ))
+            })?;
         if $value_is_secret {
             serz.zeroize();
         }
@@ -346,12 +347,13 @@ macro_rules! obj_from_uint8array {
 
     ($obj_type:ty, $uint8array:expr, $value_is_secret: expr, $obj_name:expr) => {{
         let mut serz = $uint8array.to_vec();
-        let deserz: $obj_type = CanonicalDeserialize::deserialize(&serz[..]).map_err(|e| {
-            JsValue::from(format!(
-                "Failed to deserialize a {} from bytes due to error: {:?}",
-                $obj_name, e
-            ))
-        })?;
+        let deserz: $obj_type =
+            CanonicalDeserialize::deserialize_compressed(&serz[..]).map_err(|e| {
+                JsValue::from(format!(
+                    "Failed to deserialize a {} from bytes due to error: {:?}",
+                    $obj_name, e
+                ))
+            })?;
         if $value_is_secret {
             serz.zeroize();
         }
@@ -363,7 +365,7 @@ macro_rules! obj_from_uint8array {
 macro_rules! obj_to_uint8array_unchecked {
     ($obj:expr) => {{
         let mut serz = vec![];
-        CanonicalSerialize::serialize_unchecked($obj, &mut serz).map_err(|e| {
+        CanonicalSerialize::serialize_compressed($obj, &mut serz).map_err(|e| {
             JsValue::from(format!(
                 "Failed to serialize to bytes due to error: {:?}",
                 e
@@ -374,7 +376,7 @@ macro_rules! obj_to_uint8array_unchecked {
 
     ($obj:expr, $obj_name:expr) => {{
         let mut serz = vec![];
-        CanonicalSerialize::serialize_unchecked($obj, &mut serz).map_err(|e| {
+        CanonicalSerialize::serialize_compressed($obj, &mut serz).map_err(|e| {
             JsValue::from(format!(
                 "Failed to serialize a {} to bytes due to error: {:?}",
                 $obj_name, e
@@ -389,7 +391,7 @@ macro_rules! obj_from_uint8array_unchecked {
     ($obj_type:ty, $uint8array:expr) => {{
         let serz = $uint8array.to_vec();
         let deserz: $obj_type =
-            CanonicalDeserialize::deserialize_unchecked(&serz[..]).map_err(|e| {
+            CanonicalDeserialize::deserialize_compressed(&serz[..]).map_err(|e| {
                 JsValue::from(format!(
                     "Failed to deserialize from bytes due to error: {:?}",
                     e
@@ -401,7 +403,7 @@ macro_rules! obj_from_uint8array_unchecked {
     ($obj_type:ty, $uint8array:expr, $obj_name:expr) => {{
         let serz = $uint8array.to_vec();
         let deserz: $obj_type =
-            CanonicalDeserialize::deserialize_unchecked(&serz[..]).map_err(|e| {
+            CanonicalDeserialize::deserialize_compressed(&serz[..]).map_err(|e| {
                 JsValue::from(format!(
                     "Failed to deserialize a {} from bytes due to error: {:?}",
                     $obj_name, e
@@ -422,33 +424,30 @@ mod tests {
     use super::*;
     use crate::bbs_plus::encode_messages_as_js_map_to_fr_btreemap;
     use ark_bls12_381::{G1Projective, G2Projective};
-    use ark_ec::ProjectiveCurve;
+    use ark_ec::CurveGroup;
     use ark_std::UniformRand;
-    use blake2::Blake2b;
+    use blake2::Blake2b512;
 
     #[wasm_bindgen_test]
     pub fn to_and_from_js_value() {
         let seed = random_bytes();
-        let f = dock_crypto_utils::hashing_utils::field_elem_from_seed::<Fr, Blake2b>(&seed, &[]);
+        let f =
+            dock_crypto_utils::hashing_utils::field_elem_from_try_and_incr::<Fr, Blake2b512>(&seed);
         let jf = fr_to_jsvalue(&f).unwrap();
         assert_eq!(f, fr_from_jsvalue(jf).unwrap());
 
         let f = vec![
-            dock_crypto_utils::hashing_utils::field_elem_from_seed::<Fr, Blake2b>(
+            dock_crypto_utils::hashing_utils::field_elem_from_try_and_incr::<Fr, Blake2b512>(
                 &random_bytes(),
-                &[],
             ),
-            dock_crypto_utils::hashing_utils::field_elem_from_seed::<Fr, Blake2b>(
+            dock_crypto_utils::hashing_utils::field_elem_from_try_and_incr::<Fr, Blake2b512>(
                 &random_bytes(),
-                &[],
             ),
-            dock_crypto_utils::hashing_utils::field_elem_from_seed::<Fr, Blake2b>(
+            dock_crypto_utils::hashing_utils::field_elem_from_try_and_incr::<Fr, Blake2b512>(
                 &random_bytes(),
-                &[],
             ),
-            dock_crypto_utils::hashing_utils::field_elem_from_seed::<Fr, Blake2b>(
+            dock_crypto_utils::hashing_utils::field_elem_from_try_and_incr::<Fr, Blake2b512>(
                 &random_bytes(),
-                &[],
             ),
         ];
         let jf = frs_to_jsvalue(&f).unwrap();
@@ -468,17 +467,14 @@ mod tests {
     #[wasm_bindgen_test]
     pub fn fr_map() {
         let map = js_sys::Map::new();
-        let f1 = dock_crypto_utils::hashing_utils::field_elem_from_seed::<Fr, Blake2b>(
+        let f1 = dock_crypto_utils::hashing_utils::field_elem_from_try_and_incr::<Fr, Blake2b512>(
             &random_bytes(),
-            &[],
         );
-        let f2 = dock_crypto_utils::hashing_utils::field_elem_from_seed::<Fr, Blake2b>(
+        let f2 = dock_crypto_utils::hashing_utils::field_elem_from_try_and_incr::<Fr, Blake2b512>(
             &random_bytes(),
-            &[],
         );
-        let f3 = dock_crypto_utils::hashing_utils::field_elem_from_seed::<Fr, Blake2b>(
+        let f3 = dock_crypto_utils::hashing_utils::field_elem_from_try_and_incr::<Fr, Blake2b512>(
             &random_bytes(),
-            &[],
         );
         map.set(&JsValue::from(1), &fr_to_jsvalue(&f1).unwrap());
         map.set(&JsValue::from(2), &fr_to_jsvalue(&f2).unwrap());

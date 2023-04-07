@@ -5,9 +5,9 @@ use crate::utils::{
 };
 use crate::Fr;
 use ark_bls12_381::Bls12_381;
-use ark_ec::PairingEngine;
+use ark_ec::pairing::Pairing;
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
-use blake2::Blake2b;
+use blake2::Blake2b512;
 use saver::{
     encryption::Ciphertext,
     keygen::{DecryptionKey, EncryptionKey, SecretKey},
@@ -18,7 +18,7 @@ use wasm_bindgen::prelude::*;
 use zeroize::Zeroize;
 
 pub(crate) type EncGens = EncryptionGens<Bls12_381>;
-pub(crate) type ChunkedCommGens = ChunkedCommitmentGens<<Bls12_381 as PairingEngine>::G1Affine>;
+pub(crate) type ChunkedCommGens = ChunkedCommitmentGens<<Bls12_381 as Pairing>::G1Affine>;
 pub(crate) type SaverSk = SecretKey<Fr>;
 pub(crate) type SaverEk = EncryptionKey<Bls12_381>;
 pub(crate) type SaverDk = DecryptionKey<Bls12_381>;
@@ -32,7 +32,7 @@ pub fn saver_generate_encryption_generators(
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let label = label.unwrap_or_else(|| random_bytes());
-    let gens = EncGens::new::<Blake2b>(&label);
+    let gens = EncGens::new::<Blake2b512>(&label);
     Ok(obj_to_uint8array!(&gens, false, "EncryptionGenerators"))
 }
 
@@ -42,7 +42,7 @@ pub fn saver_generate_chunked_commitment_generators(
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let label = label.unwrap_or_else(|| random_bytes());
-    let gens = ChunkedCommGens::new::<Blake2b>(&label);
+    let gens = ChunkedCommGens::new::<Blake2b512>(&label);
     Ok(obj_to_uint8array!(
         &gens,
         false,
@@ -293,7 +293,7 @@ fn decrypt(
         obj_from_uint8array!(SaverDk, decryption_key, false, "SaverDk")
     };
     let (decrypted_message, nu) = ct
-        .decrypt_given_groth16_vk(&sk, &dk, snark_vk, chunk_bit_size)
+        .decrypt_given_groth16_vk(&sk, dk.clone(), snark_vk, chunk_bit_size)
         .map_err(|e| JsValue::from(&format!("Decryption returned error: {:?}", e)))?;
     let dec = js_sys::Array::new();
     let m = fr_to_uint8_array(&decrypted_message)?;
@@ -331,9 +331,9 @@ fn verify_decryption(
         &decrypted_message,
         &nu,
         chunk_bit_size,
-        &dk,
+        dk.clone(),
         snark_vk,
-        &enc_gens,
+        enc_gens.clone(),
     ) {
         Ok(_) => Ok(serde_wasm_bindgen::to_value(&VerifyResponse {
             verified: true,
