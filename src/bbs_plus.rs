@@ -6,6 +6,7 @@ use crate::utils::{
 };
 
 use bbs_plus::proof::MessageOrBlinding;
+use bbs_plus::setup::MultiMessageSignatureParams;
 use wasm_bindgen::prelude::*;
 
 use crate::common::VerifyResponse;
@@ -305,7 +306,6 @@ pub fn bbs_sign_g1(
 
     let mut rng = get_seeded_rng();
     match SigG1::new(&mut rng, &messages, &sk, &params) {
-        // Ok(sig) => Ok(serde_wasm_bindgen::to_value(&sig).map_err(|e| JsValue::from(e)).unwrap()),
         Ok(sig) => Ok(obj_to_uint8array!(&sig, true, "SigG1")),
         Err(e) => Err(JsValue::from(&format!("{:?}", e))),
     }
@@ -487,18 +487,17 @@ pub fn bbs_initialize_proof_of_knowledge_of_signature(
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
 
-    // let signature: SigG1 = serde_wasm_bindgen::from_value(signature)?;
     let signature = obj_from_uint8array!(SigG1, signature, true);
     let params: SigParamsG1 = serde_wasm_bindgen::from_value(params)?;
     // TODO: Avoid this hack of passing false, create separate method to parse
     let mut blindings = encode_messages_as_js_map_to_fr_btreemap(&blindings, false)?;
     let messages = encode_messages_as_js_array_to_fr_vec(&messages, encode_messages)?;
+    let revealed_indices: BTreeSet<usize> = revealed_indices
+        .values()
+        .into_iter()
+        .map(|i| serde_wasm_bindgen::from_value(i.unwrap()).unwrap())
+        .collect();
 
-    let mut indices = BTreeSet::new();
-    for i in revealed_indices.values() {
-        let index: usize = serde_wasm_bindgen::from_value(i.unwrap()).unwrap();
-        indices.insert(index);
-    }
     // TODO!
     let mut rng = get_seeded_rng();
     match PoKOfSigProtocol::init(
@@ -506,7 +505,7 @@ pub fn bbs_initialize_proof_of_knowledge_of_signature(
         &signature,
         &params,
         messages.iter().enumerate().map(|(idx, message)| {
-            if indices.contains(&idx) {
+            if revealed_indices.contains(&idx) {
                 MessageOrBlinding::RevealMessage(message)
             } else if let Some(blinding) = blindings.remove(&idx) {
                 MessageOrBlinding::BlindMessageWithConcreteBlinding { message, blinding }

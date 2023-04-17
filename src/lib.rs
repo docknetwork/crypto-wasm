@@ -26,6 +26,7 @@ pub mod bound_check;
 pub mod common;
 pub mod composite_proof_system;
 pub mod legosnark;
+pub mod ps;
 pub mod r1cs;
 pub mod saver;
 

@@ -6,7 +6,6 @@ use crate::utils::{
 use crate::{Fr, G1Affine, G1Projective, G2Affine, G2Projective};
 use ark_ec::CurveGroup;
 use ark_ec::VariableBaseMSM;
-use ark_ff::PrimeField;
 use ark_serialize::CanonicalSerialize;
 use blake2::Blake2b512;
 use serde::{Deserialize, Serialize};

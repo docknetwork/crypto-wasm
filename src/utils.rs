@@ -12,7 +12,6 @@
  */
 
 use crate::{Fr, G1Affine, G2Affine};
-use ark_ff::PrimeField;
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use ark_std::rand::prelude::{RngCore, SeedableRng, StdRng};
 use wasm_bindgen::prelude::*;

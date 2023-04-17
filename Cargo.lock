@@ -254,8 +254,6 @@ dependencies = [
 [[package]]
 name = "bbs_plus"
 version = "0.13.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "51de6d78859c501f671d52bce2eea4abf992e528e43a167b390e00d325d81d3b"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -342,9 +340,7 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "coconut-crypto"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b92f6d46e8b4bccf0d7de3c9bca86e169465346e588bac7318c8e9ff0fb1ad15"
+version = "0.2.0"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -505,9 +501,7 @@ dependencies = [
 
 [[package]]
 name = "dock_crypto_utils"
-version = "0.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0cfd1d84b53cc2953c160a65827e40300e348f2c789859a1ad8fdc61c81a5594"
+version = "0.11.0"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -519,6 +513,7 @@ dependencies = [
  "merlin",
  "serde",
  "serde_with",
+ "zeroize",
 ]
 
 [[package]]
@@ -547,6 +542,7 @@ dependencies = [
  "serde",
  "serde-wasm-bindgen",
  "serde_json",
+ "serde_with",
  "vb_accumulator",
  "wasm-bindgen",
  "wasm-bindgen-test",
@@ -726,8 +722,6 @@ checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 [[package]]
 name = "legogroth16"
 version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5c334d77069946c8925ee3e93e769d2fd1cec204c58df3b80f039fd6e812659e"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -939,8 +933,6 @@ dependencies = [
 [[package]]
 name = "proof_system"
 version = "0.19.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f76614082d25b4bcae79ec69e392283882826ee7b7bf3df6dfab5fdb6d02b54c"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -1137,8 +1129,6 @@ checksum = "f91339c0467de62360649f8d3e185ca8de4224ff281f66000de5eb2a77a79041"
 [[package]]
 name = "saver"
 version = "0.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6ce21527b863718e2864dffc0e9de8fe301d5c57f00a191856a7892fa14f5e1e"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -1159,8 +1149,6 @@ dependencies = [
 [[package]]
 name = "schnorr_pok"
 version = "0.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0086b90100fc87c212d8f625c506feedd429f077e54b244168dfce6e87a2c316"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -1194,8 +1182,6 @@ checksum = "1c107b6f4780854c8b126e228ea8869f4d7b71260f962fefb57b996b8959ba6b"
 [[package]]
 name = "secret_sharing_and_dkg"
 version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6cdd4283f413f0153992c1033b2b71fcd9eb13b08f470e28e21298c7493940b3"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -1416,8 +1402,6 @@ checksum = "e5464a87b239f13a63a501f2701565754bae92d243d4bb7eb12f6d57d2269bf4"
 [[package]]
 name = "vb_accumulator"
 version = "0.13.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "04a74d566e896ea5271c0714aef5572be0c3656349dd2dc490ed12b8c3d49202"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -1452,9 +1436,9 @@ checksum = "9c8d87e72b64a3b4db28d11ce29237c246188f4f51057d65a7eab63b7987e423"
 
 [[package]]
 name = "wasm-bindgen"
-version = "0.2.83"
+version = "0.2.84"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eaf9f5aceeec8be17c128b2e93e031fb8a4d469bb9c4ae2d7dc1888b26887268"
+checksum = "31f8dcbc21f30d9b8f2ea926ecb58f6b91192c17e9d33594b3df58b2007ca53b"
 dependencies = [
  "cfg-if",
  "wasm-bindgen-macro",
@@ -1462,9 +1446,9 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-backend"
-version = "0.2.83"
+version = "0.2.84"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4c8ffb332579b0557b52d268b91feab8df3615f265d5270fec2a8c95b17c1142"
+checksum = "95ce90fd5bcc06af55a641a86428ee4229e44e07033963a2290a8e241607ccb9"
 dependencies = [
  "bumpalo",
  "log",
@@ -1489,9 +1473,9 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-macro"
-version = "0.2.83"
+version = "0.2.84"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "052be0f94026e6cbc75cdefc9bae13fd6052cdcaf532fa6c45e7ae33a1e6c810"
+checksum = "4c21f77c0bedc37fd5dc21f897894a5ca01e7bb159884559461862ae90c0b4c5"
 dependencies = [
  "quote",
  "wasm-bindgen-macro-support",
@@ -1499,9 +1483,9 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-macro-support"
-version = "0.2.83"
+version = "0.2.84"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "07bc0c051dc5f23e307b13285f9d75df86bfdf816c5721e573dec1f9b8aa193c"
+checksum = "2aff81306fcac3c7515ad4e177f521b5c9a15f2b08f4e32d823066102f35a5f6"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1512,9 +1496,9 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-shared"
-version = "0.2.83"
+version = "0.2.84"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1c38c045535d93ec4f0b4defec448e4291638ee608530863b1e2ba115d4fff7f"
+checksum = "0046fef7e28c3804e5e38bfa31ea2a0f73905319b677e57ebe37e49358989b5d"
 
 [[package]]
 name = "wasm-bindgen-test"
