@@ -1,13 +1,11 @@
 use crate::utils::{
-    fr_from_uint8_array, fr_to_jsvalue, fr_to_uint8_array, g1_affine_from_uint8_array,
-    g1_affine_to_jsvalue, g1_affine_to_uint8_array, g2_affine_from_uint8_array,
-    g2_affine_to_jsvalue, g2_affine_to_uint8_array, get_seeded_rng,
+    fr_from_uint8_array, fr_to_jsvalue, fr_to_uint8_array, get_seeded_rng,
     js_array_of_bytearrays_to_vector_of_bytevectors, random_bytes, set_panic_hook,
 };
 
 use crate::common::VerifyResponse;
 use crate::utils::g1_affine_from_jsvalue;
-use crate::{Fr, G1Affine, G2Affine};
+use crate::{Fr, G1Affine};
 use ark_bls12_381::Bls12_381;
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use ark_std::collections::{BTreeMap, BTreeSet};
@@ -17,7 +15,6 @@ use coconut_crypto::{CommitMessage, CommitmentOrMessage, MessageCommitment};
 use dock_crypto_utils::concat_slices;
 use dock_crypto_utils::hashing_utils::affine_group_elem_from_try_and_incr;
 use js_sys::Uint8Array;
-use serde::Deserialize;
 use serde_wasm_bindgen::from_value;
 use serde_wasm_bindgen::to_value;
 use wasm_bindgen::prelude::*;
@@ -97,28 +94,6 @@ pub fn ps_is_pubkey_valid(public_key: js_sys::Uint8Array) -> Result<bool, JsValu
     Ok(pk.valid())
 }
 
-/*#[wasm_bindgen(js_name = psGetBasesForCommitment)]
-pub fn ps_get_bases_for_commitment(
-    params: JsValue,
-    indices_to_commit: js_sys::Array,
-) -> Result<js_sys::Array, JsValue> {
-    let params: SignatureParams = from_value(params)?;
-    let bases = js_sys::Array::new();
-    bases.push(&g1_affine_to_jsvalue(&params.h_0)?);
-    for i in indices_to_commit.values() {
-        let index: usize = from_value(i.unwrap())?;
-        if index >= params.supported_message_count() {
-            return Err(JsValue::from(&format!(
-                "Invalid index {:?} to get signature param",
-                index
-            ))
-            .into());
-        }
-        bases.push(&g1_affine_to_jsvalue(&params.h[index])?);
-    }
-    Ok(bases)
-}*/
-
 #[wasm_bindgen(js_name = psEncodeMessageForSigning)]
 pub fn ps_encode_message_for_signing(message: Vec<u8>) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
@@ -191,9 +166,6 @@ pub fn ps_blind_sign(
     secret_key: js_sys::Uint8Array,
     h: JsValue,
 ) -> Result<js_sys::Uint8Array, JsValue> {
-    use dock_crypto_utils::serde_utils::ArkObjectBytes;
-    use serde::{Deserialize, Serialize};
-    use serde_with::serde_as;
     set_panic_hook();
 
     let messages = js_sys::try_iter(&messages)?
@@ -270,7 +242,6 @@ pub fn ps_initialize_proof_of_knowledge_of_signature(
     public_key: js_sys::Uint8Array,
     messages: JsValue,
 ) -> Result<JsValue, JsValue> {
-    use ark_ff::PrimeField;
     set_panic_hook();
 
     let signature = obj_from_uint8array!(Signature, signature, true);

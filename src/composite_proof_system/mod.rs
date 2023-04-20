@@ -114,7 +114,7 @@ pub fn is_proof_spec_g1_valid(proof_spec: Uint8Array) -> Result<bool, JsValue> {
         proof_spec,
         "ProofSpecG1"
     );
-    Ok(true)
+    Ok(proof_spec.validate().is_ok())
 }
 
 #[wasm_bindgen(js_name = generateProofSpecG2)]
@@ -141,7 +141,7 @@ pub fn is_proof_spec_g2_valid(proof_spec: Uint8Array) -> Result<bool, JsValue> {
         proof_spec,
         "ProofSpecG2"
     );
-    Ok(true)
+    Ok(proof_spec.validate().is_ok())
 }
 
 #[wasm_bindgen(js_name = generateCompositeProofG1)]

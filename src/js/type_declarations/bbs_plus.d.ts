@@ -1,7 +1,5 @@
 import {BbsPlusPoKSigProtocol, BbsPlusSigParams, IKeypair, VerifyResult} from "../types";
 
-export const BBS_SIGNATURE_LENGTH = 112;
-
 export const DEFAULT_BLS12381_PRIVATE_KEY_LENGTH = 32;
 
 export const DEFAULT_BLS12381_G1_PUBLIC_KEY_LENGTH = 48;

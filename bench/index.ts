@@ -12,7 +12,7 @@
  */
 
 /* eslint-disable @typescript-eslint/camelcase */
-import {benchmarkBBSPlus} from "./bbs";
+import {benchmarkBBSPlus} from "./bbs-plus";
 import {benchmarkPS} from './ps'
 import {benchmarkBoundCheckSnark} from "./bound-check-snark";
 

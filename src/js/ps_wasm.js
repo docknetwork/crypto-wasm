@@ -14,8 +14,6 @@ module.exports.DEFAULT_BLS12381__PUBLIC_KEY_LENGTH = 48;
 
 module.exports.DEFAULT_BLS12381__PUBLIC_KEY_LENGTH = 96;
 
-module.exports.BBS_SIGNATURE_LENGTH = 112;
-
 module.exports.psGenerateSigningKey = (messageCount, seed) => {
     requireWasmInitialized();
     ensurePositiveInteger(messageCount);
