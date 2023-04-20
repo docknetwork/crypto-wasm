@@ -263,7 +263,7 @@ pub fn ps_verify(
     }
 }
 
-#[wasm_bindgen(js_name = psInitializeProofOfKnowledgeOfSignature)]
+#[wasm_bindgen(js_name = psInitializeSignaturePoK)]
 pub fn ps_initialize_proof_of_knowledge_of_signature(
     signature: js_sys::Uint8Array,
     params: JsValue,
@@ -289,7 +289,7 @@ pub fn ps_initialize_proof_of_knowledge_of_signature(
         .and_then(|protocol| to_value(&protocol).map_err(debug_to_js_value))
 }
 
-#[wasm_bindgen(js_name = psInitializeProofOfKnowledgeOfMessages)]
+#[wasm_bindgen(js_name = psInitializeMessagesPoK)]
 pub fn ps_initialize_proof_of_knowledge_of_messagese(
     messages: JsValue,
     params: JsValue,
@@ -316,7 +316,7 @@ fn debug_to_js_value<V: core::fmt::Debug>(value: V) -> JsValue {
     JsValue::from(&format!("{:?}", value))
 }
 
-#[wasm_bindgen(js_name = psGenProofOfKnowledgeOfSignature)]
+#[wasm_bindgen(js_name = psGenSignaturePoK)]
 pub fn ps_gen_sig_proof(
     protocol: JsValue,
     challenge: js_sys::Uint8Array,
@@ -330,7 +330,7 @@ pub fn ps_gen_sig_proof(
     }
 }
 
-#[wasm_bindgen(js_name = psGenProofOfKnowledgeOfMessages)]
+#[wasm_bindgen(js_name = psGenMessagesPoK)]
 pub fn ps_gen_messages_proof(
     protocol: JsValue,
     challenge: js_sys::Uint8Array,

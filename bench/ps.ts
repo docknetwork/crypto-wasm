@@ -2,8 +2,8 @@
 import {
   psChallengeSignaturePoKContributionFromProof,
   psChallengeSignaturePoKContributionFromProtocol,
-  psGenProofOfKnowledgeOfSignature,
-  psInitializeProofOfKnowledgeOfSignature,
+  psGenSignaturePoK,
+  psInitializeSignaturePoK,
   psSign,
   psVerify,
   psVerifySignaturePoK,
@@ -12,7 +12,6 @@ import {
   initializeWasm,
   psGenerateSigningKey,
   psGeneratePublicKey,
-  psEncodeMessageForSigning,
   psEncodeMessagesForSigning,
 } from "../lib";
 import { benchmark, report } from "@stablelib/benchmark";
@@ -73,7 +72,7 @@ export const benchmarkPS = async (
   });
 
   function createProof() {
-    const protocol = psInitializeProofOfKnowledgeOfSignature(
+    const protocol = psInitializeSignaturePoK(
       signature,
       sigParams,
       pk,
@@ -85,7 +84,7 @@ export const benchmarkPS = async (
     );
     const pBytes = psChallengeSignaturePoKContributionFromProtocol(protocol, pk, sigParams);
     const proverChallenge = generateChallengeFromBytes(pBytes);
-    return psGenProofOfKnowledgeOfSignature(protocol, proverChallenge);
+    return psGenSignaturePoK(protocol, proverChallenge);
   }
 
   report(

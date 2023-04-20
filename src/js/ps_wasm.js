@@ -143,7 +143,7 @@ module.exports.psUnblindSignature = (
     return wasm.psUnblindSignature(blind_signature, indexed_blindings, pk);
 };
 
-module.exports.psInitializeProofOfKnowledgeOfSignature = (
+module.exports.psInitializeSignaturePoK = (
     signature,
     params,
     messages,
@@ -152,36 +152,36 @@ module.exports.psInitializeProofOfKnowledgeOfSignature = (
     encodeMessages
 ) => {
     requireWasmInitialized();
-    return wasm.psInitializeProofOfKnowledgeOfSignature(signature, params, messages, blindings, revealedIndices, encodeMessages);
+    return wasm.psInitializeSignaturePoK(signature, params, messages, blindings, revealedIndices, encodeMessages);
 };
 
-module.exports.psInitializeProofOfKnowledgeOfMessages = (
+module.exports.psInitializeMessagesPoK = (
     params,
     h,
     messages
 ) => {
     requireWasmInitialized();
-    return wasm.psInitializeProofOfKnowledgeOfMessages(
+    return wasm.psInitializeMessagesPoK(
         params,
         h,
         messages
     );
 };
 
-module.exports.psGenProofOfKnowledgeOfSignature = (
+module.exports.psGenSignaturePoK = (
     protocol,
     challenge
 ) => {
     requireWasmInitialized();
-    return wasm.psGenProofOfKnowledgeOfSignature(protocol, challenge);
+    return wasm.psGenSignaturePoK(protocol, challenge);
 };
 
-module.exports.psGenProofOfKnowledgeOfMessages = (
+module.exports.psGenMessagesPoK = (
     protocol,
     challenge
 ) => {
     requireWasmInitialized();
-    return wasm.psGenProofOfKnowledgeOfMessages(protocol, challenge);
+    return wasm.psGenMessagesPoK(protocol, challenge);
 };
 
 

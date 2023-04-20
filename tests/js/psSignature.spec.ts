@@ -1,4 +1,4 @@
-import { psChallengeMessagesPoKContributionFromProof, psChallengeMessagesPoKContributionFromProtocol, psEncodeMessageForSigning, psGenProofOfKnowledgeOfMessages, psInitializeProofOfKnowledgeOfMessages, psVerifyMessagesPoK } from "../../lib";
+import { psChallengeMessagesPoKContributionFromProof, psChallengeMessagesPoKContributionFromProtocol, psEncodeMessageForSigning, psGenMessagesPoK, psInitializeMessagesPoK, psVerifyMessagesPoK } from "../../lib";
 import {
   psGenerateSignatureParams,
   psIsSignatureParamsValid,
@@ -12,8 +12,8 @@ import {
   psMessageCommitment,
   psBlindSign,
   psUnblindSignature,
-  psInitializeProofOfKnowledgeOfSignature,
-  psGenProofOfKnowledgeOfSignature,
+  psInitializeSignaturePoK,
+  psGenSignaturePoK,
   psVerifySignaturePoK,
   psChallengeSignaturePoKContributionFromProtocol,
   psChallengeSignaturePoKContributionFromProof,
@@ -206,7 +206,7 @@ describe("For PS signatures", () => {
     revealedMsgs.set(2, messages[2]);
     revealedMsgs.set(3, messages[3]);
 
-    const protocol = psInitializeProofOfKnowledgeOfSignature(
+    const protocol = psInitializeSignaturePoK(
       sig,
       sigParams,
       pk,
@@ -221,7 +221,7 @@ describe("For PS signatures", () => {
     const pBytes = psChallengeSignaturePoKContributionFromProtocol(protocol, pk, sigParams);
     expect(pBytes).toBeInstanceOf(Uint8Array);
     const proverChallenge = generateChallengeFromBytes(pBytes);
-    const proof = psGenProofOfKnowledgeOfSignature(protocol, proverChallenge);
+    const proof = psGenSignaturePoK(protocol, proverChallenge);
 
     const vBytes = psChallengeSignaturePoKContributionFromProof(proof, pk, sigParams);
     expect(vBytes).toBeInstanceOf(Uint8Array);
@@ -251,7 +251,7 @@ describe("For PS signatures", () => {
     revealedMsgs.set(2, messages[2]);
     revealedMsgs.set(3, messages[3]);
 
-    const protocol = psInitializeProofOfKnowledgeOfMessages(
+    const protocol = psInitializeMessagesPoK(
       messages.map((message, idx) => {
         const blinding = blindingsMap.get(idx);
 
@@ -265,7 +265,7 @@ describe("For PS signatures", () => {
     const pBytes = psChallengeMessagesPoKContributionFromProtocol(protocol, sigParams, h);
     expect(pBytes).toBeInstanceOf(Uint8Array);
     const proverChallenge = generateChallengeFromBytes(pBytes);
-    const proof = psGenProofOfKnowledgeOfMessages(protocol, proverChallenge);
+    const proof = psGenMessagesPoK(protocol, proverChallenge);
 
     const vBytes = psChallengeMessagesPoKContributionFromProof(proof, sigParams, h);
     expect(vBytes).toBeInstanceOf(Uint8Array);

@@ -89,25 +89,25 @@ export function psUnblindSignature(
     pk: Uint8Array,
 ): Uint8Array;
 
-export function psInitializeProofOfKnowledgeOfSignature(
+export function psInitializeSignaturePoK(
     signature: Uint8Array,
     params: PSSigParams,
     public_key: Uint8Array,
     messages: Iterable<PSCommitMessage>
 ): PSPoKSigProtocol;
 
-export function psInitializeProofOfKnowledgeOfMessages(
+export function psInitializeMessagesPoK(
     messages: Iterable<PSCommitMessage>,
     params: PSSigParams,
     h: Object
 ): PSPoKSigProtocol;
 
-export function psGenProofOfKnowledgeOfSignature(
+export function psGenSignaturePoK(
     protocol: PSPoKSigProtocol,
     challenge: Uint8Array
 ): Uint8Array;
 
-export function psGenProofOfKnowledgeOfMessages(
+export function psGenMessagesPoK(
     protocol: PSPoKSigProtocol,
     challenge: Uint8Array
 ): Uint8Array;
