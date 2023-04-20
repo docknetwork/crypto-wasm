@@ -52,6 +52,9 @@ features = [
     'console'
 ]
 
+[profile.dev]
+opt-level = 1
+
 [profile.release]
 lto = true
 opt-level = 3

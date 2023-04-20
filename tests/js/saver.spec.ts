@@ -1,13 +1,13 @@
 import {
-  bbsEncodeMessageForSigning,
-  bbsSignG1,
-  BbsSigParams,
-  bbsVerifyG1,
-  generateBBSPublicKeyG2,
-  generateBBSSigningKey,
+  bbsPlusEncodeMessageForSigning,
+  bbsPlusSignG1,
+  BbsPlusSigParams,
+  bbsPlusVerifyG1,
+  bbsPlusGeneratePublicKeyG2,
+  bbsPlusGenerateSigningKey,
   generateCompositeProofG1WithDeconstructedProofSpec,
-  generatePoKBBSSignatureStatement,
-  generatePoKBBSSignatureWitness,
+  generatePoKBBSPlusSignatureStatement,
+  generatePoKBBSPlusSignatureWitness,
   generateSaverProverStatement,
   generateSaverProverStatementFromParamRefs,
   generateSaverVerifierStatement,
@@ -18,7 +18,7 @@ import {
   generateSetupParamForSaverEncryptionKey,
   generateSetupParamForSaverProvingKey,
   generateSetupParamForSaverVerifyingKey,
-  generateSignatureParamsG1,
+  bbsPlusGenerateSignatureParamsG1,
   generateWitnessEqualityMetaStatement,
   initializeWasm,
   saverDecompressChunkedCommitmentGenerators,
@@ -46,7 +46,7 @@ describe("Verifiable encryption of a signed message", () => {
   const chunkBitSize = 16;
   const encMsgIdx = 0;
 
-  let sigParams: BbsSigParams,
+  let sigParams: BbsPlusSigParams,
     sigSk: Uint8Array,
     sigPk: Uint8Array,
     sig: Uint8Array,
@@ -94,17 +94,17 @@ describe("Verifiable encryption of a signed message", () => {
   }, 150000);
 
   it("signature setup and sign messages", () => {
-    sigParams = generateSignatureParamsG1(messageCount);
-    sigSk = generateBBSSigningKey();
-    sigPk = generateBBSPublicKeyG2(sigSk, sigParams);
+    sigParams = bbsPlusGenerateSignatureParamsG1(messageCount);
+    sigSk = bbsPlusGenerateSigningKey();
+    sigPk = bbsPlusGeneratePublicKeyG2(sigSk, sigParams);
 
     for (let i = 0; i < messageCount; i++) {
       let m = stringToBytes(`${i + 1}`);
-      m = bbsEncodeMessageForSigning(m);
+      m = bbsPlusEncodeMessageForSigning(m);
       messages.push(m);
     }
-    sig = bbsSignG1(messages, sigSk, sigParams, false);
-    const res = bbsVerifyG1(messages, sig, sigPk, sigParams, false);
+    sig = bbsPlusSignG1(messages, sigSk, sigParams, false);
+    const res = bbsPlusVerifyG1(messages, sig, sigPk, sigParams, false);
     expect(res.verified).toBe(true);
   });
 
@@ -116,7 +116,7 @@ describe("Verifiable encryption of a signed message", () => {
       messages,
       revealedIndices
     );
-    const statement1 = generatePoKBBSSignatureStatement(
+    const statement1 = generatePoKBBSPlusSignatureStatement(
       sigParams,
       sigPk,
       revealedMsgs,
@@ -144,7 +144,7 @@ describe("Verifiable encryption of a signed message", () => {
     set.add([1, 0]);
     metaStatements.push(generateWitnessEqualityMetaStatement(set));
 
-    const witness1 = generatePoKBBSSignatureWitness(sig, unrevealedMsgs, false);
+    const witness1 = generatePoKBBSPlusSignatureWitness(sig, unrevealedMsgs, false);
     const witness2 = generateSaverWitness(messages[encMsgIdx]);
 
     const witnesses = new Array<Uint8Array>();
@@ -257,7 +257,7 @@ describe("Verifiable encryption of a signed message", () => {
       messages,
       new Set<number>()
     );
-    const statement1 = generatePoKBBSSignatureStatement(
+    const statement1 = generatePoKBBSPlusSignatureStatement(
       sigParams,
       sigPk,
       revealedMsgs,
@@ -324,7 +324,7 @@ describe("Verifiable encryption of a signed message", () => {
     set3.add([3, 0]);
     metaStatements.push(generateWitnessEqualityMetaStatement(set3));
 
-    const witness1 = generatePoKBBSSignatureWitness(sig, unrevealedMsgs, false);
+    const witness1 = generatePoKBBSPlusSignatureWitness(sig, unrevealedMsgs, false);
     const witness2 = generateSaverWitness(messages[encMsgIdx]);
     const witness3 = generateSaverWitness(messages[encMsgIdx + 1]);
     const witness4 = generateSaverWitness(messages[encMsgIdx + 2]);

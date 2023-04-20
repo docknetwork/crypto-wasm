@@ -2,17 +2,17 @@ import {
   initializeWasm,
   boundCheckSnarkSetup,
   legosnarkDecompressPk,
-  generateSignatureParamsG1,
-  generateBBSSigningKey,
-  generateBBSPublicKeyG2,
-  BbsSigParams,
-  bbsSignG1,
-  bbsVerifyG1,
-  generatePoKBBSSignatureStatement,
+  bbsPlusGenerateSignatureParamsG1,
+  bbsPlusGenerateSigningKey,
+  bbsPlusGeneratePublicKeyG2,
+  BbsPlusSigParams,
+  bbsPlusSignG1,
+  bbsPlusVerifyG1,
+  generatePoKBBSPlusSignatureStatement,
   generateBoundCheckLegoProverStatement,
   generateFieldElementFromNumber,
   generateWitnessEqualityMetaStatement,
-  generatePoKBBSSignatureWitness,
+  generatePoKBBSPlusSignatureWitness,
   generateBoundCheckWitness,
   generateCompositeProofG1WithDeconstructedProofSpec,
   verifyCompositeProofG1WithDeconstructedProofSpec,
@@ -30,7 +30,7 @@ describe("Prove and verify bounds on signed messages", () => {
   // Message index whose bounds are checked
   const msgIdx = 1;
 
-  let sigParams: BbsSigParams,
+  let sigParams: BbsPlusSigParams,
     sigSk: Uint8Array,
     sigPk: Uint8Array,
     sig: Uint8Array,
@@ -60,9 +60,9 @@ describe("Prove and verify bounds on signed messages", () => {
   }, 50000);
 
   it("signature setup and sign messages", () => {
-    sigParams = generateSignatureParamsG1(messageCount);
-    sigSk = generateBBSSigningKey();
-    sigPk = generateBBSPublicKeyG2(sigSk, sigParams);
+    sigParams = bbsPlusGenerateSignatureParamsG1(messageCount);
+    sigSk = bbsPlusGenerateSigningKey();
+    sigPk = bbsPlusGeneratePublicKeyG2(sigSk, sigParams);
 
     min = 100;
     max = 200;
@@ -70,8 +70,8 @@ describe("Prove and verify bounds on signed messages", () => {
       let m = generateFieldElementFromNumber(min + 1 + i);
       messages.push(m);
     }
-    sig = bbsSignG1(messages, sigSk, sigParams, false);
-    const res = bbsVerifyG1(messages, sig, sigPk, sigParams, false);
+    sig = bbsPlusSignG1(messages, sigSk, sigParams, false);
+    const res = bbsPlusVerifyG1(messages, sig, sigPk, sigParams, false);
     expect(res.verified).toBe(true);
   });
 
@@ -110,7 +110,7 @@ describe("Prove and verify bounds on signed messages", () => {
       messages,
       revealedIndices
     );
-    const statement1 = generatePoKBBSSignatureStatement(
+    const statement1 = generatePoKBBSPlusSignatureStatement(
       sigParams,
       sigPk,
       revealedMsgs,
@@ -136,7 +136,7 @@ describe("Prove and verify bounds on signed messages", () => {
     set.add([1, 0]);
     metaStatements.push(generateWitnessEqualityMetaStatement(set));
 
-    const witness1 = generatePoKBBSSignatureWitness(sig, unrevealedMsgs, false);
+    const witness1 = generatePoKBBSPlusSignatureWitness(sig, unrevealedMsgs, false);
     const witness2 = generateBoundCheckWitness(messages[msgIdx]);
 
     const witnesses: Uint8Array[] = [];
@@ -187,7 +187,7 @@ describe("Prove and verify bounds on signed messages", () => {
       messages,
       new Set<number>()
     );
-    const statement1 = generatePoKBBSSignatureStatement(
+    const statement1 = generatePoKBBSPlusSignatureStatement(
       sigParams,
       sigPk,
       revealedMsgs,
@@ -240,7 +240,7 @@ describe("Prove and verify bounds on signed messages", () => {
     set3.add([3, 0]);
     metaStatements.push(generateWitnessEqualityMetaStatement(set3));
 
-    const witness1 = generatePoKBBSSignatureWitness(sig, unrevealedMsgs, false);
+    const witness1 = generatePoKBBSPlusSignatureWitness(sig, unrevealedMsgs, false);
     const witness2 = generateBoundCheckWitness(messages[msgIdx]);
     const witness3 = generateBoundCheckWitness(messages[msgIdx + 1]);
     const witness4 = generateBoundCheckWitness(messages[msgIdx + 2]);

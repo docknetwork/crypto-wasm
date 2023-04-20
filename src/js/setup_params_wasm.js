@@ -2,9 +2,9 @@ const {
     wasm, requireWasmInitialized
 } = require('./init_wasm');
 
-module.exports.generateSetupParamForBBSSignatureParametersG1 = (params) => {
+module.exports.generateSetupParamForBBSPlusSignatureParametersG1 = (params) => {
     requireWasmInitialized();
-    return wasm.generateSetupParamForBBSSignatureParametersG1(params);
+    return wasm.generateSetupParamForBBSPlusSignatureParametersG1(params);
 };
 
 module.exports.generateSetupParamForBBSPublicKeyG2 = (publicKey) => {

@@ -46,7 +46,7 @@ use crate::common::VerifyResponse;
 #[wasm_bindgen(js_name = generateAccumulatorParams)]
 pub fn generate_accumulator_params(label: Option<Vec<u8>>) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
-    let label = label.unwrap_or_else(|| random_bytes());
+    let label = label.unwrap_or_else(random_bytes);
     let params = AccumSetupParams::new::<Blake2b512>(&label);
     Ok(obj_to_uint8array!(&params, false, "SetupParams"))
 }
@@ -63,12 +63,12 @@ pub fn accumulator_is_params_valid(params: js_sys::Uint8Array) -> Result<bool, J
 /// Generate secret key for the accumulator manager who updates the accumulator and creates witnesses.
 /// Pass the `seed` argument to generate key deterministically.
 #[wasm_bindgen(js_name = generateAccumulatorSecretKey)]
-pub fn accumulator_generate_secret_key(seed: Option<Vec<u8>>) -> Result<JsValue, JsValue> {
+pub fn accumulator_generate_secret_key(seed: Option<Vec<u8>>) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
-    let mut seed = seed.unwrap_or_else(|| random_bytes());
+    let mut seed = seed.unwrap_or_else(random_bytes);
     let sk = AccumSk::generate_using_seed::<Blake2b512>(&seed);
     seed.zeroize();
-    serde_wasm_bindgen::to_value(&sk).map_err(|e| JsValue::from(e))
+    Ok(obj_to_uint8array!(&sk, true, "AccumSk"))
 }
 
 /// Generate public key from given params and secret key.
@@ -119,11 +119,11 @@ pub fn accumulator_get_element_from_bytes(bytes: Vec<u8>) -> Result<JsValue, JsV
 
 /// Initialize a positive accumulator
 #[wasm_bindgen(js_name = positiveAccumulatorInitialize)]
-pub fn positive_accumulator_initialize(params: js_sys::Uint8Array) -> Result<JsValue, JsValue> {
+pub fn positive_accumulator_initialize(params: js_sys::Uint8Array) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let params = deserialize_params(params)?;
     let accum = PositiveAccum::initialize(&params);
-    serde_wasm_bindgen::to_value(&accum).map_err(|e| JsValue::from(e))
+    Ok(obj_to_uint8array!(&accum, false, "PositiveAccum"))
 }
 
 /// Get the accumulated value from given positive accumulator
@@ -140,7 +140,7 @@ pub fn positive_accumulator_add(
     existing_accum: JsValue,
     element: js_sys::Uint8Array,
     secret_key: JsValue,
-) -> Result<JsValue, JsValue> {
+) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let accum: PositiveAccum = serde_wasm_bindgen::from_value(existing_accum)?;
     let element = fr_from_uint8_array(element, true)?;
@@ -148,8 +148,7 @@ pub fn positive_accumulator_add(
 
     let new_value = accum.compute_new_post_add(&element, &sk);
 
-    serde_wasm_bindgen::to_value(&PositiveAccum::from_value(new_value))
-        .map_err(|e| JsValue::from(e))
+    Ok(obj_to_uint8array!(&new_value, false, "PositiveAccum"))
 }
 
 #[wasm_bindgen(js_name = positiveAccumulatorRemove)]
@@ -726,7 +725,7 @@ pub fn generate_membership_proving_key(
     label: Option<Vec<u8>>,
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
-    let label = label.unwrap_or_else(|| random_bytes());
+    let label = label.unwrap_or_else(random_bytes);
     let prk = MembershipPrk::new::<Blake2b512>(&label);
     Ok(obj_to_uint8array!(&prk, false, "MembershipProvingKey"))
 }
@@ -736,7 +735,7 @@ pub fn generate_non_membership_proving_key(
     label: Option<Vec<u8>>,
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
-    let label = label.unwrap_or_else(|| random_bytes());
+    let label = label.unwrap_or_else(random_bytes);
     let prk = NonMembershipPrk::new::<Blake2b512>(&label);
     Ok(obj_to_uint8array!(&prk, false, "NonMembershipProvingKey"))
 }

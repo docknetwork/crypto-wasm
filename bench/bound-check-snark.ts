@@ -1,7 +1,7 @@
 import {benchmark, report} from "@stablelib/benchmark";
 import {
-    boundCheckSnarkSetup, generateBBSPublicKeyG2, generateBBSSigningKey,
-    generateSignatureParamsG1,
+    boundCheckSnarkSetup, bbsPlusGeneratePublicKeyG2, bbsPlusGenerateSigningKey,
+    bbsPlusGenerateSignatureParamsG1,
     initializeWasm,
     legosnarkDecompressPk,
     legosnarkVkFromPk
@@ -33,9 +33,9 @@ export const benchmarkBoundCheckSnark = async (
     );
     const snarkVkDecom = legosnarkVkFromPk(snarkPk, true);
 
-    const sigParams = generateSignatureParamsG1(1);
-    const sigSk = generateBBSSigningKey();
-    const sigPk = generateBBSPublicKeyG2(sigSk, sigParams);
+    const sigParams = bbsPlusGenerateSignatureParamsG1(1);
+    const sigSk = bbsPlusGenerateSigningKey();
+    const sigPk = bbsPlusGeneratePublicKeyG2(sigSk, sigParams);
 
     // TODO:
 };

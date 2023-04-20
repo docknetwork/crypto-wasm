@@ -1,4 +1,4 @@
-import {BbsPoKSigProtocol, BbsSigParams, IKeypair, VerifyResult} from "../types";
+import {BbsPlusPoKSigProtocol, BbsPlusSigParams, IKeypair, VerifyResult} from "../types";
 
 export const BBS_SIGNATURE_LENGTH = 112;
 
@@ -8,212 +8,212 @@ export const DEFAULT_BLS12381_G1_PUBLIC_KEY_LENGTH = 48;
 
 export const DEFAULT_BLS12381_G2_PUBLIC_KEY_LENGTH = 96;
 
-export function generateBBSSigningKey(seed?: Uint8Array): Uint8Array;
+export function bbsPlusGenerateSigningKey(seed?: Uint8Array): Uint8Array;
 
-export function generateSignatureParamsG1(
+export function bbsPlusGenerateSignatureParamsG1(
     messageCount: number,
     label?: Uint8Array
-): Required<BbsSigParams>;
+): Required<BbsPlusSigParams>;
 
-export function isSignatureParamsG1Valid(
-    params: BbsSigParams
+export function bbsPlusIsSignatureParamsG1Valid(
+    params: BbsPlusSigParams
 ): boolean;
 
-export function bbsSignatureParamsG1MaxSupportedMsgs(
-    params: BbsSigParams
+export function bbsPlusSignatureParamsG1MaxSupportedMsgs(
+    params: BbsPlusSigParams
 ): number;
 
-export function generateSignatureParamsG2(
+export function bbsPlusGenerateSignatureParamsG2(
     messageCount: number,
     label?: Uint8Array
-): Required<BbsSigParams>;
+): Required<BbsPlusSigParams>;
 
-export function isSignatureParamsG2Valid(
-    params: BbsSigParams
+export function bbsPlusIsSignatureParamsG2Valid(
+    params: BbsPlusSigParams
 ): boolean;
 
-export function bbsSignatureParamsG2MaxSupportedMsgs(
-    params: BbsSigParams
+export function bbsPlusSignatureParamsG2MaxSupportedMsgs(
+    params: BbsPlusSigParams
 ): number;
 
-export function bbsSignatureParamsG1ToBytes(
-    params: BbsSigParams
+export function bbsPlusSignatureParamsG1ToBytes(
+    params: BbsPlusSigParams
 ): Uint8Array;
 
-export function bbsSignatureParamsG1FromBytes(
+export function bbsPlusSignatureParamsG1FromBytes(
     bytes: Uint8Array
-): BbsSigParams;
+): BbsPlusSigParams;
 
-export function bbsSignatureParamsG2ToBytes(
-    params: BbsSigParams
+export function bbsPlusSignatureParamsG2ToBytes(
+    params: BbsPlusSigParams
 ): Uint8Array;
 
-export function bbsSignatureParamsG2FromBytes(
+export function bbsPlusSignatureParamsG2FromBytes(
     bytes: Uint8Array
-): BbsSigParams;
+): BbsPlusSigParams;
 
-export function generateBBSPublicKeyG1(
+export function bbsPlusGeneratePublicKeyG1(
     secretKey: Uint8Array,
-    params: BbsSigParams
+    params: BbsPlusSigParams
 ): Uint8Array;
 
-export function isBBSPublicKeyG1Valid(
+export function bbsPlusIsPublicKeyG1Valid(
     publicKey: Uint8Array
 ): boolean;
 
-export function generateBBSPublicKeyG2(
+export function bbsPlusGeneratePublicKeyG2(
     secretKey: Uint8Array,
-    params: BbsSigParams
+    params: BbsPlusSigParams
 ): Uint8Array;
 
-export function isBBSPublicKeyG2Valid(
+export function bbsPlusIsPublicKeyG2Valid(
     publicKey: Uint8Array
 ): boolean;
 
-export function generateBBSKeyPairG1(
-    params: BbsSigParams,
+export function bbsPlusGenerateKeyPairG1(
+    params: BbsPlusSigParams,
     seed?: Uint8Array
 ): Required<IKeypair>;
 
-export function generateBBSKeyPairG2(
-    params: BbsSigParams,
+export function bbsPlusGenerateKeyPairG2(
+    params: BbsPlusSigParams,
     seed?: Uint8Array
 ): Required<IKeypair>;
 
-export function bbsEncodeMessageForSigning(
+export function bbsPlusEncodeMessageForSigning(
     message: Uint8Array
 ): Uint8Array;
 
-export function bbsEncodeMessagesForSigning(
+export function bbsPlusEncodeMessagesForSigning(
     messages: Uint8Array[],
     indicesToEncode: number[]
 ): Uint8Array[];
 
-export function bbsGetBasesForCommitmentG1(
-    params: BbsSigParams,
+export function bbsPlusGetBasesForCommitmentG1(
+    params: BbsPlusSigParams,
     indicesToCommit: number[]
 ): Uint8Array[];
 
-export function bbsGetBasesForCommitmentG2(
-    params: BbsSigParams,
+export function bbsPlusGetBasesForCommitmentG2(
+    params: BbsPlusSigParams,
     indicesToCommit: number[]
 ): Uint8Array[];
 
-export function bbsSignG1(
+export function bbsPlusSignG1(
     messages: Uint8Array[],
     secretKey: Uint8Array,
-    params: BbsSigParams,
+    params: BbsPlusSigParams,
     encodeMessages: boolean
 ): Uint8Array;
 
-export function bbsSignG2(
+export function bbsPlusSignG2(
     messages: Uint8Array[],
     secretKey: Uint8Array,
-    params: BbsSigParams,
+    params: BbsPlusSigParams,
     encodeMessages: boolean
 ): Uint8Array;
 
-export function bbsVerifyG1(
-    messages: Uint8Array[],
-    signature: Uint8Array,
-    publicKey: Uint8Array,
-    params: BbsSigParams,
-    encodeMessages: boolean
-): Required<VerifyResult>;
-
-export function bbsVerifyG2(
+export function bbsPlusVerifyG1(
     messages: Uint8Array[],
     signature: Uint8Array,
     publicKey: Uint8Array,
-    params: BbsSigParams,
+    params: BbsPlusSigParams,
     encodeMessages: boolean
 ): Required<VerifyResult>;
 
-export function bbsCommitMsgsInG1(
+export function bbsPlusVerifyG2(
+    messages: Uint8Array[],
+    signature: Uint8Array,
+    publicKey: Uint8Array,
+    params: BbsPlusSigParams,
+    encodeMessages: boolean
+): Required<VerifyResult>;
+
+export function bbsPlusCommitMsgsInG1(
     messages: Map<number, Uint8Array>,
     blinding: Uint8Array,
-    params: BbsSigParams,
+    params: BbsPlusSigParams,
     encodeMessages: boolean
 ): Uint8Array;
 
-export function bbsCommitMsgsInG2(
+export function bbsPlusCommitMsgsInG2(
     messages: Map<number, Uint8Array>,
     blinding: Uint8Array,
-    params: BbsSigParams,
+    params: BbsPlusSigParams,
     encodeMessages: boolean
 ): Uint8Array;
 
-export function bbsBlindSignG1(
+export function bbsPlusBlindSignG1(
     commitment: Uint8Array,
     uncommittedMessages: Map<number, Uint8Array>,
     secretKey: Uint8Array,
-    params: BbsSigParams,
+    params: BbsPlusSigParams,
     encodeMessages: boolean
 ): Uint8Array;
 
-export function bbsBlindSignG2(
+export function bbsPlusBlindSignG2(
     commitment: Uint8Array,
     uncommittedMessages: Map<number, Uint8Array>,
     secretKey: Uint8Array,
-    params: BbsSigParams,
+    params: BbsPlusSigParams,
     encodeMessages: boolean
 ): Uint8Array;
 
-export function bbsUnblindSigG1(
+export function bbsPlusUnblindSigG1(
     signature: Uint8Array,
     blinding: Uint8Array,
 ): Uint8Array;
 
-export function bbsUnblindSigG2(
+export function bbsPlusUnblindSigG2(
     signature: Uint8Array,
     blinding: Uint8Array,
 ): Uint8Array;
 
-export function bbsInitializeProofOfKnowledgeOfSignature(
+export function bbsPlusInitializeProofOfKnowledgeOfSignature(
     signature: Uint8Array,
-    params: BbsSigParams,
+    params: BbsPlusSigParams,
     messages: Uint8Array[],
     blindings: Map<number, Uint8Array>,
     revealedIndices: Set<number>,
     encodeMessages: boolean
-): BbsPoKSigProtocol;
+): BbsPlusPoKSigProtocol;
 
-export function bbsGenProofOfKnowledgeOfSignature(
-    protocol: BbsPoKSigProtocol,
+export function bbsPlusGenProofOfKnowledgeOfSignature(
+    protocol: BbsPlusPoKSigProtocol,
     challenge: Uint8Array
 ): Uint8Array;
 
-export function bbsVerifyProofOfKnowledgeOfSignature(
+export function bbsPlusVerifyProofOfKnowledgeOfSignature(
     proof: Uint8Array,
     revealedMessages: Map<number, Uint8Array>,
     challenge: Uint8Array,
     publicKey: Uint8Array,
-    params: BbsSigParams,
+    params: BbsPlusSigParams,
     encodeMessages: boolean
 ): Required<VerifyResult>;
 
-export function bbsChallengeContributionFromProtocol(
-    protocol: BbsPoKSigProtocol,
+export function bbsPlusChallengeContributionFromProtocol(
+    protocol: BbsPlusPoKSigProtocol,
     revealedMessages: Map<number, Uint8Array>,
-    params: BbsSigParams,
+    params: BbsPlusSigParams,
     encodeMessages: boolean
 ): Uint8Array;
 
-export function bbsChallengeContributionFromProof(
+export function bbsPlusChallengeContributionFromProof(
     proof: Uint8Array,
     revealedMessages: Map<number, Uint8Array>,
-    params: BbsSigParams,
+    params: BbsPlusSigParams,
     encodeMessages: boolean
 ): Uint8Array;
 
-export function bbsAdaptSigParamsG1ForMsgCount(
-    params: BbsSigParams,
+export function bbsPlusAdaptSigParamsG1ForMsgCount(
+    params: BbsPlusSigParams,
     generating_label: Uint8Array,
     new_count: number
-): BbsSigParams;
+): BbsPlusSigParams;
 
-export function bbsAdaptSigParamsG2ForMsgCount(
-    params: BbsSigParams,
+export function bbsPlusAdaptSigParamsG2ForMsgCount(
+    params: BbsPlusSigParams,
     generating_label: Uint8Array,
     new_count: number
-): BbsSigParams;
+): BbsPlusSigParams;

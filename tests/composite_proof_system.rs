@@ -34,7 +34,7 @@ use dock_crypto_wasm::composite_proof_system::setup_params::{
 use dock_crypto_wasm::composite_proof_system::{
     generate_accumulator_membership_witness, generate_accumulator_non_membership_witness,
     generate_composite_proof_g1, generate_composite_proof_g2, generate_pedersen_commitment_witness,
-    generate_pok_bbs_sig_witness, generate_proof_spec_g1, generate_proof_spec_g2,
+    generate_pok_bbs_plus_sig_witness, generate_proof_spec_g1, generate_proof_spec_g2,
     verify_composite_proof_g1, verify_composite_proof_g2, Witness,
 };
 use dock_crypto_wasm::utils::{
@@ -52,20 +52,20 @@ use dock_crypto_wasm::composite_proof_system::statement::{
     generate_accumulator_non_membership_statement,
     generate_accumulator_non_membership_statement_from_param_refs,
     generate_pedersen_commitment_g1_statement, generate_pedersen_commitment_g2_statement,
-    generate_pok_bbs_sig_statement,
+    generate_pok_bbs_plus_sig_statement,
 };
 use wasm_bindgen::JsValue;
 use wasm_bindgen_test::*;
 
 wasm_bindgen_test_configure!(run_in_browser);
 
-fn test_bbs_statement(stmt_j: js_sys::Uint8Array, revealed_msgs: js_sys::Map) {
+fn test_bbs_plus_statement(stmt_j: js_sys::Uint8Array, revealed_msgs: js_sys::Map) {
     let s = js_sys::Uint8Array::new(&stmt_j);
     let serz = s.to_vec();
     let stmt: statement::Statement<Bls12_381, <Bls12_381 as Pairing>::G1Affine> =
         CanonicalDeserialize::deserialize_compressed(&serz[..]).unwrap();
     match stmt {
-        statement::Statement::PoKBBSSignatureG1(s) => {
+        statement::Statement::PoKBBSPlusSignatureG1(s) => {
             assert_eq!(s.revealed_messages.len() as u32, revealed_msgs.size());
             for (i, m) in s.revealed_messages.iter() {
                 assert_eq!(
@@ -78,10 +78,10 @@ fn test_bbs_statement(stmt_j: js_sys::Uint8Array, revealed_msgs: js_sys::Map) {
     }
 }
 
-fn test_bbs_witness(wit_j: JsValue, unrevealed_msgs: js_sys::Map) {
+fn test_bbs_plus_witness(wit_j: JsValue, unrevealed_msgs: js_sys::Map) {
     let wit: Witness = serde_wasm_bindgen::from_value(wit_j).unwrap();
     match wit {
-        Witness::PoKBBSSignatureG1(s) => {
+        Witness::PoKBBSPlusSignatureG1(s) => {
             assert_eq!(s.unrevealed_messages.len() as u32, unrevealed_msgs.size());
             for (i, m) in s.unrevealed_messages.iter() {
                 assert_eq!(
@@ -96,7 +96,7 @@ fn test_bbs_witness(wit_j: JsValue, unrevealed_msgs: js_sys::Map) {
 
 #[allow(non_snake_case)]
 #[wasm_bindgen_test]
-pub fn three_bbs_sigs_and_msg_equality() {
+pub fn three_bbs_plus_sigs_and_msg_equality() {
     let msg_count_1 = 5;
     let (params_1, sk_1, pk_1) = bbs_params_and_keys(msg_count_1);
     let msgs_1 = gen_msgs(msg_count_1);
@@ -153,21 +153,21 @@ pub fn three_bbs_sigs_and_msg_equality() {
     let (revealed_msgs_3, unrevealed_msgs_3) = get_revealed_unrevealed(&msgs_3, &BTreeSet::new());
 
     // Create statements
-    let stmt_1 = generate_pok_bbs_sig_statement(
+    let stmt_1 = generate_pok_bbs_plus_sig_statement(
         params_1.clone(),
         pk_1.clone(),
         revealed_msgs_1.clone(),
         true,
     )
     .unwrap();
-    let stmt_2 = generate_pok_bbs_sig_statement(
+    let stmt_2 = generate_pok_bbs_plus_sig_statement(
         params_2.clone(),
         pk_2.clone(),
         revealed_msgs_2.clone(),
         true,
     )
     .unwrap();
-    let stmt_3 = generate_pok_bbs_sig_statement(
+    let stmt_3 = generate_pok_bbs_plus_sig_statement(
         params_3.clone(),
         pk_3.clone(),
         revealed_msgs_3.clone(),
@@ -191,9 +191,9 @@ pub fn three_bbs_sigs_and_msg_equality() {
     let proof_spec =
         generate_proof_spec_g1(statements, meta_statements, js_sys::Array::new(), context).unwrap();
 
-    let witness_1 = generate_pok_bbs_sig_witness(sig_1, unrevealed_msgs_1, true).unwrap();
-    let witness_2 = generate_pok_bbs_sig_witness(sig_2, unrevealed_msgs_2, true).unwrap();
-    let witness_3 = generate_pok_bbs_sig_witness(sig_3, unrevealed_msgs_3, true).unwrap();
+    let witness_1 = generate_pok_bbs_plus_sig_witness(sig_1, unrevealed_msgs_1, true).unwrap();
+    let witness_2 = generate_pok_bbs_plus_sig_witness(sig_2, unrevealed_msgs_2, true).unwrap();
+    let witness_3 = generate_pok_bbs_plus_sig_witness(sig_3, unrevealed_msgs_3, true).unwrap();
 
     let witnesses = js_sys::Array::new();
     witnesses.push(&witness_1);
@@ -403,14 +403,14 @@ pub fn bbs_sig_and_accumulator() {
                     .unwrap(),
                 );
 
-                let stmt_1 = generate_pok_bbs_sig_statement(
+                let stmt_1 = generate_pok_bbs_plus_sig_statement(
                     params_1.clone(),
                     pk_1.clone(),
                     revealed_msgs_1.clone(),
                     false,
                 )
                 .unwrap();
-                let stmt_2 = generate_pok_bbs_sig_statement(
+                let stmt_2 = generate_pok_bbs_plus_sig_statement(
                     params_2.clone(),
                     pk_2.clone(),
                     revealed_msgs_2.clone(),
@@ -477,14 +477,14 @@ pub fn bbs_sig_and_accumulator() {
                     stmt_1, stmt_2, stmt_3, stmt_4, stmt_5, stmt_6, stmt_7, stmt_8, stmt_9,
                 )
             } else {
-                let stmt_1 = generate_pok_bbs_sig_statement(
+                let stmt_1 = generate_pok_bbs_plus_sig_statement(
                     params_1.clone(),
                     pk_1.clone(),
                     revealed_msgs_1.clone(),
                     false,
                 )
                 .unwrap();
-                let stmt_2 = generate_pok_bbs_sig_statement(
+                let stmt_2 = generate_pok_bbs_plus_sig_statement(
                     params_2.clone(),
                     pk_2.clone(),
                     revealed_msgs_2.clone(),
@@ -589,9 +589,9 @@ pub fn bbs_sig_and_accumulator() {
             generate_proof_spec_g1(statements, meta_statements, setup_params, context).unwrap();
 
         let witness_1 =
-            generate_pok_bbs_sig_witness(sig_1, unrevealed_msgs_1.clone(), false).unwrap();
+            generate_pok_bbs_plus_sig_witness(sig_1, unrevealed_msgs_1.clone(), false).unwrap();
         let witness_2 =
-            generate_pok_bbs_sig_witness(sig_2, unrevealed_msgs_2.clone(), false).unwrap();
+            generate_pok_bbs_plus_sig_witness(sig_2, unrevealed_msgs_2.clone(), false).unwrap();
         let witness_3 =
             generate_accumulator_membership_witness(member_1.clone(), pos_witness_1.clone())
                 .unwrap();
@@ -624,10 +624,10 @@ pub fn bbs_sig_and_accumulator() {
         let msgs = encode_messages_as_js_map_to_fr_btreemap(&revealed_msgs_1, false).unwrap();
         assert_eq!(msgs.len(), 1);
 
-        test_bbs_statement(stmt_1.clone(), revealed_msgs_1.clone());
-        test_bbs_statement(stmt_2.clone(), revealed_msgs_2.clone());
-        test_bbs_witness(witness_1.clone(), unrevealed_msgs_1.clone());
-        test_bbs_witness(witness_2.clone(), unrevealed_msgs_2.clone());
+        test_bbs_plus_statement(stmt_1.clone(), revealed_msgs_1.clone());
+        test_bbs_plus_statement(stmt_2.clone(), revealed_msgs_2.clone());
+        test_bbs_plus_witness(witness_1.clone(), unrevealed_msgs_1.clone());
+        test_bbs_plus_witness(witness_2.clone(), unrevealed_msgs_2.clone());
 
         let nonce = Some("test-nonce".as_bytes().to_vec());
 
@@ -644,7 +644,7 @@ pub fn bbs_sig_and_accumulator() {
 
 #[allow(non_snake_case)]
 #[wasm_bindgen_test]
-pub fn request_blind_bbs_sig() {
+pub fn request_blind_bbs_plus_sig() {
     let msg_count_1 = 5;
     let (params_1, sk_1, pk_1) = bbs_params_and_keys(msg_count_1);
     let msgs_1 = gen_msgs(msg_count_1);
@@ -700,7 +700,7 @@ pub fn request_blind_bbs_sig() {
     .unwrap();
 
     let statements = js_sys::Array::new();
-    let stmt_1 = generate_pok_bbs_sig_statement(
+    let stmt_1 = generate_pok_bbs_plus_sig_statement(
         params_1.clone(),
         pk_1.clone(),
         revealed_msgs_1.clone(),
@@ -723,7 +723,7 @@ pub fn request_blind_bbs_sig() {
     let proof_spec =
         generate_proof_spec_g1(statements, meta_statements, js_sys::Array::new(), context).unwrap();
 
-    let witness_1 = generate_pok_bbs_sig_witness(sig_1, unrevealed_msgs_1, true).unwrap();
+    let witness_1 = generate_pok_bbs_plus_sig_witness(sig_1, unrevealed_msgs_1, true).unwrap();
 
     let wits = bbs_encode_messages_for_signing(msgs_2_as_array.clone(), indices_to_commit.clone())
         .unwrap();

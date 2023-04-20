@@ -107,19 +107,19 @@ fn fr_uin8_array_from_bytes_hash(bytes: &[u8]) -> js_sys::Uint8Array {
 }
 
 pub fn random_ff(seed: Option<Vec<u8>>) -> Fr {
-    let seed = seed.unwrap_or_else(|| random_bytes());
+    let seed = seed.unwrap_or_else(random_bytes);
     dock_crypto_utils::hashing_utils::field_elem_from_try_and_incr::<Fr, Blake2b512>(&seed)
 }
 
 pub fn random_g1(seed: Option<Vec<u8>>) -> G1Affine {
-    let seed = seed.unwrap_or_else(|| random_bytes());
+    let seed = seed.unwrap_or_else(random_bytes);
     dock_crypto_utils::hashing_utils::affine_group_elem_from_try_and_incr::<G1Affine, Blake2b512>(
         &seed,
     )
 }
 
 pub fn random_g2(seed: Option<Vec<u8>>) -> G2Affine {
-    let seed = seed.unwrap_or_else(|| random_bytes());
+    let seed = seed.unwrap_or_else(random_bytes);
     dock_crypto_utils::hashing_utils::affine_group_elem_from_try_and_incr::<G2Affine, Blake2b512>(
         &seed,
     )

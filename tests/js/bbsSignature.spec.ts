@@ -1,49 +1,49 @@
 import {
-  generateSignatureParamsG1,
-  generateSignatureParamsG2,
-  isSignatureParamsG1Valid,
-  bbsSignatureParamsG1MaxSupportedMsgs,
-  isSignatureParamsG2Valid,
-  bbsSignatureParamsG2MaxSupportedMsgs,
-  generateBBSSigningKey,
-  generateBBSPublicKeyG1,
-  generateBBSPublicKeyG2,
-  generateBBSKeyPairG1,
-  generateBBSKeyPairG2,
-  isBBSPublicKeyG1Valid,
-  isBBSPublicKeyG2Valid,
-  bbsSignG1,
-  bbsVerifyG1,
-  bbsSignG2,
-  bbsVerifyG2,
+  bbsPlusGenerateSignatureParamsG1,
+  bbsPlusGenerateSignatureParamsG2,
+  bbsPlusIsSignatureParamsG1Valid,
+  bbsPlusSignatureParamsG1MaxSupportedMsgs,
+  bbsPlusIsSignatureParamsG2Valid,
+  bbsPlusSignatureParamsG2MaxSupportedMsgs,
+  bbsPlusGenerateSigningKey,
+  bbsPlusGeneratePublicKeyG1,
+  bbsPlusGeneratePublicKeyG2,
+  bbsPlusGenerateKeyPairG1,
+  bbsPlusGenerateKeyPairG2,
+  bbsPlusIsPublicKeyG1Valid,
+  bbsPlusIsPublicKeyG2Valid,
+  bbsPlusSignG1,
+  bbsPlusVerifyG1,
+  bbsPlusSignG2,
+  bbsPlusVerifyG2,
   generateRandomFieldElement,
-  bbsCommitMsgsInG1,
-  bbsCommitMsgsInG2,
-  bbsBlindSignG1,
-  bbsBlindSignG2,
-  bbsUnblindSigG1,
-  bbsUnblindSigG2,
-  bbsInitializeProofOfKnowledgeOfSignature,
-  bbsGenProofOfKnowledgeOfSignature,
-  bbsVerifyProofOfKnowledgeOfSignature,
-  bbsChallengeContributionFromProtocol,
-  bbsChallengeContributionFromProof,
+  bbsPlusCommitMsgsInG1,
+  bbsPlusCommitMsgsInG2,
+  bbsPlusBlindSignG1,
+  bbsPlusBlindSignG2,
+  bbsPlusUnblindSigG1,
+  bbsPlusUnblindSigG2,
+  bbsPlusInitializeProofOfKnowledgeOfSignature,
+  bbsPlusGenProofOfKnowledgeOfSignature,
+  bbsPlusVerifyProofOfKnowledgeOfSignature,
+  bbsPlusChallengeContributionFromProtocol,
+  bbsPlusChallengeContributionFromProof,
   generateChallengeFromBytes,
-  bbsAdaptSigParamsG1ForMsgCount,
-  bbsAdaptSigParamsG2ForMsgCount,
-  bbsSignatureParamsG1ToBytes,
-  bbsSignatureParamsG1FromBytes,
-  bbsSignatureParamsG2FromBytes,
-  bbsSignatureParamsG2ToBytes,
-  BbsSigParams,
+  bbsPlusAdaptSigParamsG1ForMsgCount,
+  bbsPlusAdaptSigParamsG2ForMsgCount,
+  bbsPlusSignatureParamsG1ToBytes,
+  bbsPlusSignatureParamsG1FromBytes,
+  bbsPlusSignatureParamsG2FromBytes,
+  bbsPlusSignatureParamsG2ToBytes,
+  BbsPlusSigParams,
   initializeWasm,
 } from "../../lib";
 
 import { stringToBytes } from "../utilities";
 
 describe("For BBS+ signatures", () => {
-  let sigParamsG1: BbsSigParams,
-    sigParamsG2: BbsSigParams,
+  let sigParamsG1: BbsPlusSigParams,
+    sigParamsG2: BbsPlusSigParams,
     sk: Uint8Array,
     pkG1: Uint8Array,
     pkG2: Uint8Array;
@@ -63,13 +63,13 @@ describe("For BBS+ signatures", () => {
   });
 
   it("generate secret key", () => {
-    const sk_ = generateBBSSigningKey();
+    const sk_ = bbsPlusGenerateSigningKey();
     expect(sk_).toBeInstanceOf(Uint8Array);
 
-    const sk1 = generateBBSSigningKey(seed);
+    const sk1 = bbsPlusGenerateSigningKey(seed);
     expect(sk1).toBeInstanceOf(Uint8Array);
 
-    const sk2 = generateBBSSigningKey(seed);
+    const sk2 = bbsPlusGenerateSigningKey(seed);
     expect(sk2).toBeInstanceOf(Uint8Array);
 
     expect(sk1).toEqual(sk2);
@@ -78,77 +78,78 @@ describe("For BBS+ signatures", () => {
   });
 
   it("generate signature params in G1", () => {
-    expect(() => generateSignatureParamsG1(-5)).toThrow();
-    expect(() => generateSignatureParamsG1(6.3)).toThrow();
+    expect(() => bbsPlusGenerateSignatureParamsG1(-5)).toThrow();
+    expect(() => bbsPlusGenerateSignatureParamsG1(6.3)).toThrow();
 
-    const params0 = generateSignatureParamsG1(messageCount);
+    const params0 = bbsPlusGenerateSignatureParamsG1(messageCount);
     expect(params0).toBeInstanceOf(Object);
     expect(params0.h.length).toEqual(messageCount);
-    expect(isSignatureParamsG1Valid(params0)).toBe(true);
+    expect(bbsPlusIsSignatureParamsG1Valid(params0)).toBe(true);
 
     const label = stringToBytes("Sig params g1");
-    const params = generateSignatureParamsG1(messageCount, label);
+    const params = bbsPlusGenerateSignatureParamsG1(messageCount, label);
     expect(params).toBeInstanceOf(Object);
     expect(params.h.length).toEqual(messageCount);
-    expect(isSignatureParamsG1Valid(params)).toBe(true);
-    expect(bbsSignatureParamsG1MaxSupportedMsgs(params)).toBe(messageCount);
+    expect(bbsPlusIsSignatureParamsG1Valid(params)).toBe(true);
+    expect(bbsPlusSignatureParamsG1MaxSupportedMsgs(params)).toBe(messageCount);
 
-    const bytes = bbsSignatureParamsG1ToBytes(params);
-    const deserzParams = bbsSignatureParamsG1FromBytes(bytes);
+    const bytes = bbsPlusSignatureParamsG1ToBytes(params);
+    const deserzParams = bbsPlusSignatureParamsG1FromBytes(bytes);
     expect(params).toEqual(deserzParams);
 
     sigParamsG1 = params;
   });
 
   it("generate signature params in G2", () => {
-    expect(() => generateSignatureParamsG2(-5)).toThrow();
-    expect(() => generateSignatureParamsG2(6.3)).toThrow();
+    expect(() => bbsPlusGenerateSignatureParamsG2(-5)).toThrow();
+    expect(() => bbsPlusGenerateSignatureParamsG2(6.3)).toThrow();
 
-    const params0 = generateSignatureParamsG2(messageCount);
+    const params0 = bbsPlusGenerateSignatureParamsG2(messageCount);
     expect(params0).toBeInstanceOf(Object);
     expect(params0.h.length).toEqual(messageCount);
-    expect(isSignatureParamsG2Valid(params0)).toBe(true);
+    expect(bbsPlusIsSignatureParamsG2Valid(params0)).toBe(true);
 
-    const params = generateSignatureParamsG2(messageCount);
+    const params = bbsPlusGenerateSignatureParamsG2(messageCount);
     expect(params).toBeInstanceOf(Object);
     expect(params.h.length).toEqual(messageCount);
-    expect(isSignatureParamsG2Valid(params)).toBe(true);
-    expect(bbsSignatureParamsG2MaxSupportedMsgs(params)).toBe(messageCount);
+    expect(bbsPlusIsSignatureParamsG2Valid(params)).toBe(true);
+    expect(bbsPlusSignatureParamsG2MaxSupportedMsgs(params)).toBe(messageCount);
 
-    const bytes = bbsSignatureParamsG2ToBytes(params);
-    const deserzParams = bbsSignatureParamsG2FromBytes(bytes);
+    const bytes = bbsPlusSignatureParamsG2ToBytes(params);
+    const deserzParams = bbsPlusSignatureParamsG2FromBytes(bytes);
     expect(params).toEqual(deserzParams);
 
     sigParamsG2 = params;
   });
 
   it("generate public key in G1 from secret key", () => {
-    pkG1 = generateBBSPublicKeyG1(sk, sigParamsG2);
+    pkG1 = bbsPlusGeneratePublicKeyG1(sk, sigParamsG2);
     expect(pkG1).toBeInstanceOf(Uint8Array);
-    expect(isBBSPublicKeyG1Valid(pkG1)).toBe(true);
+    expect(bbsPlusIsPublicKeyG1Valid(pkG1)).toBe(true);
   });
 
   it("generate public key in G2 from secret key", () => {
-    pkG2 = generateBBSPublicKeyG2(sk, sigParamsG1);
+    pkG2 = bbsPlusGeneratePublicKeyG2(sk, sigParamsG1);
     expect(pkG2).toBeInstanceOf(Uint8Array);
-    expect(isBBSPublicKeyG2Valid(pkG2)).toBe(true);
+    expect(bbsPlusIsPublicKeyG2Valid(pkG2)).toBe(true);
   });
 
   it("generate keypair in G1 from given seed", () => {
-    const keypair = generateBBSKeyPairG1(sigParamsG2, seed);
+    const keypair = bbsPlusGenerateKeyPairG1(sigParamsG2, seed);
     expect(keypair).toBeInstanceOf(Object);
-    const keypair1 = generateBBSKeyPairG1(sigParamsG2, seed);
+    const keypair1 = bbsPlusGenerateKeyPairG1(sigParamsG2, seed);
     expect(keypair1).toBeInstanceOf(Object);
     expect(keypair).toEqual(keypair1);
+    console.log(sk, keypair.secret_key, typeof keypair.secret_key)
 
     expect(keypair.secret_key).toEqual(sk);
     expect(keypair.public_key).toEqual(pkG1);
   });
 
   it("generate keypair in G2 from given seed", () => {
-    const keypair = generateBBSKeyPairG2(sigParamsG1, seed);
+    const keypair = bbsPlusGenerateKeyPairG2(sigParamsG1, seed);
     expect(keypair).toBeInstanceOf(Object);
-    const keypair1 = generateBBSKeyPairG2(sigParamsG1, seed);
+    const keypair1 = bbsPlusGenerateKeyPairG2(sigParamsG1, seed);
     expect(keypair1).toBeInstanceOf(Object);
     expect(keypair).toEqual(keypair1);
 
@@ -157,47 +158,47 @@ describe("For BBS+ signatures", () => {
   });
 
   it("generate and verify signature in G1", () => {
-    const sig = bbsSignG1(messages, sk, sigParamsG1, true);
-    const res = bbsVerifyG1(messages, sig, pkG2, sigParamsG1, true);
+    const sig = bbsPlusSignG1(messages, sk, sigParamsG1, true);
+    const res = bbsPlusVerifyG1(messages, sig, pkG2, sigParamsG1, true);
     expect(res.verified).toBe(true);
   });
 
   it("generate and verify signature in G2", () => {
-    const sig = bbsSignG2(messages, sk, sigParamsG2, true);
-    const res = bbsVerifyG2(messages, sig, pkG1, sigParamsG2, true);
+    const sig = bbsPlusSignG2(messages, sk, sigParamsG2, true);
+    const res = bbsPlusVerifyG2(messages, sig, pkG1, sigParamsG2, true);
     expect(res.verified).toBe(true);
   });
 
   it("extend signature params in G1", () => {
     const label = stringToBytes("Sig params g1");
-    const params0 = generateSignatureParamsG1(1);
-    expect(bbsSignatureParamsG1MaxSupportedMsgs(params0)).toBe(1);
+    const params0 = bbsPlusGenerateSignatureParamsG1(1);
+    expect(bbsPlusSignatureParamsG1MaxSupportedMsgs(params0)).toBe(1);
 
-    const params1 = bbsAdaptSigParamsG1ForMsgCount(params0, label, 5);
-    expect(bbsSignatureParamsG1MaxSupportedMsgs(params1)).toBe(5);
-    expect(isSignatureParamsG1Valid(params1)).toBe(true);
+    const params1 = bbsPlusAdaptSigParamsG1ForMsgCount(params0, label, 5);
+    expect(bbsPlusSignatureParamsG1MaxSupportedMsgs(params1)).toBe(5);
+    expect(bbsPlusIsSignatureParamsG1Valid(params1)).toBe(true);
     expect(params0.h[0]).toEqual(params1.h[0]);
 
-    const params2 = bbsAdaptSigParamsG1ForMsgCount(params1, label, 2);
-    expect(bbsSignatureParamsG1MaxSupportedMsgs(params2)).toBe(2);
-    expect(isSignatureParamsG1Valid(params2)).toBe(true);
+    const params2 = bbsPlusAdaptSigParamsG1ForMsgCount(params1, label, 2);
+    expect(bbsPlusSignatureParamsG1MaxSupportedMsgs(params2)).toBe(2);
+    expect(bbsPlusIsSignatureParamsG1Valid(params2)).toBe(true);
     expect(params1.h[0]).toEqual(params2.h[0]);
     expect(params1.h[1]).toEqual(params2.h[1]);
   });
 
   it("extend signature params in G2", () => {
     const label = stringToBytes("Sig params g2");
-    const params0 = generateSignatureParamsG2(1);
-    expect(bbsSignatureParamsG2MaxSupportedMsgs(params0)).toBe(1);
+    const params0 = bbsPlusGenerateSignatureParamsG2(1);
+    expect(bbsPlusSignatureParamsG2MaxSupportedMsgs(params0)).toBe(1);
 
-    const params1 = bbsAdaptSigParamsG2ForMsgCount(params0, label, 5);
-    expect(bbsSignatureParamsG2MaxSupportedMsgs(params1)).toBe(5);
-    expect(isSignatureParamsG2Valid(params1)).toBe(true);
+    const params1 = bbsPlusAdaptSigParamsG2ForMsgCount(params0, label, 5);
+    expect(bbsPlusSignatureParamsG2MaxSupportedMsgs(params1)).toBe(5);
+    expect(bbsPlusIsSignatureParamsG2Valid(params1)).toBe(true);
     expect(params0.h[0]).toEqual(params1.h[0]);
 
-    const params2 = bbsAdaptSigParamsG2ForMsgCount(params1, label, 2);
-    expect(bbsSignatureParamsG2MaxSupportedMsgs(params2)).toBe(2);
-    expect(isSignatureParamsG2Valid(params2)).toBe(true);
+    const params2 = bbsPlusAdaptSigParamsG2ForMsgCount(params1, label, 2);
+    expect(bbsPlusSignatureParamsG2MaxSupportedMsgs(params2)).toBe(2);
+    expect(bbsPlusIsSignatureParamsG2Valid(params2)).toBe(true);
     expect(params1.h[0]).toEqual(params2.h[0]);
     expect(params1.h[1]).toEqual(params2.h[1]);
   });
@@ -215,21 +216,21 @@ describe("For BBS+ signatures", () => {
     msgsNotToCommit.set(4, messages[4]);
 
     const blinding = generateRandomFieldElement();
-    const commitment = bbsCommitMsgsInG1(
+    const commitment = bbsPlusCommitMsgsInG1(
       msgsToCommit,
       blinding,
       sigParamsG1,
       true
     );
-    const blindSig = bbsBlindSignG1(
+    const blindSig = bbsPlusBlindSignG1(
       commitment,
       msgsNotToCommit,
       sk,
       sigParamsG1,
       true
     );
-    const sig = bbsUnblindSigG1(blindSig, blinding);
-    const res = bbsVerifyG1(messages, sig, pkG2, sigParamsG1, true);
+    const sig = bbsPlusUnblindSigG1(blindSig, blinding);
+    const res = bbsPlusVerifyG1(messages, sig, pkG2, sigParamsG1, true);
     expect(res.verified).toBe(true);
   });
 
@@ -246,27 +247,27 @@ describe("For BBS+ signatures", () => {
     msgsNotToCommit.set(4, messages[4]);
 
     const blinding = generateRandomFieldElement();
-    const commitment = bbsCommitMsgsInG2(
+    const commitment = bbsPlusCommitMsgsInG2(
       msgsToCommit,
       blinding,
       sigParamsG2,
       true
     );
-    const blindSig = bbsBlindSignG2(
+    const blindSig = bbsPlusBlindSignG2(
       commitment,
       msgsNotToCommit,
       sk,
       sigParamsG2,
       true
     );
-    const sig = bbsUnblindSigG2(blindSig, blinding);
-    const res = bbsVerifyG2(messages, sig, pkG1, sigParamsG2, true);
+    const sig = bbsPlusUnblindSigG2(blindSig, blinding);
+    const res = bbsPlusVerifyG2(messages, sig, pkG1, sigParamsG2, true);
     expect(res.verified).toBe(true);
   });
 
   it("generate a proof of knowledge of signature in G1", () => {
-    const sig = bbsSignG1(messages, sk, sigParamsG1, true);
-    const res = bbsVerifyG1(messages, sig, pkG2, sigParamsG1, true);
+    const sig = bbsPlusSignG1(messages, sk, sigParamsG1, true);
+    const res = bbsPlusVerifyG1(messages, sig, pkG2, sigParamsG1, true);
     expect(res.verified).toBe(true);
 
     // Prover reveals message indices 0 and 2 and supplies blindings for message indices 1, 4 and 5
@@ -282,7 +283,7 @@ describe("For BBS+ signatures", () => {
     revealedMsgs.set(0, messages[0]);
     revealedMsgs.set(2, messages[2]);
 
-    const protocol = bbsInitializeProofOfKnowledgeOfSignature(
+    const protocol = bbsPlusInitializeProofOfKnowledgeOfSignature(
       sig,
       sigParamsG1,
       messages,
@@ -290,7 +291,7 @@ describe("For BBS+ signatures", () => {
       revealed,
       true
     );
-    const pBytes = bbsChallengeContributionFromProtocol(
+    const pBytes = bbsPlusChallengeContributionFromProtocol(
       protocol,
       revealedMsgs,
       sigParamsG1,
@@ -298,9 +299,9 @@ describe("For BBS+ signatures", () => {
     );
     expect(pBytes).toBeInstanceOf(Uint8Array);
     const proverChallenge = generateChallengeFromBytes(pBytes);
-    const proof = bbsGenProofOfKnowledgeOfSignature(protocol, proverChallenge);
+    const proof = bbsPlusGenProofOfKnowledgeOfSignature(protocol, proverChallenge);
 
-    const vBytes = bbsChallengeContributionFromProof(
+    const vBytes = bbsPlusChallengeContributionFromProof(
       proof,
       revealedMsgs,
       sigParamsG1,
@@ -310,7 +311,7 @@ describe("For BBS+ signatures", () => {
     expect(pBytes).toEqual(vBytes);
     const verifierChallenge = generateChallengeFromBytes(vBytes);
     expect(proverChallenge).toEqual(verifierChallenge);
-    const result = bbsVerifyProofOfKnowledgeOfSignature(
+    const result = bbsPlusVerifyProofOfKnowledgeOfSignature(
       proof,
       revealedMsgs,
       verifierChallenge,

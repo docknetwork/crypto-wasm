@@ -31,7 +31,7 @@ pub fn saver_generate_encryption_generators(
     label: Option<Vec<u8>>,
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
-    let label = label.unwrap_or_else(|| random_bytes());
+    let label = label.unwrap_or_else(random_bytes);
     let gens = EncGens::new::<Blake2b512>(&label);
     Ok(obj_to_uint8array!(&gens, false, "EncryptionGenerators"))
 }
@@ -41,7 +41,7 @@ pub fn saver_generate_chunked_commitment_generators(
     label: Option<Vec<u8>>,
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
-    let label = label.unwrap_or_else(|| random_bytes());
+    let label = label.unwrap_or_else(random_bytes);
     let gens = ChunkedCommGens::new::<Blake2b512>(&label);
     Ok(obj_to_uint8array!(
         &gens,

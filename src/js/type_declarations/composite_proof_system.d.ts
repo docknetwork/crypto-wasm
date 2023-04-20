@@ -1,17 +1,29 @@
-import {BbsSigParams, INonMembershipWitness, VerifyResult, Constraint} from "../types";
+import {BbsPlusSigParams, INonMembershipWitness, VerifyResult, Constraint, PSSigParams} from "../types";
 
-export function generatePoKBBSSignatureStatement(
-    params: BbsSigParams,
+export function generatePoKBBSPlusSignatureStatement(
+    params: BbsPlusSigParams,
     publicKey: Uint8Array,
     revealedMessages: Map<number, Uint8Array>,
     encodeMessages: boolean
 ): Uint8Array;
 
-export function generatePoKBBSSignatureStatementFromParamRefs(
+export function generatePoKBBSPlusSignatureStatementFromParamRefs(
     params: number,
     publicKey: number,
     revealedMessages: Map<number, Uint8Array>,
     encodeMessages: boolean
+): Uint8Array;
+
+export function generatePoKPSSignatureStatement(
+    params: PSSigParams,
+    publicKey: Uint8Array,
+    revealedMessages: Map<number, Uint8Array>
+): Uint8Array;
+
+export function generatePoKPSSignatureStatementFromParamRefs(
+    params: number,
+    publicKey: number,
+    revealedMessages: Map<number, Uint8Array>
 ): Uint8Array;
 
 export function generateAccumulatorMembershipStatement(
@@ -153,10 +165,15 @@ export function generateWitnessEqualityMetaStatement(
     equalities: Set<[number, number]>,
 ): Uint8Array;
 
-export function generatePoKBBSSignatureWitness(
+export function generatePoKBBSPlusSignatureWitness(
     signature: Uint8Array,
     unrevealedMessages: Map<number, Uint8Array>,
     encodeMessages: boolean
+): Uint8Array;
+
+export function generatePoKPSSignatureWitness(
+    signature: Uint8Array,
+    unrevealedMessages: Map<number, Uint8Array>
 ): Uint8Array;
 
 export function generateAccumulatorMembershipWitness(

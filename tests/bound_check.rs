@@ -10,7 +10,7 @@ use dock_crypto_wasm::bound_check::*;
 use dock_crypto_wasm::common::VerifyResponse;
 use dock_crypto_wasm::composite_proof_system::{
     generate_bound_check_witness, generate_composite_proof_g1_with_deconstructed_proof_spec,
-    generate_pok_bbs_sig_witness, verify_composite_proof_g1_with_deconstructed_proof_spec,
+    generate_pok_bbs_plus_sig_witness, verify_composite_proof_g1_with_deconstructed_proof_spec,
 };
 use dock_crypto_wasm::utils::{
     field_element_from_u32, fr_to_uint8_array, js_array_of_bytearrays_from_vector_of_bytevectors,
@@ -21,7 +21,7 @@ mod common;
 use common::{bbs_params_and_keys, get_revealed_unrevealed, get_witness_equality_statement};
 use dock_crypto_wasm::composite_proof_system::statement::{
     generate_bound_check_lego_prover_statement, generate_bound_check_lego_verifier_statement,
-    generate_pok_bbs_sig_statement, get_valid_min_max,
+    generate_pok_bbs_plus_sig_statement, get_valid_min_max,
 };
 use dock_crypto_wasm::legosnark::{legosnark_decompress_pk, legosnark_vk_from_pk};
 
@@ -101,7 +101,7 @@ pub fn bbs_sig_and_bound_check_message() {
 
     // Create statements
     let stmt_1 =
-        generate_pok_bbs_sig_statement(params.clone(), pk.clone(), revealed_msgs.clone(), false)
+        generate_pok_bbs_plus_sig_statement(params.clone(), pk.clone(), revealed_msgs.clone(), false)
             .unwrap();
     console::time_with_label("bound check prover stmt");
     let prover_stmt_2 = generate_bound_check_lego_prover_statement(
@@ -124,7 +124,7 @@ pub fn bbs_sig_and_bound_check_message() {
 
     let context = Some("test-context".as_bytes().to_vec());
 
-    let witness_1 = generate_pok_bbs_sig_witness(sig, unrevealed_msgs.clone(), false).unwrap();
+    let witness_1 = generate_pok_bbs_plus_sig_witness(sig, unrevealed_msgs.clone(), false).unwrap();
     let witness_2 = generate_bound_check_witness(js_sys::Uint8Array::from(
         encoded_msgs[bounded_msg_idx].as_slice(),
     ))

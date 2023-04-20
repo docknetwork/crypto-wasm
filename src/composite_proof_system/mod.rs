@@ -4,7 +4,8 @@ pub mod statement;
 use wasm_bindgen::prelude::*;
 
 use crate::accumulator::{MembershipWit, NonMembershipWit};
-use crate::bbs_plus::{encode_messages_as_js_map_to_fr_btreemap, SigG1};
+use crate::bbs_plus::{encode_messages_as_js_map_to_fr_btreemap, SigG1 as BBSPlusSigG1};
+use crate::ps::{Signature as PSSignature};
 use crate::common::VerifyResponse;
 use crate::utils::{fr_from_uint8_array, get_seeded_rng, js_array_to_fr_vec, set_panic_hook};
 use crate::{Fr, G1Affine};
@@ -22,7 +23,8 @@ use zeroize::Zeroize;
 
 pub type Witness = witness::Witness<Bls12_381>;
 pub type Witnesses = witness::Witnesses<Bls12_381>;
-pub(crate) type PoKBBSSigWit = witness::PoKBBSSignatureG1<Bls12_381>;
+pub(crate) type PoKBbsPlusSigWit = witness::PoKBBSSignatureG1<Bls12_381>;
+pub(crate) type PokPSSigWit = witness::PoKPSSignature<Bls12_381>;
 pub(crate) type AccumMemWit = witness::Membership<Bls12_381>;
 pub(crate) type AccumNonMemWit = witness::NonMembership<Bls12_381>;
 pub(crate) type ProofSpec<G> = proof_system::proof_spec::ProofSpec<Bls12_381, G>;
@@ -30,16 +32,29 @@ pub(crate) type Proof<G> = proof::Proof<Bls12_381, G>;
 pub(crate) type ProofG1 = proof::Proof<Bls12_381, G1Affine>;
 pub(crate) type StatementProofG1 = proof_system::prelude::StatementProof<Bls12_381, G1Affine>;
 
-#[wasm_bindgen(js_name = generatePoKBBSSignatureWitness)]
-pub fn generate_pok_bbs_sig_witness(
+#[wasm_bindgen(js_name = generatePoKBBSPlusSignatureWitness)]
+pub fn generate_pok_bbs_plus_sig_witness(
     signature: Uint8Array,
     unrevealed_msgs: js_sys::Map,
     encode_messages: bool,
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
-    let signature = obj_from_uint8array!(SigG1, signature, true);
+    let signature = obj_from_uint8array!(BBSPlusSigG1, signature, true);
     let msgs = encode_messages_as_js_map_to_fr_btreemap(&unrevealed_msgs, encode_messages)?;
-    let witness = PoKBBSSigWit::new_as_witness(signature, msgs);
+    let witness = PoKBbsPlusSigWit::new_as_witness(signature, msgs);
+    serde_wasm_bindgen::to_value(&witness).map_err(|e| JsValue::from(e))
+}
+
+#[wasm_bindgen(js_name = generatePoKPSSignatureWitness)]
+pub fn generate_pok_ps_sig_witness(
+    signature: Uint8Array,
+    unrevealed_msgs: js_sys::Map
+) -> Result<JsValue, JsValue> {
+    set_panic_hook();
+    let signature = obj_from_uint8array!(PSSignature, signature, true);
+    let msgs = encode_messages_as_js_map_to_fr_btreemap(&unrevealed_msgs, false)?;
+    let witness = PokPSSigWit::new_as_witness(signature, msgs);
+
     serde_wasm_bindgen::to_value(&witness).map_err(|e| JsValue::from(e))
 }
 

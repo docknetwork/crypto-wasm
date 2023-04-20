@@ -8,7 +8,7 @@ use web_sys::console;
 use dock_crypto_wasm::bbs_plus::{bbs_encode_message_for_signing, bbs_sign_g1};
 use dock_crypto_wasm::common::VerifyResponse;
 use dock_crypto_wasm::composite_proof_system::{
-    generate_composite_proof_g1_with_deconstructed_proof_spec, generate_pok_bbs_sig_witness,
+    generate_composite_proof_g1_with_deconstructed_proof_spec, generate_pok_bbs_plus_sig_witness,
     generate_saver_witness, saver_get_ciphertext_from_proof,
     verify_composite_proof_g1_with_deconstructed_proof_spec,
 };
@@ -18,7 +18,7 @@ use dock_crypto_wasm::utils::{js_array_of_bytearrays_from_vector_of_bytevectors,
 mod common;
 use common::{bbs_params_and_keys, get_revealed_unrevealed, get_witness_equality_statement};
 use dock_crypto_wasm::composite_proof_system::statement::{
-    generate_pok_bbs_sig_statement, generate_saver_prover_statement,
+    generate_pok_bbs_plus_sig_statement, generate_saver_prover_statement,
     generate_saver_verifier_statement,
 };
 
@@ -69,7 +69,7 @@ pub fn bbs_sig_and_verifiable_encryption() {
 
     // Create statements
     let stmt_1 =
-        generate_pok_bbs_sig_statement(params.clone(), pk.clone(), revealed_msgs.clone(), false)
+        generate_pok_bbs_plus_sig_statement(params.clone(), pk.clone(), revealed_msgs.clone(), false)
             .unwrap();
     console::time_with_label("saver stmt");
     let prover_stmt_2 = generate_saver_prover_statement(
@@ -94,7 +94,7 @@ pub fn bbs_sig_and_verifiable_encryption() {
 
     let context = Some("test-context".as_bytes().to_vec());
 
-    let witness_1 = generate_pok_bbs_sig_witness(sig, unrevealed_msgs.clone(), false).unwrap();
+    let witness_1 = generate_pok_bbs_plus_sig_witness(sig, unrevealed_msgs.clone(), false).unwrap();
     let witness_2 = generate_saver_witness(js_sys::Uint8Array::from(
         encoded_msgs[enc_msg_idx].as_slice(),
     ))

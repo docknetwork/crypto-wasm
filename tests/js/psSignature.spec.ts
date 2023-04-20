@@ -1,0 +1,240 @@
+import { psEncodeMessageForSigning } from "../../lib";
+import {
+  psGenerateSignatureParams,
+  psIsSignatureParamsValid,
+  psSignatureParamsMaxSupportedMsgs,
+  psGenerateSigningKey,
+  psGeneratePublicKey,
+  psIsPublicKeyValid,
+  psSign,
+  psVerify,
+  generateRandomFieldElement,
+  psMessageCommitment,
+  psBlindSign,
+  psUnblindSignature,
+  psInitializeProofOfKnowledgeOfSignature,
+  psGenProofOfKnowledgeOfSignature,
+  psVerifyProofOfKnowledgeOfSignature,
+  psChallengeContributionFromProtocol,
+  psChallengeContributionFromProof,
+  generateChallengeFromBytes,
+  psAdaptSignatureParamsForMsgCount,
+  psSignatureParamsFromBytes,
+  psSignatureParamsToBytes,
+  PSSigParams,
+  initializeWasm,
+  CommitmentOrMessage,
+} from "../../lib";
+import { generateRandomG1Element } from "../../lib/dock_crypto_wasm";
+
+import { stringToBytes } from "../utilities";
+
+describe("For PS signatures", () => {
+  let sigParams: PSSigParams, sk: Uint8Array, pk: Uint8Array;
+  const seed = new Uint8Array([0, 2, 3, 4, 5]);
+  let messages, h
+  const messageCount = 6;
+
+  beforeAll(async () => {
+    await initializeWasm();
+
+    h = generateRandomG1Element();
+    messages = [
+      stringToBytes("Message1"),
+      stringToBytes("Message2"),
+      stringToBytes("Message3"),
+      stringToBytes("Message4"),
+      stringToBytes("Message4"),
+      stringToBytes("Message6"),
+    ].map(psEncodeMessageForSigning);
+    sk = psGenerateSigningKey(messageCount);
+    sigParams = psGenerateSignatureParams(messageCount, stringToBytes("test label"));
+  });
+
+  it("checks key generation", () => {
+    const sk_ = psGenerateSigningKey(6);
+    expect(sk_).toBeInstanceOf(Uint8Array);
+
+    const sk1 = psGenerateSigningKey(6, seed);
+    expect(sk1).toBeInstanceOf(Uint8Array);
+
+    const sk2 = psGenerateSigningKey(6, seed);
+    expect(sk2).toBeInstanceOf(Uint8Array);
+
+    expect(sk1).toEqual(sk2);
+  });
+
+  it("generate signature params", () => {
+    expect(() => psGenerateSignatureParams(-5)).toThrow();
+    expect(() => psGenerateSignatureParams(6.3)).toThrow();
+
+    const params0 = psGenerateSignatureParams(messageCount);
+    expect(params0).toBeInstanceOf(Object);
+    expect(params0.h.length).toEqual(messageCount);
+    expect(psIsSignatureParamsValid(params0)).toBe(true);
+
+    const label = stringToBytes("Sig params g1");
+    const params = psGenerateSignatureParams(messageCount, label);
+    expect(params).toBeInstanceOf(Object);
+    expect(params.h.length).toEqual(messageCount);
+    expect(psIsSignatureParamsValid(params)).toBe(true);
+    expect(psSignatureParamsMaxSupportedMsgs(params)).toBe(messageCount);
+
+    const bytes = psSignatureParamsToBytes(params);
+    const deserzParams = psSignatureParamsFromBytes(bytes);
+    expect(params).toEqual(deserzParams);
+  });
+
+  it("generate signature params", () => {
+    expect(() => psGenerateSignatureParams(-5)).toThrow();
+    expect(() => psGenerateSignatureParams(6.3)).toThrow();
+
+    const params0 = psGenerateSignatureParams(messageCount);
+    expect(params0).toBeInstanceOf(Object);
+    expect(params0.h.length).toEqual(messageCount);
+    expect(psIsSignatureParamsValid(params0)).toBe(true);
+
+    const params = psGenerateSignatureParams(messageCount);
+    expect(params).toBeInstanceOf(Object);
+    expect(params.h.length).toEqual(messageCount);
+    expect(psIsSignatureParamsValid(params)).toBe(true);
+    expect(psSignatureParamsMaxSupportedMsgs(params)).toBe(messageCount);
+
+    const bytes = psSignatureParamsToBytes(params);
+    const deserzParams = psSignatureParamsFromBytes(bytes);
+    expect(params).toEqual(deserzParams);
+
+    sigParams = params;
+  });
+
+  it("generate public key from secret key", () => {
+    pk = psGeneratePublicKey(sk, sigParams);
+    expect(pk).toBeInstanceOf(Uint8Array);
+    expect(psIsPublicKeyValid(pk)).toBe(true);
+  });
+
+  it("generate and verify signature", () => {
+    const sig = psSign(messages, sk, sigParams);
+    const res = psVerify(messages, sig, pk, sigParams);
+    expect(res.verified).toBe(true);
+  });
+
+  it("generate and verify signature", () => {
+    const sig = psSign(messages, sk, sigParams);
+    const res = psVerify(messages, sig, pk, sigParams);
+    expect(res.verified).toBe(true);
+  });
+
+  it("extend signature params", () => {
+    const label = stringToBytes("Sig params g1");
+    const params0 = psGenerateSignatureParams(1);
+    expect(psSignatureParamsMaxSupportedMsgs(params0)).toBe(1);
+
+    const params1 = psAdaptSignatureParamsForMsgCount(params0, label, 5);
+    expect(psSignatureParamsMaxSupportedMsgs(params1)).toBe(5);
+    expect(psIsSignatureParamsValid(params1)).toBe(true);
+    expect(params0.h[0]).toEqual(params1.h[0]);
+
+    const params2 = psAdaptSignatureParamsForMsgCount(params1, label, 2);
+    expect(psSignatureParamsMaxSupportedMsgs(params2)).toBe(2);
+    expect(psIsSignatureParamsValid(params2)).toBe(true);
+    expect(params1.h[0]).toEqual(params2.h[0]);
+    expect(params1.h[1]).toEqual(params2.h[1]);
+  });
+
+  it("extend signature params", () => {
+    const label = stringToBytes("Sig params g2");
+    const params0 = psGenerateSignatureParams(1);
+    expect(psSignatureParamsMaxSupportedMsgs(params0)).toBe(1);
+
+    const params1 = psAdaptSignatureParamsForMsgCount(params0, label, 5);
+    expect(psSignatureParamsMaxSupportedMsgs(params1)).toBe(5);
+    expect(psIsSignatureParamsValid(params1)).toBe(true);
+    expect(params0.h[0]).toEqual(params1.h[0]);
+
+    const params2 = psAdaptSignatureParamsForMsgCount(params1, label, 2);
+    expect(psSignatureParamsMaxSupportedMsgs(params2)).toBe(2);
+    expect(psIsSignatureParamsValid(params2)).toBe(true);
+    expect(params1.h[0]).toEqual(params2.h[0]);
+    expect(params1.h[1]).toEqual(params2.h[1]);
+  });
+
+  it("generate and verify a blind signature", () => {
+    // Commit to message indices 1 and 5
+    const commitIndices = new Set([1, 5]);
+    const usedBlindings = new Map();
+
+    const msgOrComs: CommitmentOrMessage[] = [];
+    for (let i = 0; i < messages.length; i++) {
+      let msgOrCom;
+      if (commitIndices.has(i)) {
+        const msg = messages[i];
+        const blinding = generateRandomFieldElement();
+
+        msgOrCom = {
+          BlindedMessage: psMessageCommitment(blinding, msg, h, sigParams),
+        };
+        usedBlindings.set(i, blinding);
+      } else {
+        msgOrCom = {
+          RevealedMessage: messages[i],
+        };
+      }
+
+      msgOrComs.push(msgOrCom);
+    }
+
+    const blindSig = psBlindSign(msgOrComs, sk, h);
+    const sig = psUnblindSignature(blindSig, usedBlindings, pk);
+    const res = psVerify(messages, sig, pk, sigParams);
+    expect(res.verified).toBe(true);
+  });
+
+  it("generate a proof of knowledge of signature", () => {
+    const sig = psSign(messages, sk, sigParams);
+    const res = psVerify(messages, sig, pk, sigParams);
+    expect(res.verified).toBe(true);
+
+    // Prover reveals message indices 0 and 2 and supplies blindings for message indices 1, 4 and 5
+    const blindingsMap = new Map();
+    const revealedMsgs = new Map();
+
+    blindingsMap.set(1, generateRandomFieldElement());
+    blindingsMap.set(4, generateRandomFieldElement());
+    blindingsMap.set(5, generateRandomFieldElement());
+    revealedMsgs.set(0, messages[0]);
+    revealedMsgs.set(2, messages[2]);
+    revealedMsgs.set(3, messages[3]);
+
+    const protocol = psInitializeProofOfKnowledgeOfSignature(
+      sig,
+      sigParams,
+      pk,
+      messages.map((message, idx) => {
+        const blinding = blindingsMap.get(idx);
+
+        return blinding != void 0
+          ? { BlindMessageWithConcreteBlinding: { message, blinding } }
+          : "RevealMessage";
+      })
+    );
+    const pBytes = psChallengeContributionFromProtocol(protocol, pk, sigParams);
+    expect(pBytes).toBeInstanceOf(Uint8Array);
+    const proverChallenge = generateChallengeFromBytes(pBytes);
+    const proof = psGenProofOfKnowledgeOfSignature(protocol, proverChallenge);
+
+    const vBytes = psChallengeContributionFromProof(proof, pk, sigParams);
+    expect(vBytes).toBeInstanceOf(Uint8Array);
+    expect(pBytes).toEqual(vBytes);
+    const verifierChallenge = generateChallengeFromBytes(vBytes);
+    expect(proverChallenge).toEqual(verifierChallenge);
+    const result = psVerifyProofOfKnowledgeOfSignature(
+      proof,
+      revealedMsgs,
+      verifierChallenge,
+      pk,
+      sigParams
+    );
+    expect(result.verified).toBe(true);
+  });
+});

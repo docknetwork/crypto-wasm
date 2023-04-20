@@ -1,4 +1,4 @@
-export interface BbsPoKSigProtocol {
+export interface BbsPlusPoKSigProtocol {
     readonly A_prime: Uint8Array;
     readonly A_bar: Uint8Array;
     readonly d: Uint8Array;
