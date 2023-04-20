@@ -1,4 +1,4 @@
-import { psEncodeMessageForSigning } from "../../lib";
+import { psChallengeMessagesPoKContributionFromProof, psChallengeMessagesPoKContributionFromProtocol, psEncodeMessageForSigning, psGenProofOfKnowledgeOfMessages, psInitializeProofOfKnowledgeOfMessages, psVerifyMessagesPoK } from "../../lib";
 import {
   psGenerateSignatureParams,
   psIsSignatureParamsValid,
@@ -14,16 +14,16 @@ import {
   psUnblindSignature,
   psInitializeProofOfKnowledgeOfSignature,
   psGenProofOfKnowledgeOfSignature,
-  psVerifyProofOfKnowledgeOfSignature,
-  psChallengeContributionFromProtocol,
-  psChallengeContributionFromProof,
+  psVerifySignaturePoK,
+  psChallengeSignaturePoKContributionFromProtocol,
+  psChallengeSignaturePoKContributionFromProof,
   generateChallengeFromBytes,
   psAdaptSignatureParamsForMsgCount,
   psSignatureParamsFromBytes,
   psSignatureParamsToBytes,
   PSSigParams,
   initializeWasm,
-  CommitmentOrMessage,
+  PSCommitmentOrMessage,
 } from "../../lib";
 import { generateRandomG1Element } from "../../lib/dock_crypto_wasm";
 
@@ -164,7 +164,7 @@ describe("For PS signatures", () => {
     const commitIndices = new Set([1, 5]);
     const usedBlindings = new Map();
 
-    const msgOrComs: CommitmentOrMessage[] = [];
+    const msgOrComs: PSCommitmentOrMessage[] = [];
     for (let i = 0; i < messages.length; i++) {
       let msgOrCom;
       if (commitIndices.has(i)) {
@@ -218,22 +218,66 @@ describe("For PS signatures", () => {
           : "RevealMessage";
       })
     );
-    const pBytes = psChallengeContributionFromProtocol(protocol, pk, sigParams);
+    const pBytes = psChallengeSignaturePoKContributionFromProtocol(protocol, pk, sigParams);
     expect(pBytes).toBeInstanceOf(Uint8Array);
     const proverChallenge = generateChallengeFromBytes(pBytes);
     const proof = psGenProofOfKnowledgeOfSignature(protocol, proverChallenge);
 
-    const vBytes = psChallengeContributionFromProof(proof, pk, sigParams);
+    const vBytes = psChallengeSignaturePoKContributionFromProof(proof, pk, sigParams);
     expect(vBytes).toBeInstanceOf(Uint8Array);
     expect(pBytes).toEqual(vBytes);
     const verifierChallenge = generateChallengeFromBytes(vBytes);
     expect(proverChallenge).toEqual(verifierChallenge);
-    const result = psVerifyProofOfKnowledgeOfSignature(
+    const result = psVerifySignaturePoK(
       proof,
       revealedMsgs,
       verifierChallenge,
       pk,
       sigParams
+    );
+    expect(result.verified).toBe(true);
+  });
+
+  it("generate a proof of knowledge of messages", () => {
+    // Prover reveals message indices 0 and 2 and supplies blindings for message indices 1, 4 and 5
+    const blindingsMap = new Map();
+    const revealedMsgs = new Map();
+    const h = generateRandomG1Element();
+
+    blindingsMap.set(1, generateRandomFieldElement());
+    blindingsMap.set(4, generateRandomFieldElement());
+    blindingsMap.set(5, generateRandomFieldElement());
+    revealedMsgs.set(0, messages[0]);
+    revealedMsgs.set(2, messages[2]);
+    revealedMsgs.set(3, messages[3]);
+
+    const protocol = psInitializeProofOfKnowledgeOfMessages(
+      messages.map((message, idx) => {
+        const blinding = blindingsMap.get(idx);
+
+        return blinding != void 0
+          ? { BlindMessageWithConcreteBlinding: { message, blinding } }
+          : "RevealMessage";
+      }),
+      sigParams,
+      h
+    );
+    const pBytes = psChallengeMessagesPoKContributionFromProtocol(protocol, sigParams, h);
+    expect(pBytes).toBeInstanceOf(Uint8Array);
+    const proverChallenge = generateChallengeFromBytes(pBytes);
+    const proof = psGenProofOfKnowledgeOfMessages(protocol, proverChallenge);
+
+    const vBytes = psChallengeMessagesPoKContributionFromProof(proof, sigParams, h);
+    expect(vBytes).toBeInstanceOf(Uint8Array);
+    expect(pBytes).toEqual(vBytes);
+    const verifierChallenge = generateChallengeFromBytes(vBytes);
+    expect(proverChallenge).toEqual(verifierChallenge);
+    const result = psVerifyMessagesPoK(
+      proof,
+      new Set(revealedMsgs.keys()),
+      verifierChallenge,
+      sigParams,
+      h
     );
     expect(result.verified).toBe(true);
   });

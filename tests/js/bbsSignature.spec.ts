@@ -142,8 +142,8 @@ describe("For BBS+ signatures", () => {
     expect(keypair).toEqual(keypair1);
     console.log(sk, keypair.secret_key, typeof keypair.secret_key)
 
-    expect(keypair.secret_key).toEqual(sk);
-    expect(keypair.public_key).toEqual(pkG1);
+    expect(keypair.secret_key).toEqual([...sk]);
+    expect(keypair.public_key).toEqual([...pkG1]);
   });
 
   it("generate keypair in G2 from given seed", () => {
@@ -153,8 +153,8 @@ describe("For BBS+ signatures", () => {
     expect(keypair1).toBeInstanceOf(Object);
     expect(keypair).toEqual(keypair1);
 
-    expect(keypair.secret_key).toEqual(sk);
-    expect(keypair.public_key).toEqual(pkG2);
+    expect(keypair.secret_key).toEqual([...sk]);
+    expect(keypair.public_key).toEqual([...pkG2]);
   });
 
   it("generate and verify signature in G1", () => {

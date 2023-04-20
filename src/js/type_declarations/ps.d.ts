@@ -1,5 +1,5 @@
-import {PSPoKSigProtocol, PSSigParams, IKeypair, VerifyResult, CommitmentOrMessage} from "../types";
-import { CommitMessage } from "../types/CommitMessage";
+import {PSPoKSigProtocol, PSSigParams, IKeypair, VerifyResult, PSCommitmentOrMessage, PSSig} from "../types";
+import { PSCommitMessage } from "../types/PSCommitMessage";
 
 export const PS_SIGNATURE_LENGTH = 112;
 
@@ -78,7 +78,7 @@ export function psMessageCommitment(
 ): Uint8Array;
 
 export function psBlindSign(
-    messages: Iterable<CommitmentOrMessage>,
+    messages: Iterable<PSCommitmentOrMessage>,
     secret_key: Uint8Array,
     h: Uint8Array
 ): Uint8Array;
@@ -93,7 +93,13 @@ export function psInitializeProofOfKnowledgeOfSignature(
     signature: Uint8Array,
     params: PSSigParams,
     public_key: Uint8Array,
-    messages: Iterable<CommitMessage>
+    messages: Iterable<PSCommitMessage>
+): PSPoKSigProtocol;
+
+export function psInitializeProofOfKnowledgeOfMessages(
+    messages: Iterable<PSCommitMessage>,
+    params: PSSigParams,
+    h: Object
 ): PSPoKSigProtocol;
 
 export function psGenProofOfKnowledgeOfSignature(
@@ -101,7 +107,12 @@ export function psGenProofOfKnowledgeOfSignature(
     challenge: Uint8Array
 ): Uint8Array;
 
-export function psVerifyProofOfKnowledgeOfSignature(
+export function psGenProofOfKnowledgeOfMessages(
+    protocol: PSPoKSigProtocol,
+    challenge: Uint8Array
+): Uint8Array;
+
+export function psVerifySignaturePoK(
     proof: Uint8Array,
     revealedMessages: Map<number, Uint8Array>,
     challenge: Uint8Array,
@@ -109,16 +120,36 @@ export function psVerifyProofOfKnowledgeOfSignature(
     params: PSSigParams
 ): Required<VerifyResult>;
 
-export function psChallengeContributionFromProtocol(
+export function psVerifyMessagesPoK(
+    proof: Uint8Array,
+    revealedIndices: Set<number>,
+    challenge: Uint8Array,
+    params: PSSigParams,
+    h: Object
+): Required<VerifyResult>;
+
+export function psChallengeSignaturePoKContributionFromProtocol(
     protocol: PSPoKSigProtocol,
     publicKey: Uint8Array,
     params: PSSigParams
 ): Uint8Array;
 
-export function psChallengeContributionFromProof(
+export function psChallengeSignaturePoKContributionFromProof(
     proof: Uint8Array,
     publicKey: Uint8Array,
     params: PSSigParams,
+): Uint8Array;
+
+export function psChallengeMessagesPoKContributionFromProtocol(
+    protocol: PSPoKSigProtocol,
+    params: PSSigParams,
+    h: Object
+): Uint8Array;
+
+export function psChallengeMessagesPoKContributionFromProof(
+    proof: Uint8Array,
+    params: PSSigParams,
+    h: Object
 ): Uint8Array;
 
 export function psAdaptSignatureParamsForMsgCount(

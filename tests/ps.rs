@@ -335,7 +335,7 @@ pub fn ps_proof_of_knowledge() {
 
             .unwrap();
 
-            let prover_bytes = ps_challenge_contribution_from_protocol(
+            let prover_bytes = ps_challenge_signature_pok_contribution_from_protocol(
                 protocol.clone(),
                 revealed_msgs.clone(),
                 params.clone(),
@@ -345,7 +345,7 @@ pub fn ps_proof_of_knowledge() {
             .unwrap();
             let prover_challenge = generate_challenge_from_bytes(prover_bytes.to_vec());
 
-            let proof = ps_gen_proof(protocol, prover_challenge.clone())
+            let proof = ps_gen_sig_proof(protocol, prover_challenge.clone())
 
                 .unwrap();
 

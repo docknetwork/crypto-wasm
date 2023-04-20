@@ -1,12 +1,12 @@
 // main benchmark routine
 import {
-  psChallengeContributionFromProof,
-  psChallengeContributionFromProtocol,
+  psChallengeSignaturePoKContributionFromProof,
+  psChallengeSignaturePoKContributionFromProtocol,
   psGenProofOfKnowledgeOfSignature,
   psInitializeProofOfKnowledgeOfSignature,
   psSign,
   psVerify,
-  psVerifyProofOfKnowledgeOfSignature,
+  psVerifySignaturePoK,
   generateChallengeFromBytes,
   psGenerateSignatureParams,
   initializeWasm,
@@ -83,7 +83,7 @@ export const benchmarkPS = async (
           : "RevealMessage"
       )
     );
-    const pBytes = psChallengeContributionFromProtocol(protocol, pk, sigParams);
+    const pBytes = psChallengeSignaturePoKContributionFromProtocol(protocol, pk, sigParams);
     const proverChallenge = generateChallengeFromBytes(pBytes);
     return psGenProofOfKnowledgeOfSignature(protocol, proverChallenge);
   }
@@ -95,9 +95,9 @@ export const benchmarkPS = async (
   const proof = createProof();
 
   function verifyProof() {
-    const vBytes = psChallengeContributionFromProof(proof, pk, sigParams);
+    const vBytes = psChallengeSignaturePoKContributionFromProof(proof, pk, sigParams);
     const verifierChallenge = generateChallengeFromBytes(vBytes);
-    psVerifyProofOfKnowledgeOfSignature(
+    psVerifySignaturePoK(
       proof,
       revealedMsgs,
       verifierChallenge,

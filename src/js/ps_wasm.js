@@ -155,6 +155,19 @@ module.exports.psInitializeProofOfKnowledgeOfSignature = (
     return wasm.psInitializeProofOfKnowledgeOfSignature(signature, params, messages, blindings, revealedIndices, encodeMessages);
 };
 
+module.exports.psInitializeProofOfKnowledgeOfMessages = (
+    params,
+    h,
+    messages
+) => {
+    requireWasmInitialized();
+    return wasm.psInitializeProofOfKnowledgeOfMessages(
+        params,
+        h,
+        messages
+    );
+};
+
 module.exports.psGenProofOfKnowledgeOfSignature = (
     protocol,
     challenge
@@ -163,7 +176,16 @@ module.exports.psGenProofOfKnowledgeOfSignature = (
     return wasm.psGenProofOfKnowledgeOfSignature(protocol, challenge);
 };
 
-module.exports.psVerifyProofOfKnowledgeOfSignature = (
+module.exports.psGenProofOfKnowledgeOfMessages = (
+    protocol,
+    challenge
+) => {
+    requireWasmInitialized();
+    return wasm.psGenProofOfKnowledgeOfMessages(protocol, challenge);
+};
+
+
+module.exports.psVerifySignaturePoK = (
     proof,
     revealedMessages,
     challenge,
@@ -171,25 +193,54 @@ module.exports.psVerifyProofOfKnowledgeOfSignature = (
     params
 ) => {
     requireWasmInitialized();
-    return wasm.psVerifyProofOfKnowledgeOfSignature(proof, revealedMessages, challenge, publicKey, params);
+    return wasm.psVerifySignaturePoK(proof, revealedMessages, challenge, publicKey, params);
 };
 
-module.exports.psChallengeContributionFromProtocol = (
+module.exports.psVerifyMessagesPoK = (
+    proof,
+    revealedIndices,
+    challenge,
+    params,
+    h
+) => {
+    requireWasmInitialized();
+    return wasm.psVerifyMessagesPoK(proof, revealedIndices, challenge, params, h);
+};
+
+module.exports.psChallengeSignaturePoKContributionFromProtocol = (
     protocol,
     revealedMessages,
     params
 ) => {
     requireWasmInitialized();
-    return wasm.psChallengeContributionFromProtocol(protocol, revealedMessages, params);
+    return wasm.psChallengeSignaturePoKContributionFromProtocol(protocol, revealedMessages, params);
 };
 
-module.exports.psChallengeContributionFromProof = (
+module.exports.psChallengeMessagesPoKContributionFromProtocol = (
+    protocol,
+    params,
+    h
+) => {
+    requireWasmInitialized();
+    return wasm.psChallengeMessagesPoKContributionFromProtocol(protocol, params, h);
+};
+
+module.exports.psChallengeSignaturePoKContributionFromProof = (
     proof,
     publicKey,
     params
 ) => {
     requireWasmInitialized();
-    return wasm.psChallengeContributionFromProof(proof, publicKey, params);
+    return wasm.psChallengeSignaturePoKContributionFromProof(proof, publicKey, params);
+};
+
+module.exports.psChallengeMessagesPoKContributionFromProof = (
+    proof,
+    params,
+    h
+) => {
+    requireWasmInitialized();
+    return wasm.psChallengeMessagesPoKContributionFromProof(proof, params, h);
 };
 
 module.exports.psAdaptSignatureParamsForMsgCount = (params, generating_label, new_count) => {

@@ -15,7 +15,7 @@ export { BbsPlusSigParams } from "./BbsPlusSigParams";
 export { BbsPlusSig } from "./BbsPlusSig";
 export { BbsPlusPoKSigProtocol } from "./BbsPlusPoKSigProtocol";
 export { BbsPlusPoKSigProof } from "./BbsPlusPoKSigProof";
-export { CommitmentOrMessage } from "./CommitmentOrMessage";
+export { PSCommitmentOrMessage } from "./PSCommitmentOrMessage";
 export { PSSigParams } from "./PSSigParams";
 export { PSSig } from "./PSSig";
 export { PSPoKSigProtocol } from "./PSPoKSigProtocol";

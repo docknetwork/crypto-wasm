@@ -1,4 +1,4 @@
-export type CommitmentOrMessage =
+export type PSCommitmentOrMessage =
   | {
       BlindedMessage: Uint8Array;
     }

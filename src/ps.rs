@@ -29,7 +29,9 @@ pub type PsPublicKey = setup::PublicKey<Bls12_381>;
 pub type SignatureParams = setup::SignatureParams<Bls12_381>;
 pub(crate) type Signature = signature::Signature<Bls12_381>;
 pub(crate) type PoKOfSigProtocol = proof::SignaturePoKGenerator<Bls12_381>;
-pub(crate) type PoKOfSigProof = proof::SignaturePoK<Bls12_381>;
+pub(crate) type PoKOfMessagesProtocol = proof::MessagesPoKGenerator<Bls12_381>;
+pub(crate) type PoKOfSignatureProof = proof::SignaturePoK<Bls12_381>;
+pub(crate) type PoKOfMessagesProof = proof::MessagesPoK<Bls12_381>;
 
 #[wasm_bindgen(js_name = psIsSignatureParamsValid)]
 pub fn ps_is_params_valid(params: JsValue) -> Result<bool, JsValue> {
@@ -194,42 +196,16 @@ pub fn ps_blind_sign(
     use serde_with::serde_as;
     set_panic_hook();
 
-    /// Each message can be either revealed or blinded into the commitment.
-    #[serde_as]
-    #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-    pub enum OwnedCommitmentOrMessage {
-        /// Message blinded into the commitment.
-        BlindedMessage(MessageCommitment<Bls12_381>),
-        /// Revealed message.
-        RevealedMessage(#[serde_as(as = "ArkObjectBytes")] Fr),
-    }
-
-    impl<'a> From<&'a OwnedCommitmentOrMessage> for CommitmentOrMessage<'a, Bls12_381> {
-        fn from(com_or_msg: &'a OwnedCommitmentOrMessage) -> Self {
-            match com_or_msg {
-                OwnedCommitmentOrMessage::BlindedMessage(msg) => {
-                    CommitmentOrMessage::BlindedMessage(msg)
-                }
-                OwnedCommitmentOrMessage::RevealedMessage(msg) => {
-                    CommitmentOrMessage::RevealedMessage(msg)
-                }
-            }
-        }
-    }
-
-    let messages: Vec<_> = js_sys::try_iter(&messages)?
+    let messages = js_sys::try_iter(&messages)?
         .unwrap()
         .into_iter()
         .map(Result::unwrap)
-        .map(|js_msg| from_value::<OwnedCommitmentOrMessage>(js_msg).unwrap())
-        .collect();
+        .map(|js_msg| -> CommitmentOrMessage<Bls12_381> { from_value(js_msg).unwrap() });
 
     let sk = obj_from_uint8array!(PsSecretKey, secret_key, true, "PsSecretKey");
     let h = g1_affine_from_jsvalue(h)?;
 
-    let mut rng = get_seeded_rng();
-
-    BlindSignature::new(messages.iter(), &sk, &h)
+    BlindSignature::new(messages, &sk, &h)
         .map_err(debug_to_js_value)
         .and_then(|sig| Ok(obj_to_uint8array!(&sig, true, "BlindSignature")))
 }
@@ -295,7 +271,6 @@ pub fn ps_initialize_proof_of_knowledge_of_signature(
     messages: JsValue,
 ) -> Result<JsValue, JsValue> {
     use ark_ff::PrimeField;
-    use serde::{Deserialize, Serialize};
     set_panic_hook();
 
     let signature = obj_from_uint8array!(Signature, signature, true);
@@ -305,11 +280,34 @@ pub fn ps_initialize_proof_of_knowledge_of_signature(
         .unwrap()
         .into_iter()
         .map(Result::unwrap)
-        .map(|js_msg| from_value::<CommitMessage<Fr, Fr>>(js_msg).unwrap());
+        .map(|js_msg| from_value::<CommitMessage<Fr>>(js_msg).unwrap());
 
     let mut rng = get_seeded_rng();
 
     PoKOfSigProtocol::init(&mut rng, messages, &signature, &pk, &params)
+        .map_err(debug_to_js_value)
+        .and_then(|protocol| to_value(&protocol).map_err(debug_to_js_value))
+}
+
+#[wasm_bindgen(js_name = psInitializeProofOfKnowledgeOfMessages)]
+pub fn ps_initialize_proof_of_knowledge_of_messagese(
+    messages: JsValue,
+    params: JsValue,
+    h: JsValue,
+) -> Result<JsValue, JsValue> {
+    set_panic_hook();
+
+    let messages = js_sys::try_iter(&messages)?
+        .unwrap()
+        .into_iter()
+        .map(Result::unwrap)
+        .map(|js_msg| from_value::<CommitMessage<Fr>>(js_msg).unwrap());
+    let params: SignatureParams = from_value(params)?;
+    let h = g1_affine_from_jsvalue(h)?;
+
+    let mut rng = get_seeded_rng();
+
+    PoKOfMessagesProtocol::init(&mut rng, messages, &params, &h)
         .map_err(debug_to_js_value)
         .and_then(|protocol| to_value(&protocol).map_err(debug_to_js_value))
 }
@@ -319,7 +317,7 @@ fn debug_to_js_value<V: core::fmt::Debug>(value: V) -> JsValue {
 }
 
 #[wasm_bindgen(js_name = psGenProofOfKnowledgeOfSignature)]
-pub fn ps_gen_proof(
+pub fn ps_gen_sig_proof(
     protocol: JsValue,
     challenge: js_sys::Uint8Array,
 ) -> Result<js_sys::Uint8Array, JsValue> {
@@ -327,13 +325,28 @@ pub fn ps_gen_proof(
     let protocol: PoKOfSigProtocol = from_value(protocol)?;
     let challenge = fr_from_uint8_array(challenge, false)?;
     match protocol.gen_proof(&challenge) {
-        Ok(proof) => Ok(obj_to_uint8array!(&proof, false, "PoKOfSigProof")),
+        Ok(proof) => Ok(obj_to_uint8array!(&proof, false, "PoKOfSignatureProof")),
         Err(e) => Err(JsValue::from(&format!("{:?}", e))),
     }
 }
 
-#[wasm_bindgen(js_name = psVerifyProofOfKnowledgeOfSignature)]
-pub fn ps_verify_proof(
+#[wasm_bindgen(js_name = psGenProofOfKnowledgeOfMessages)]
+pub fn ps_gen_messages_proof(
+    protocol: JsValue,
+    challenge: js_sys::Uint8Array,
+) -> Result<js_sys::Uint8Array, JsValue> {
+    set_panic_hook();
+    let protocol: PoKOfMessagesProtocol = from_value(protocol)?;
+    let challenge = fr_from_uint8_array(challenge, false)?;
+
+    match protocol.gen_proof(&challenge) {
+        Ok(proof) => Ok(obj_to_uint8array!(&proof, false, "PoKOfMessagesProof")),
+        Err(e) => Err(JsValue::from(&format!("{:?}", e))),
+    }
+}
+
+#[wasm_bindgen(js_name = psVerifySignaturePoK)]
+pub fn ps_verify_signature_proof(
     proof: js_sys::Uint8Array,
     revealed_msgs: js_sys::Map,
     challenge: js_sys::Uint8Array,
@@ -342,7 +355,7 @@ pub fn ps_verify_proof(
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
 
-    let proof: PoKOfSigProof = obj_from_uint8array!(PoKOfSigProof, proof, false);
+    let proof: PoKOfSignatureProof = obj_from_uint8array!(PoKOfSignatureProof, proof, false);
     let params: SignatureParams = from_value(params)?;
     let public_key = obj_from_uint8array!(PsPublicKey, public_key, false, "PsPublicKey");
     let challenge = fr_from_uint8_array(challenge, false)?;
@@ -368,8 +381,42 @@ pub fn ps_verify_proof(
     }
 }
 
-#[wasm_bindgen(js_name = psChallengeContributionFromProtocol)]
-pub fn ps_challenge_contribution_from_protocol(
+#[wasm_bindgen(js_name = psVerifyMessagesPoK)]
+pub fn ps_verify_messages_proof(
+    proof: js_sys::Uint8Array,
+    revealed_indices: js_sys::Set,
+    challenge: js_sys::Uint8Array,
+    params: JsValue,
+    h: JsValue,
+) -> Result<JsValue, JsValue> {
+    set_panic_hook();
+
+    let proof: PoKOfMessagesProof = obj_from_uint8array!(PoKOfMessagesProof, proof, false);
+    let challenge = fr_from_uint8_array(challenge, false)?;
+    let revealed_indices: BTreeSet<usize> = revealed_indices
+        .values()
+        .into_iter()
+        .map(|i| serde_wasm_bindgen::from_value(i.unwrap()).unwrap())
+        .collect();
+    let params: SignatureParams = from_value(params)?;
+    let h = g1_affine_from_jsvalue(h)?;
+
+    match proof.verify(&challenge, revealed_indices, &params, &h) {
+        Ok(_) => Ok(to_value(&VerifyResponse {
+            verified: true,
+            error: None,
+        })
+        .unwrap()),
+        Err(e) => Ok(to_value(&VerifyResponse {
+            verified: false,
+            error: Some(format!("{:?}", e)),
+        })
+        .unwrap()),
+    }
+}
+
+#[wasm_bindgen(js_name = psChallengeSignaturePoKContributionFromProtocol)]
+pub fn ps_challenge_signature_pok_contribution_from_protocol(
     protocol: JsValue,
     public_key: Uint8Array,
     params: JsValue,
@@ -392,15 +439,39 @@ pub fn ps_challenge_contribution_from_protocol(
     Ok(js_sys::Uint8Array::from(bytes.as_slice()))
 }
 
-#[wasm_bindgen(js_name = psChallengeContributionFromProof)]
-pub fn ps_challenge_contribution_from_proof(
+#[wasm_bindgen(js_name = psChallengeMessagesPoKContributionFromProtocol)]
+pub fn ps_challenge_messages_pok_contribution_from_protocol(
+    protocol: JsValue,
+    params: JsValue,
+    h: JsValue,
+) -> Result<js_sys::Uint8Array, JsValue> {
+    set_panic_hook();
+
+    let protocol: PoKOfMessagesProtocol = from_value(protocol)?;
+    let params: SignatureParams = from_value(params)?;
+    let h = g1_affine_from_jsvalue(h)?;
+    let mut bytes = vec![];
+
+    protocol
+        .challenge_contribution(&mut bytes, &params, &h)
+        .map_err(|e| {
+            JsValue::from(&format!(
+                "Evaluating challenge_contribution returned error: {:?}",
+                e
+            ))
+        })?;
+    Ok(js_sys::Uint8Array::from(bytes.as_slice()))
+}
+
+#[wasm_bindgen(js_name = psChallengeSignaturePoKContributionFromProof)]
+pub fn ps_challenge_signature_pok_contribution_from_proof(
     proof: js_sys::Uint8Array,
     public_key: js_sys::Uint8Array,
     params: JsValue,
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
 
-    let proof: PoKOfSigProof = obj_from_uint8array!(PoKOfSigProof, proof, false);
+    let proof: PoKOfSignatureProof = obj_from_uint8array!(PoKOfSignatureProof, proof, false);
     let pk = obj_from_uint8array!(PsPublicKey, public_key, false, "PsPublicKey");
     let params: SignatureParams = from_value(params)?;
 
@@ -417,8 +488,33 @@ pub fn ps_challenge_contribution_from_proof(
     Ok(js_sys::Uint8Array::from(bytes.as_slice()))
 }
 
+#[wasm_bindgen(js_name = psChallengeMessagesPoKContributionFromProof)]
+pub fn ps_challenge_messages_pok_contribution_from_proof(
+    proof: js_sys::Uint8Array,
+    params: JsValue,
+    h: JsValue,
+) -> Result<js_sys::Uint8Array, JsValue> {
+    set_panic_hook();
+
+    let proof: PoKOfMessagesProof = obj_from_uint8array!(PoKOfMessagesProof, proof, false);
+    let params: SignatureParams = from_value(params)?;
+    let h = g1_affine_from_jsvalue(h)?;
+
+    let mut bytes = vec![];
+    proof
+        .challenge_contribution(&mut bytes, &params, &h)
+        .map_err(|e| {
+            JsValue::from(&format!(
+                "Evaluating challenge_contribution returned error: {:?}",
+                e
+            ))
+        })?;
+
+    Ok(js_sys::Uint8Array::from(bytes.as_slice()))
+}
+
 #[wasm_bindgen(js_name = psSignatureParamsFromBytes)]
-pub fn bbs_params_g1_from_bytes(bytes: js_sys::Uint8Array) -> Result<JsValue, JsValue> {
+pub fn ps_signature_params_from_bytes(bytes: js_sys::Uint8Array) -> Result<JsValue, JsValue> {
     set_panic_hook();
     let params = obj_from_uint8array!(SignatureParams, bytes, false, "SignatureParams");
     serde_wasm_bindgen::to_value(&params).map_err(JsValue::from)
@@ -444,19 +540,18 @@ pub fn messages_as_bytes_to_fr_vec(
     messages_as_bytes: &[Vec<u8>],
     encode_messages: bool,
 ) -> Result<Vec<Fr>, JsValue> {
-    let mut result = vec![];
-    for m in messages_as_bytes {
-        result.push({
+    messages_as_bytes
+        .into_iter()
+        .map(|msg| {
             if encode_messages {
-                encode_message_for_signing(m)
+                Ok(encode_message_for_signing(msg))
             } else {
-                Fr::deserialize_compressed(m.as_slice()).map_err(|e| {
+                Fr::deserialize_compressed(msg.as_slice()).map_err(|e| {
                     JsValue::from(&format!("Cannot deserialize to Fr due to error: {:?}", e))
-                })?
+                })
             }
-        });
-    }
-    Ok(result)
+        })
+        .collect()
 }
 
 pub fn encode_messages_as_js_array_to_fr_vec(

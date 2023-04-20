@@ -1,4 +1,4 @@
-export type CommitMessage =
+export type PSCommitMessage =
   | {
       BlindMessageRandomly: Uint8Array;
     }

@@ -160,14 +160,14 @@ pub fn positive_accumulator_remove(
     existing_accum: JsValue,
     element: js_sys::Uint8Array,
     secret_key: JsValue,
-) -> Result<JsValue, JsValue> {
+) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let accum: PositiveAccum = serde_wasm_bindgen::from_value(existing_accum)?;
     let element = fr_from_uint8_array(element, true)?;
     let sk: AccumSk = serde_wasm_bindgen::from_value(secret_key)?;
     let new_value = accum.compute_new_post_remove(&element, &sk);
-    serde_wasm_bindgen::to_value(&PositiveAccum::from_value(new_value))
-        .map_err(|e| JsValue::from(e))
+
+    Ok(obj_to_uint8array!(&new_value, false, "PositiveAccum"))
 }
 
 #[wasm_bindgen(js_name = positiveAccumulatorMembershipWitness)]
