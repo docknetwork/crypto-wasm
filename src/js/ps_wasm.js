@@ -47,6 +47,42 @@ module.exports.psIsSignatureParamsValid = (params) => {
     return wasm.psIsSignatureParamsValid(params);
 };
 
+module.exports.psBlindMessageRandomly = function(
+    message,
+) {
+    requireWasmInitialized();
+    return wasm.psBlindMessageRandomly(message)
+}
+
+module.exports.psRevealMessage = function(
+    message,
+) {
+    requireWasmInitialized();
+    return wasm.psRevealMessage(message)
+}
+
+module.exports.psBlindMessageWithConcreteBlinding = function(
+    message,
+    blinding,
+) {
+    requireWasmInitialized();
+    return wasm.psBlindMessageWithConcreteBlinding(message, blinding)
+}
+
+module.exports.psBlindedMessage = function(
+    commitment,
+) {
+    requireWasmInitialized();
+    return wasm.psBlindedMessage(commitment);
+}
+
+module.exports.psRevealedMessage = function(
+    message,
+) {
+    requireWasmInitialized();
+    return wasm.psRevealedMessage(message)
+}
+
 module.exports.psSignatureParamsMaxSupportedMsgs = (params) => {
     requireWasmInitialized();
     return wasm.psSignatureParamsMaxSupportedMsgs(params);

@@ -99,7 +99,7 @@ export function psInitializeSignaturePoK(
 export function psInitializeMessagesPoK(
     messages: Iterable<PSCommitMessage>,
     params: PSSigParams,
-    h: Object
+    h: Uint8Array
 ): PSPoKSigProtocol;
 
 export function psGenSignaturePoK(
@@ -125,7 +125,7 @@ export function psVerifyMessagesPoK(
     revealedIndices: Set<number>,
     challenge: Uint8Array,
     params: PSSigParams,
-    h: Object
+    h: Uint8Array
 ): Required<VerifyResult>;
 
 export function psChallengeSignaturePoKContributionFromProtocol(
@@ -143,14 +143,35 @@ export function psChallengeSignaturePoKContributionFromProof(
 export function psChallengeMessagesPoKContributionFromProtocol(
     protocol: PSPoKSigProtocol,
     params: PSSigParams,
-    h: Object
+    h: Uint8Array
 ): Uint8Array;
 
 export function psChallengeMessagesPoKContributionFromProof(
     proof: Uint8Array,
     params: PSSigParams,
-    h: Object
+    h: Uint8Array
 ): Uint8Array;
+
+export function psBlindMessageRandomly(
+    message: Uint8Array
+): PSCommitMessage;
+
+export function psRevealMessage(
+    message: Uint8Array
+): PSCommitMessage;
+
+export function psBlindMessageWithConcreteBlinding(
+    message: Uint8Array,
+    blinding: Uint8Array
+): PSCommitMessage;
+
+export function psBlindedMessage(
+    commitment: Uint8Array
+): PSCommitmentOrMessage;
+
+export function psRevealedMessage(
+    message: Uint8Array
+): PSCommitmentOrMessage;
 
 export function psAdaptSignatureParamsForMsgCount(
     params: PSSigParams,

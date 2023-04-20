@@ -40,7 +40,7 @@ use dock_crypto_wasm::composite_proof_system::{
 use dock_crypto_wasm::utils::{
     fr_from_jsvalue, js_array_of_bytearrays_from_vector_of_bytevectors, random_bytes,
 };
-use proof_system::{statement, witness};
+use proof_system::statement;
 mod common;
 use common::{
     accum_params_and_keys, bbs_params_and_keys, gen_msgs, get_revealed_unrevealed,
@@ -65,7 +65,7 @@ fn test_bbs_plus_statement(stmt_j: js_sys::Uint8Array, revealed_msgs: js_sys::Ma
     let stmt: statement::Statement<Bls12_381, <Bls12_381 as Pairing>::G1Affine> =
         CanonicalDeserialize::deserialize_compressed(&serz[..]).unwrap();
     match stmt {
-        statement::Statement::PoKBBSPlusSignatureG1(s) => {
+        statement::Statement::PoKBBSSignatureG1(s) => {
             assert_eq!(s.revealed_messages.len() as u32, revealed_msgs.size());
             for (i, m) in s.revealed_messages.iter() {
                 assert_eq!(
@@ -81,7 +81,7 @@ fn test_bbs_plus_statement(stmt_j: js_sys::Uint8Array, revealed_msgs: js_sys::Ma
 fn test_bbs_plus_witness(wit_j: JsValue, unrevealed_msgs: js_sys::Map) {
     let wit: Witness = serde_wasm_bindgen::from_value(wit_j).unwrap();
     match wit {
-        Witness::PoKBBSPlusSignatureG1(s) => {
+        Witness::PoKBBSSignatureG1(s) => {
             assert_eq!(s.unrevealed_messages.len() as u32, unrevealed_msgs.size());
             for (i, m) in s.unrevealed_messages.iter() {
                 assert_eq!(
