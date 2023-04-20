@@ -5,8 +5,8 @@ use wasm_bindgen::prelude::*;
 
 use crate::accumulator::{MembershipWit, NonMembershipWit};
 use crate::bbs_plus::{encode_messages_as_js_map_to_fr_btreemap, SigG1 as BBSPlusSigG1};
-use crate::ps::{Signature as PSSignature};
 use crate::common::VerifyResponse;
+use crate::ps::Signature as PSSignature;
 use crate::utils::{fr_from_uint8_array, get_seeded_rng, js_array_to_fr_vec, set_panic_hook};
 use crate::{Fr, G1Affine};
 use ark_bls12_381::Bls12_381;
@@ -48,7 +48,7 @@ pub fn generate_pok_bbs_plus_sig_witness(
 #[wasm_bindgen(js_name = generatePoKPSSignatureWitness)]
 pub fn generate_pok_ps_sig_witness(
     signature: Uint8Array,
-    unrevealed_msgs: js_sys::Map
+    unrevealed_msgs: js_sys::Map,
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
     let signature = obj_from_uint8array!(PSSignature, signature, true);

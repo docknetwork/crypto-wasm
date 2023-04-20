@@ -5,11 +5,11 @@ use js_sys::Uint8Array;
 use wasm_bindgen::JsValue;
 use wasm_bindgen_test::*;
 
-use dock_crypto_wasm::ps::*;
 use dock_crypto_wasm::common::{
     field_element_as_bytes, field_element_from_number, generate_challenge_from_bytes,
     generate_random_field_element, VerifyResponse,
 };
+use dock_crypto_wasm::ps::*;
 use dock_crypto_wasm::utils::js_array_of_bytearrays_from_vector_of_bytevectors;
 
 wasm_bindgen_test_configure!(run_in_browser);
@@ -64,17 +64,11 @@ pub fn ps_params_and_keygen() {
     let label_g2 = b"test-g2".to_vec();
     let params_g1 = ps_generate_params(message_count, Some(label_g1)).unwrap();
     assert!(ps_is_params_valid(params_g1.clone()).unwrap());
-    assert_eq!(
-        ps_params_max_supported_msgs(params_g1.clone()).unwrap(),
-        5
-    );
+    assert_eq!(ps_params_max_supported_msgs(params_g1.clone()).unwrap(), 5);
 
     let params_g2 = ps_generate_params(message_count, Some(label_g2)).unwrap();
     assert!(ps_is_params_valid(params_g2.clone()).unwrap());
-    assert_eq!(
-        ps_params_max_supported_msgs(params_g2.clone()).unwrap(),
-        5
-    );
+    assert_eq!(ps_params_max_supported_msgs(params_g2.clone()).unwrap(), 5);
 
     let seed = vec![0, 1, 2, 5, 10, 13];
 

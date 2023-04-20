@@ -5,22 +5,22 @@ use crate::utils::{
     js_array_of_bytearrays_to_vector_of_bytevectors, random_bytes, set_panic_hook,
 };
 
-use coconut_crypto::{CommitMessage, CommitmentOrMessage, MessageCommitment};
-use js_sys::Uint8Array;
-use serde::Deserialize;
-use serde_wasm_bindgen::from_value;
-use wasm_bindgen::prelude::*;
-use crate::utils::g1_affine_from_jsvalue;
 use crate::common::VerifyResponse;
+use crate::utils::g1_affine_from_jsvalue;
 use crate::{Fr, G1Affine, G2Affine};
 use ark_bls12_381::Bls12_381;
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use ark_std::collections::{BTreeMap, BTreeSet};
 use blake2::Blake2b512;
 use coconut_crypto::{proof, setup, signature};
+use coconut_crypto::{CommitMessage, CommitmentOrMessage, MessageCommitment};
 use dock_crypto_utils::concat_slices;
 use dock_crypto_utils::hashing_utils::affine_group_elem_from_try_and_incr;
+use js_sys::Uint8Array;
+use serde::Deserialize;
+use serde_wasm_bindgen::from_value;
 use serde_wasm_bindgen::to_value;
+use wasm_bindgen::prelude::*;
 use zeroize::Zeroize;
 
 pub type PsSecretKey = setup::SecretKey<Fr>;
@@ -67,7 +67,7 @@ pub fn ps_params_to_bytes(params: JsValue) -> Result<js_sys::Uint8Array, JsValue
 #[wasm_bindgen(js_name = psGenerateSigningKey)]
 pub fn ps_generate_secret_key(
     message_count: usize,
-    seed: Option<Vec<u8>>
+    seed: Option<Vec<u8>>,
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let seed = seed.unwrap_or_else(random_bytes);
@@ -84,7 +84,7 @@ pub fn ps_generate_public_key(
     let sk = obj_from_uint8array!(PsSecretKey, secret_key, true, "PsSecretKey");
     let params: SignatureParams = from_value(params)?;
     let pk = PsPublicKey::new(&sk, &params);
-    
+
     Ok(obj_to_uint8array!(&pk, false, "PsPublicKey"))
 }
 
@@ -158,7 +158,10 @@ pub fn ps_message_commitment(
     let params: SignatureParams = from_value(params)?;
     let h = g1_affine_from_jsvalue(h)?;
 
-    to_value(&MessageCommitment::<Bls12_381>::new(&params.g, &blinding, &h, &message)).map_err(Into::into)
+    to_value(&MessageCommitment::<Bls12_381>::new(
+        &params.g, &blinding, &h, &message,
+    ))
+    .map_err(Into::into)
 }
 
 #[wasm_bindgen(js_name = psSign)]
@@ -184,11 +187,11 @@ pub fn ps_sign(
 pub fn ps_blind_sign(
     messages: JsValue,
     secret_key: js_sys::Uint8Array,
-    h: JsValue
+    h: JsValue,
 ) -> Result<js_sys::Uint8Array, JsValue> {
     use dock_crypto_utils::serde_utils::ArkObjectBytes;
+    use serde::{Deserialize, Serialize};
     use serde_with::serde_as;
-    use serde::{Serialize, Deserialize};
     set_panic_hook();
 
     /// Each message can be either revealed or blinded into the commitment.
@@ -204,8 +207,12 @@ pub fn ps_blind_sign(
     impl<'a> From<&'a OwnedCommitmentOrMessage> for CommitmentOrMessage<'a, Bls12_381> {
         fn from(com_or_msg: &'a OwnedCommitmentOrMessage) -> Self {
             match com_or_msg {
-                OwnedCommitmentOrMessage::BlindedMessage(msg) => CommitmentOrMessage::BlindedMessage(msg),
-                OwnedCommitmentOrMessage::RevealedMessage(msg) => CommitmentOrMessage::RevealedMessage(msg)
+                OwnedCommitmentOrMessage::BlindedMessage(msg) => {
+                    CommitmentOrMessage::BlindedMessage(msg)
+                }
+                OwnedCommitmentOrMessage::RevealedMessage(msg) => {
+                    CommitmentOrMessage::RevealedMessage(msg)
+                }
             }
         }
     }
@@ -240,12 +247,14 @@ pub fn ps_unblind_sig(
     let pk = obj_from_uint8array!(PsPublicKey, public_key, false, "PsPublicKey");
 
     Ok(obj_to_uint8array!(
-        &signature.unblind(
-            indexed_blindings
-                .iter()
-                .map(|(&idx, message)| (idx, message)),
-            &pk
-        ).map_err(debug_to_js_value)?,
+        &signature
+            .unblind(
+                indexed_blindings
+                    .iter()
+                    .map(|(&idx, message)| (idx, message)),
+                &pk
+            )
+            .map_err(debug_to_js_value)?,
         true,
         "Signature"
     ))
@@ -256,7 +265,7 @@ pub fn ps_verify(
     messages: js_sys::Array,
     signature: js_sys::Uint8Array,
     public_key: js_sys::Uint8Array,
-    params: JsValue
+    params: JsValue,
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
     let signature = obj_from_uint8array!(Signature, signature, true);
@@ -283,7 +292,7 @@ pub fn ps_initialize_proof_of_knowledge_of_signature(
     signature: js_sys::Uint8Array,
     params: JsValue,
     public_key: js_sys::Uint8Array,
-    messages: JsValue
+    messages: JsValue,
 ) -> Result<JsValue, JsValue> {
     use ark_ff::PrimeField;
     use serde::{Deserialize, Serialize};
@@ -340,7 +349,12 @@ pub fn ps_verify_proof(
 
     let msgs = encode_messages_as_js_map_to_fr_btreemap(&revealed_msgs, false)?;
 
-    match proof.verify(&challenge, msgs.iter().map(|(&idx, msg)| (idx, msg)), &public_key, &params) {
+    match proof.verify(
+        &challenge,
+        msgs.iter().map(|(&idx, msg)| (idx, msg)),
+        &public_key,
+        &params,
+    ) {
         Ok(_) => Ok(to_value(&VerifyResponse {
             verified: true,
             error: None,
@@ -382,7 +396,7 @@ pub fn ps_challenge_contribution_from_protocol(
 pub fn ps_challenge_contribution_from_proof(
     proof: js_sys::Uint8Array,
     public_key: js_sys::Uint8Array,
-    params: JsValue
+    params: JsValue,
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
 

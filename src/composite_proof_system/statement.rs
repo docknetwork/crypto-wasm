@@ -61,7 +61,7 @@ pub fn generate_pok_bbs_plus_sig_statement(
 pub fn generate_pok_ps_sig_statement(
     params: JsValue,
     public_key: Uint8Array,
-    revealed_msgs: js_sys::Map
+    revealed_msgs: js_sys::Map,
 ) -> Result<Uint8Array, JsValue> {
     set_panic_hook();
     let params: SignatureParams = serde_wasm_bindgen::from_value(params)?;
@@ -89,7 +89,7 @@ pub fn generate_pok_bbs_plus_sig_statement_from_param_refs(
 pub fn generate_pok_ps_sig_statement_from_param_refs(
     params: usize,
     public_key: usize,
-    revealed_msgs: js_sys::Map
+    revealed_msgs: js_sys::Map,
 ) -> Result<Uint8Array, JsValue> {
     set_panic_hook();
     let msgs = encode_messages_as_js_map_to_fr_btreemap(&revealed_msgs, false)?;

@@ -68,9 +68,13 @@ pub fn bbs_sig_and_verifiable_encryption() {
     console::time_end_with_label("decompresssion");
 
     // Create statements
-    let stmt_1 =
-        generate_pok_bbs_plus_sig_statement(params.clone(), pk.clone(), revealed_msgs.clone(), false)
-            .unwrap();
+    let stmt_1 = generate_pok_bbs_plus_sig_statement(
+        params.clone(),
+        pk.clone(),
+        revealed_msgs.clone(),
+        false,
+    )
+    .unwrap();
     console::time_with_label("saver stmt");
     let prover_stmt_2 = generate_saver_prover_statement(
         chunk_bit_size,

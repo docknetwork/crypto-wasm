@@ -100,9 +100,13 @@ pub fn bbs_sig_and_bound_check_message() {
     console::time_end_with_label("pk decompresssion");
 
     // Create statements
-    let stmt_1 =
-        generate_pok_bbs_plus_sig_statement(params.clone(), pk.clone(), revealed_msgs.clone(), false)
-            .unwrap();
+    let stmt_1 = generate_pok_bbs_plus_sig_statement(
+        params.clone(),
+        pk.clone(),
+        revealed_msgs.clone(),
+        false,
+    )
+    .unwrap();
     console::time_with_label("bound check prover stmt");
     let prover_stmt_2 = generate_bound_check_lego_prover_statement(
         min.clone(),
