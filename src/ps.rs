@@ -1,6 +1,6 @@
 use crate::utils::{
-    fr_from_uint8_array, fr_to_jsvalue, fr_to_uint8_array, get_seeded_rng,
-    js_array_of_bytearrays_to_vector_of_bytevectors, random_bytes, set_panic_hook,
+    fr_from_uint8_array, fr_to_jsvalue, fr_to_uint8_array, get_seeded_rng, random_bytes,
+    set_panic_hook,
 };
 
 use crate::common::VerifyResponse;
@@ -205,7 +205,7 @@ pub fn ps_sign(
 
     let sk = obj_from_uint8array!(PsSecretKey, secret_key, true, "PsSecretKey");
     let params: SignatureParams = from_value(params)?;
-    let messages = encode_messages_as_js_array_to_fr_vec(&messages, false)?;
+    let messages: Vec<_> = js_array_to_iter(&messages).collect::<Result<_, _>>()?;
 
     let mut rng = get_seeded_rng();
     match Signature::new(&mut rng, &messages, &sk, &params) {
@@ -245,7 +245,8 @@ pub fn ps_unblind_sig(
     set_panic_hook();
 
     let signature = obj_from_uint8array!(BlindSignature, blind_signature, false);
-    let indexed_blindings = encode_messages_as_js_map_to_fr_btreemap(&indexed_blindings, false)?;
+    let indexed_blindings: BTreeMap<_, _> =
+        js_map_to_iter(&indexed_blindings).collect::<Result<_, _>>()?;
     let pk = obj_from_uint8array!(PsPublicKey, public_key, false, "PsPublicKey");
 
     Ok(obj_to_uint8array!(
@@ -273,7 +274,7 @@ pub fn ps_verify(
     let signature = obj_from_uint8array!(Signature, signature, true);
     let pk = obj_from_uint8array!(PsPublicKey, public_key, false, "PsPublicKey");
     let params: SignatureParams = from_value(params)?;
-    let messages = encode_messages_as_js_array_to_fr_vec(&messages, false)?;
+    let messages: Vec<_> = js_array_to_iter(&messages).collect::<Result<_, _>>()?;
 
     match signature.verify(&messages, &pk, &params) {
         Ok(_) => Ok(to_value(&VerifyResponse {
@@ -385,7 +386,7 @@ pub fn ps_verify_signature_proof(
     let public_key = obj_from_uint8array!(PsPublicKey, public_key, false, "PsPublicKey");
     let challenge = fr_from_uint8_array(challenge, false)?;
 
-    let msgs = encode_messages_as_js_map_to_fr_btreemap(&revealed_msgs, false)?;
+    let msgs: BTreeMap<_, _> = js_map_to_iter(&revealed_msgs).collect::<Result<_, _>>()?;
 
     match proof.verify(
         &challenge,
@@ -561,58 +562,32 @@ pub fn adapt_sig_params_for_msg_count(
     )
 }
 
-pub fn messages_as_bytes_to_fr_vec(
-    messages_as_bytes: &[Vec<u8>],
-    encode_messages: bool,
-) -> Result<Vec<Fr>, JsValue> {
-    messages_as_bytes
-        .into_iter()
-        .map(|msg| {
-            if encode_messages {
-                Ok(encode_message_for_signing(msg))
-            } else {
-                Fr::deserialize_compressed(msg.as_slice()).map_err(|e| {
-                    JsValue::from(&format!("Cannot deserialize to Fr due to error: {:?}", e))
-                })
-            }
-        })
-        .collect()
-}
-
-pub fn encode_messages_as_js_array_to_fr_vec(
+pub fn js_array_to_iter<Item: CanonicalDeserialize>(
     messages: &js_sys::Array,
-    encode_messages: bool,
-) -> Result<Vec<Fr>, JsValue> {
-    let messages_as_bytes = js_array_of_bytearrays_to_vector_of_bytevectors(messages)?;
-    messages_as_bytes_to_fr_vec(&messages_as_bytes, encode_messages)
+) -> impl Iterator<Item = Result<Item, JsValue>> {
+    messages.values().into_iter().map(|raw| {
+        Item::deserialize_compressed(js_sys::Uint8Array::new(&raw.unwrap()).to_vec().as_slice())
+            .map_err(debug_to_js_value)
+    })
 }
 
-pub fn encode_messages_as_js_map_to_fr_btreemap(
+pub fn js_map_to_iter<Item: CanonicalDeserialize>(
     messages: &js_sys::Map,
-    encode_messages: bool,
-) -> Result<BTreeMap<usize, Fr>, JsValue> {
-    messages
-        .entries()
-        .into_iter()
-        .map(|raw_msg_arr| {
-            let arr = js_sys::Array::from(&raw_msg_arr?);
-            let idx: usize = from_value(arr.get(0))?;
-            let msg_bytes: Vec<u8> = from_value(arr.get(1))?;
+) -> impl Iterator<Item = Result<(usize, Item), JsValue>> {
+    messages.entries().into_iter().map(|raw_msg_arr| {
+        let arr = js_sys::Array::from(&raw_msg_arr?);
+        let idx: usize = from_value(arr.get(0))?;
+        let msg_bytes: Vec<u8> = from_value(arr.get(1))?;
 
-            let msg = if encode_messages {
-                encode_message_for_signing(&msg_bytes)
-            } else {
-                Fr::deserialize_compressed(&msg_bytes[..]).map_err(|e| {
-                    JsValue::from(&format!(
-                        "Cannot deserialize to `ScalarField` due to error: {:?}",
-                        e
-                    ))
-                })?
-            };
+        let msg = Item::deserialize_compressed(&msg_bytes[..]).map_err(|e| {
+            JsValue::from(&format!(
+                "Cannot deserialize to `ScalarField` due to error: {:?}",
+                e
+            ))
+        })?;
 
-            Ok((idx, msg))
-        })
-        .collect()
+        Ok((idx, msg))
+    })
 }
 
 /// This is to convert a message to field element. This encoding needs to be collision resistant but
