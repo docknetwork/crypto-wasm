@@ -7,9 +7,9 @@ module.exports.generateSetupParamForBBSPlusSignatureParametersG1 = (params) => {
     return wasm.generateSetupParamForBBSPlusSignatureParametersG1(params);
 };
 
-module.exports.generateSetupParamForBBSPublicKeyG2 = (publicKey) => {
+module.exports.generateSetupParamForBBSPublicKey = (publicKey) => {
     requireWasmInitialized();
-    return wasm.generateSetupParamForBBSPublicKeyG2(publicKey);
+    return wasm.generateSetupParamForBBSPublicKey(publicKey);
 };
 
 module.exports.generateSetupParamForVbAccumulatorParams = (params) => {

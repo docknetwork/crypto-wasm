@@ -4,7 +4,7 @@ pub mod statement;
 use wasm_bindgen::prelude::*;
 
 use crate::accumulator::{MembershipWit, NonMembershipWit};
-use crate::bbs_plus::{encode_messages_as_js_map_to_fr_btreemap, SigG1 as BBSPlusSigG1};
+use crate::bbs_plus::{encode_messages_as_js_map_to_fr_btreemap, BBSPlusSigG1};
 use crate::common::VerifyResponse;
 use crate::ps::Signature as PSSignature;
 use crate::utils::{fr_from_uint8_array, get_seeded_rng, js_array_to_fr_vec, set_panic_hook};
@@ -23,6 +23,7 @@ use zeroize::Zeroize;
 
 pub type Witness = witness::Witness<Bls12_381>;
 pub type Witnesses = witness::Witnesses<Bls12_381>;
+pub(crate) type PoKBbsSigWit = witness::PoKBBSSignature23G1<Bls12_381>;
 pub(crate) type PoKBbsPlusSigWit = witness::PoKBBSSignatureG1<Bls12_381>;
 pub(crate) type PokPSSigWit = witness::PoKPSSignature<Bls12_381>;
 pub(crate) type AccumMemWit = witness::Membership<Bls12_381>;

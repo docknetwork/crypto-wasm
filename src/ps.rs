@@ -208,10 +208,9 @@ pub fn ps_sign(
     let messages: Vec<_> = js_array_to_iter(&messages).collect::<Result<_, _>>()?;
 
     let mut rng = get_seeded_rng();
-    match Signature::new(&mut rng, &messages, &sk, &params) {
-        Ok(sig) => Ok(obj_to_uint8array!(&sig, true, "Signature")),
-        Err(e) => Err(JsValue::from(&format!("{:?}", e))),
-    }
+    Signature::new(&mut rng, &messages, &sk, &params)
+        .map_err(debug_to_js_value)
+        .and_then(|sig| Ok(obj_to_uint8array!(&sig, true, "Signature")))
 }
 
 #[wasm_bindgen(js_name = psBlindSign)]
@@ -276,18 +275,22 @@ pub fn ps_verify(
     let params: SignatureParams = from_value(params)?;
     let messages: Vec<_> = js_array_to_iter(&messages).collect::<Result<_, _>>()?;
 
-    match signature.verify(&messages, &pk, &params) {
-        Ok(_) => Ok(to_value(&VerifyResponse {
-            verified: true,
-            error: None,
+    signature
+        .verify(&messages, &pk, &params)
+        .map(|_| {
+            to_value(&VerifyResponse {
+                verified: true,
+                error: None,
+            })
+            .unwrap()
         })
-        .unwrap()),
-        Err(e) => Ok(to_value(&VerifyResponse {
-            verified: false,
-            error: Some(format!("{:?}", e)),
+        .map_err(|err| {
+            to_value(&VerifyResponse {
+                verified: false,
+                error: Some(format!("{:?}", err)),
+            })
+            .unwrap()
         })
-        .unwrap()),
-    }
 }
 
 #[wasm_bindgen(js_name = psInitializeSignaturePoK)]
@@ -350,10 +353,11 @@ pub fn ps_gen_sig_proof(
     set_panic_hook();
     let protocol: PoKOfSigProtocol = from_value(protocol)?;
     let challenge = fr_from_uint8_array(challenge, false)?;
-    match protocol.gen_proof(&challenge) {
-        Ok(proof) => Ok(obj_to_uint8array!(&proof, false, "PoKOfSignatureProof")),
-        Err(e) => Err(JsValue::from(&format!("{:?}", e))),
-    }
+
+    protocol
+        .gen_proof(&challenge)
+        .map_err(debug_to_js_value)
+        .and_then(|proof| Ok(obj_to_uint8array!(&proof, false, "PoKOfSignatureProof")))
 }
 
 #[wasm_bindgen(js_name = psGenMessagesPoK)]
@@ -365,10 +369,10 @@ pub fn ps_gen_messages_proof(
     let protocol: PoKOfMessagesProtocol = from_value(protocol)?;
     let challenge = fr_from_uint8_array(challenge, false)?;
 
-    match protocol.gen_proof(&challenge) {
-        Ok(proof) => Ok(obj_to_uint8array!(&proof, false, "PoKOfMessagesProof")),
-        Err(e) => Err(JsValue::from(&format!("{:?}", e))),
-    }
+    protocol
+        .gen_proof(&challenge)
+        .map_err(debug_to_js_value)
+        .and_then(|proof| Ok(obj_to_uint8array!(&proof, false, "PoKOfMessagesProof")))
 }
 
 #[wasm_bindgen(js_name = psVerifySignaturePoK)]
@@ -387,24 +391,24 @@ pub fn ps_verify_signature_proof(
     let challenge = fr_from_uint8_array(challenge, false)?;
 
     let msgs: BTreeMap<_, _> = js_map_to_iter(&revealed_msgs).collect::<Result<_, _>>()?;
+    let msgs_iter = msgs.iter().map(|(&idx, msg)| (idx, msg));
 
-    match proof.verify(
-        &challenge,
-        msgs.iter().map(|(&idx, msg)| (idx, msg)),
-        &public_key,
-        &params,
-    ) {
-        Ok(_) => Ok(to_value(&VerifyResponse {
-            verified: true,
-            error: None,
+    proof
+        .verify(&challenge, msgs_iter, &public_key, &params)
+        .map(|_| {
+            to_value(&VerifyResponse {
+                verified: true,
+                error: None,
+            })
+            .unwrap()
         })
-        .unwrap()),
-        Err(e) => Ok(to_value(&VerifyResponse {
-            verified: false,
-            error: Some(format!("{:?}", e)),
+        .map_err(|err| {
+            to_value(&VerifyResponse {
+                verified: false,
+                error: Some(format!("{:?}", err)),
+            })
+            .unwrap()
         })
-        .unwrap()),
-    }
 }
 
 #[wasm_bindgen(js_name = psVerifyMessagesPoK)]
@@ -427,18 +431,22 @@ pub fn ps_verify_messages_proof(
     let params: SignatureParams = from_value(params)?;
     let h = obj_from_uint8array!(G1Affine, h, false);
 
-    match proof.verify(&challenge, revealed_indices, &params, &h) {
-        Ok(_) => Ok(to_value(&VerifyResponse {
-            verified: true,
-            error: None,
+    proof
+        .verify(&challenge, revealed_indices, &params, &h)
+        .map(|_| {
+            to_value(&VerifyResponse {
+                verified: true,
+                error: None,
+            })
+            .unwrap()
         })
-        .unwrap()),
-        Err(e) => Ok(to_value(&VerifyResponse {
-            verified: false,
-            error: Some(format!("{:?}", e)),
+        .map_err(|err| {
+            to_value(&VerifyResponse {
+                verified: false,
+                error: Some(format!("{:?}", err)),
+            })
+            .unwrap()
         })
-        .unwrap()),
-    }
 }
 
 #[wasm_bindgen(js_name = psChallengeSignaturePoKContributionFromProtocol)]
@@ -462,6 +470,7 @@ pub fn ps_challenge_signature_pok_contribution_from_protocol(
                 e
             ))
         })?;
+
     Ok(js_sys::Uint8Array::from(bytes.as_slice()))
 }
 
@@ -486,6 +495,7 @@ pub fn ps_challenge_messages_pok_contribution_from_protocol(
                 e
             ))
         })?;
+
     Ok(js_sys::Uint8Array::from(bytes.as_slice()))
 }
 
@@ -547,7 +557,7 @@ pub fn ps_signature_params_from_bytes(bytes: js_sys::Uint8Array) -> Result<JsVal
 }
 
 #[wasm_bindgen(js_name = psAdaptSignatureParamsForMsgCount)]
-pub fn adapt_sig_params_for_msg_count(
+pub fn ps_adapt_sig_params_for_msg_count(
     params: JsValue,
     generating_label: js_sys::Uint8Array,
     new_count: usize,

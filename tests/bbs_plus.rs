@@ -112,15 +112,15 @@ pub fn bbs_params_and_keygen() {
     let bytes = bbs_plus_params_g1_to_bytes(params_g1.clone()).unwrap();
     let desez_params = bbs_plus_params_g1_from_bytes(bytes).unwrap();
     assert!(bbs_plus_is_params_g1_valid(desez_params.clone()).unwrap());
-    let params_1: SigParamsG1 = serde_wasm_bindgen::from_value(params_g1).unwrap();
-    let params_2: SigParamsG1 = serde_wasm_bindgen::from_value(desez_params).unwrap();
+    let params_1: BBSPlusSigParamsG1 = serde_wasm_bindgen::from_value(params_g1).unwrap();
+    let params_2: BBSPlusSigParamsG1 = serde_wasm_bindgen::from_value(desez_params).unwrap();
     assert_eq!(params_1, params_2);
 
     let bytes = bbs_plus_params_g2_to_bytes(params_g2.clone()).unwrap();
     let desez_params = bbs_plus_params_g2_from_bytes(bytes).unwrap();
     assert!(bbs_plus_is_params_g2_valid(desez_params.clone()).unwrap());
-    let params_1: SigParamsG2 = serde_wasm_bindgen::from_value(params_g2).unwrap();
-    let params_2: SigParamsG2 = serde_wasm_bindgen::from_value(desez_params).unwrap();
+    let params_1: BBSPlusSigParamsG2 = serde_wasm_bindgen::from_value(params_g2).unwrap();
+    let params_2: BBSPlusSigParamsG2 = serde_wasm_bindgen::from_value(desez_params).unwrap();
     assert_eq!(params_1, params_2);
 }
 
@@ -461,18 +461,18 @@ pub fn bbs_extend_params() {
     );
 
     assert_eq!(
-        serde_wasm_bindgen::from_value::<SigParamsG1>(params_g1.clone())
+        serde_wasm_bindgen::from_value::<BBSPlusSigParamsG1>(params_g1.clone())
             .unwrap()
             .h[0],
-        serde_wasm_bindgen::from_value::<SigParamsG1>(params_g1_1.clone())
+        serde_wasm_bindgen::from_value::<BBSPlusSigParamsG1>(params_g1_1.clone())
             .unwrap()
             .h[0],
     );
     assert_eq!(
-        serde_wasm_bindgen::from_value::<SigParamsG2>(params_g2.clone())
+        serde_wasm_bindgen::from_value::<BBSPlusSigParamsG2>(params_g2.clone())
             .unwrap()
             .h[0],
-        serde_wasm_bindgen::from_value::<SigParamsG2>(params_g2_1.clone())
+        serde_wasm_bindgen::from_value::<BBSPlusSigParamsG2>(params_g2_1.clone())
             .unwrap()
             .h[0],
     );
@@ -502,34 +502,34 @@ pub fn bbs_extend_params() {
     );
 
     assert_eq!(
-        serde_wasm_bindgen::from_value::<SigParamsG1>(params_g1_1.clone())
+        serde_wasm_bindgen::from_value::<BBSPlusSigParamsG1>(params_g1_1.clone())
             .unwrap()
             .h[0],
-        serde_wasm_bindgen::from_value::<SigParamsG1>(params_g1_2.clone())
-            .unwrap()
-            .h[0],
-    );
-    assert_eq!(
-        serde_wasm_bindgen::from_value::<SigParamsG1>(params_g1_1.clone())
-            .unwrap()
-            .h[1],
-        serde_wasm_bindgen::from_value::<SigParamsG1>(params_g1_2.clone())
-            .unwrap()
-            .h[1],
-    );
-    assert_eq!(
-        serde_wasm_bindgen::from_value::<SigParamsG2>(params_g2_1.clone())
-            .unwrap()
-            .h[0],
-        serde_wasm_bindgen::from_value::<SigParamsG2>(params_g2_2.clone())
+        serde_wasm_bindgen::from_value::<BBSPlusSigParamsG1>(params_g1_2.clone())
             .unwrap()
             .h[0],
     );
     assert_eq!(
-        serde_wasm_bindgen::from_value::<SigParamsG2>(params_g2_1.clone())
+        serde_wasm_bindgen::from_value::<BBSPlusSigParamsG1>(params_g1_1.clone())
             .unwrap()
             .h[1],
-        serde_wasm_bindgen::from_value::<SigParamsG2>(params_g2_2.clone())
+        serde_wasm_bindgen::from_value::<BBSPlusSigParamsG1>(params_g1_2.clone())
+            .unwrap()
+            .h[1],
+    );
+    assert_eq!(
+        serde_wasm_bindgen::from_value::<BBSPlusSigParamsG2>(params_g2_1.clone())
+            .unwrap()
+            .h[0],
+        serde_wasm_bindgen::from_value::<BBSPlusSigParamsG2>(params_g2_2.clone())
+            .unwrap()
+            .h[0],
+    );
+    assert_eq!(
+        serde_wasm_bindgen::from_value::<BBSPlusSigParamsG2>(params_g2_1.clone())
+            .unwrap()
+            .h[1],
+        serde_wasm_bindgen::from_value::<BBSPlusSigParamsG2>(params_g2_2.clone())
             .unwrap()
             .h[1],
     );

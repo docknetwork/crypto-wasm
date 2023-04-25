@@ -21,6 +21,7 @@ use ark_ec::pairing::Pairing;
 #[macro_use]
 pub mod utils;
 pub mod accumulator;
+pub mod bbs;
 pub mod bbs_plus;
 pub mod bound_check;
 pub mod common;

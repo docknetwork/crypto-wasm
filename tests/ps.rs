@@ -311,7 +311,7 @@ pub fn ps_extend_params() {
 
     let new_message_count = 5;
 
-    let params_1 = adapt_sig_params_for_msg_count(
+    let params_1 = ps_adapt_sig_params_for_msg_count(
         params.clone(),
         js_sys::Uint8Array::from(label.as_slice()),
         new_message_count,
@@ -346,7 +346,7 @@ pub fn ps_extend_params() {
 
     let new_message_count = 2;
 
-    let params_2 = adapt_sig_params_for_msg_count(
+    let params_2 = ps_adapt_sig_params_for_msg_count(
         params_1.clone(),
         js_sys::Uint8Array::from(label.as_slice()),
         new_message_count,

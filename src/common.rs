@@ -137,3 +137,25 @@ impl VerifyResponse {
         assert!(self.error.is_none());
     }
 }
+
+#[macro_export]
+macro_rules! adapt_params {
+    ($params:ident, $generating_label: ident, $new_count: ident, $sig_type: ident, $sig_group: ident) => {{
+        let mut params: $sig_type = serde_wasm_bindgen::from_value($params)?;
+        let current_count = params.supported_message_count();
+        if current_count > $new_count {
+            for _ in 0..(current_count - $new_count) {
+                params.h.pop();
+            }
+        } else if current_count < $new_count {
+            let generating_label = $generating_label.to_vec();
+            for i in current_count + 1..=$new_count {
+                let h = affine_group_elem_from_try_and_incr::<$sig_group, Blake2b512>(
+                    &concat_slices!(&generating_label, b" : h_", i.to_be_bytes()),
+                );
+                params.h.push(h);
+            }
+        }
+        serde_wasm_bindgen::to_value(&params).map_err(|e| JsValue::from(e))
+    }};
+}

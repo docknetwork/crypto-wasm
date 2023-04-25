@@ -56,7 +56,7 @@ import {
   generateRandomG2Element,
   generatePedersenCommitmentG2Statement,
   generateSetupParamForBBSPlusSignatureParametersG1,
-  generateSetupParamForBBSPublicKeyG2,
+  generateSetupParamForBBSPublicKey,
   generateSetupParamForVbAccumulatorParams,
   generateSetupParamForVbAccumulatorPublicKey,
   generateSetupParamForVbAccumulatorMemProvingKey,
@@ -908,11 +908,11 @@ describe("Reusing setup params of BBS+ and accumulator", () => {
     allSetupParams.push(
       generateSetupParamForBBSPlusSignatureParametersG1(sigParams1)
     );
-    allSetupParams.push(generateSetupParamForBBSPublicKeyG2(sigPk1));
+    allSetupParams.push(generateSetupParamForBBSPublicKey(sigPk1));
     allSetupParams.push(
       generateSetupParamForBBSPlusSignatureParametersG1(sigParams2)
     );
-    allSetupParams.push(generateSetupParamForBBSPublicKeyG2(sigPk2));
+    allSetupParams.push(generateSetupParamForBBSPublicKey(sigPk2));
     allSetupParams.push(generateSetupParamForVbAccumulatorParams(accumParams1));
     allSetupParams.push(generateSetupParamForVbAccumulatorPublicKey(accumPk1));
     allSetupParams.push(generateSetupParamForVbAccumulatorParams(accumParams2));

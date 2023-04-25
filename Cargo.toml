@@ -23,14 +23,14 @@ serde_json = { version = "1.0"}
 serde-wasm-bindgen = "0.4.3"
 wasm-bindgen = "= 0.2.84"
 dlmalloc = { version = "0.2.4", features = ["global"], optional = true }
-bbs_plus = { version = "0.13.0", default-features = false, git = "https://github.com/docknetwork/crypto.git", branch = "coconut-pok-generators-ser-deser" }
-vb_accumulator = { version = "0.13.0", default-features = false, git = "https://github.com/docknetwork/crypto.git", branch = "coconut-pok-generators-ser-deser" }
-schnorr_pok = { version = "0.10.0", default-features = false, git = "https://github.com/docknetwork/crypto.git", branch = "coconut-pok-generators-ser-deser" }
-proof_system = { version = "0.19.0", default-features = false, git = "https://github.com/docknetwork/crypto.git", branch = "coconut-pok-generators-ser-deser" }
-coconut-crypto = { version = "0.2.0", default-features = false, git = "https://github.com/docknetwork/crypto.git", branch = "coconut-pok-generators-ser-deser" }
-dock_crypto_utils = { version = "0.11.0", default-features = false, git = "https://github.com/docknetwork/crypto.git", branch = "coconut-pok-generators-ser-deser" }
-saver = { version = "0.10.0", default-features = false, git = "https://github.com/docknetwork/crypto.git", branch = "coconut-pok-generators-ser-deser" }
-legogroth16 = {version = "0.7.0", default-features = false, features = ["circom", "wasmer-js"], git = "https://github.com/docknetwork/crypto.git", branch = "coconut-pok-generators-ser-deser"}
+bbs_plus = { version = "0.13.0", default-features = false, git = "https://github.com/docknetwork/crypto.git", branch = "coconut-pok-generators-ser-deser"  }
+vb_accumulator = { version = "0.13.0", default-features = false, git = "https://github.com/docknetwork/crypto.git", branch = "coconut-pok-generators-ser-deser"  }
+schnorr_pok = { version = "0.10.0", default-features = false, git = "https://github.com/docknetwork/crypto.git", branch = "coconut-pok-generators-ser-deser"  }
+proof_system = { version = "0.19.0", default-features = false, git = "https://github.com/docknetwork/crypto.git", branch = "coconut-pok-generators-ser-deser"  }
+coconut-crypto = { version = "0.2.0", default-features = false, git = "https://github.com/docknetwork/crypto.git", branch = "coconut-pok-generators-ser-deser"  }
+dock_crypto_utils = { version = "0.11.0", default-features = false, git = "https://github.com/docknetwork/crypto.git", branch = "coconut-pok-generators-ser-deser"  }
+saver = { version = "0.10.0", default-features = false, git = "https://github.com/docknetwork/crypto.git", branch = "coconut-pok-generators-ser-deser"  }
+legogroth16 = {version = "0.7.0", default-features = false, features = ["circom", "wasmer-js"], git = "https://github.com/docknetwork/crypto.git", branch = "coconut-pok-generators-ser-deser" }
 serde_with = { version = "1.10.0", default-features = false, features = ["macros"] }
 
 ark-ec = { version = "^0.4.0", default-features = false }
@@ -51,6 +51,9 @@ version = "0.3"
 features = [
     'console'
 ]
+
+[profile.dev]
+opt-level = 1
 
 [profile.release]
 lto = true

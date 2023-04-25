@@ -4,7 +4,7 @@ export function generateSetupParamForBBSPlusSignatureParametersG1(
     params: BbsPlusSigParams
 ): Uint8Array;
 
-export function generateSetupParamForBBSPublicKeyG2(
+export function generateSetupParamForBBSPublicKey(
     publicKey: Uint8Array
 ): Uint8Array;
 
