@@ -41,7 +41,7 @@ pub fn bbs_plus_generate_g1_params(
     set_panic_hook();
     let label = label.unwrap_or_else(random_bytes);
     let params = BBSPlusSigParamsG1::new::<Blake2b512>(&label, message_count);
-    serde_wasm_bindgen::to_value(&params).map_err(|e| JsValue::from(e))
+    serde_wasm_bindgen::to_value(&params).map_err(JsValue::from)
 }
 
 #[wasm_bindgen(js_name = bbsPlusIsSignatureParamsG1Valid)]
@@ -66,7 +66,7 @@ pub fn bbs_plus_generate_g2_params(
     set_panic_hook();
     let label = label.unwrap_or_else(random_bytes);
     let params = BBSPlusSigParamsG2::new::<Blake2b512>(&label, message_count);
-    serde_wasm_bindgen::to_value(&params).map_err(|e| JsValue::from(e))
+    serde_wasm_bindgen::to_value(&params).map_err(JsValue::from)
 }
 
 #[wasm_bindgen(js_name = bbsPlusIsSignatureParamsG2Valid)]
@@ -94,7 +94,7 @@ pub fn bbs_plus_params_g1_to_bytes(params: JsValue) -> Result<js_sys::Uint8Array
 pub fn bbs_plus_params_g1_from_bytes(bytes: js_sys::Uint8Array) -> Result<JsValue, JsValue> {
     set_panic_hook();
     let params = obj_from_uint8array!(BBSPlusSigParamsG1, bytes, false, "BBSPlusSigParamsG1");
-    serde_wasm_bindgen::to_value(&params).map_err(|e| JsValue::from(e))
+    serde_wasm_bindgen::to_value(&params).map_err(JsValue::from)
 }
 
 #[wasm_bindgen(js_name = bbsPlusSignatureParamsG2ToBytes)]
@@ -108,7 +108,7 @@ pub fn bbs_plus_params_g2_to_bytes(params: JsValue) -> Result<js_sys::Uint8Array
 pub fn bbs_plus_params_g2_from_bytes(bytes: js_sys::Uint8Array) -> Result<JsValue, JsValue> {
     set_panic_hook();
     let params = obj_from_uint8array!(BBSPlusSigParamsG2, bytes, false, "BBSPlusSigParamsG2");
-    serde_wasm_bindgen::to_value(&params).map_err(|e| JsValue::from(e))
+    serde_wasm_bindgen::to_value(&params).map_err(JsValue::from)
 }
 
 #[wasm_bindgen(js_name = bbsPlusGenerateSigningKey)]
@@ -167,7 +167,7 @@ pub fn bbs_plus_generate_g1_keypair(
     let mut seed = seed.unwrap_or_else(random_bytes);
     let keypair = KeypairG1::generate_using_seed::<Blake2b512>(&seed, &params);
     seed.zeroize();
-    serde_wasm_bindgen::to_value(&keypair).map_err(|e| JsValue::from(e))
+    serde_wasm_bindgen::to_value(&keypair).map_err(JsValue::from)
 }
 
 #[wasm_bindgen(js_name = bbsPlusGenerateKeyPairG2)]
@@ -180,7 +180,7 @@ pub fn bbs_plus_generate_g2_keypair(
     let mut seed = seed.unwrap_or_else(random_bytes);
     let keypair = KeypairG2::generate_using_seed::<Blake2b512>(&seed, &params);
     seed.zeroize();
-    serde_wasm_bindgen::to_value(&keypair).map_err(|e| JsValue::from(e))
+    serde_wasm_bindgen::to_value(&keypair).map_err(JsValue::from)
 }
 
 #[wasm_bindgen(js_name = bbsPlusGetBasesForCommitmentG1)]
@@ -197,8 +197,7 @@ pub fn bbs_plus_get_bases_for_commitment_g1(
             return Err(JsValue::from(&format!(
                 "Invalid index {:?} to get signature param",
                 index
-            ))
-            .into());
+            )));
         }
         bases.push(&g1_affine_to_jsvalue(&params.h[index])?);
     }
@@ -219,8 +218,7 @@ pub fn bbs_plus_get_bases_for_commitment_g2(
             return Err(JsValue::from(&format!(
                 "Invalid index {:?} to get signature param",
                 index
-            ))
-            .into());
+            )));
         }
         bases.push(&g2_affine_to_jsvalue(&params.h[index])?);
     }
@@ -233,7 +231,7 @@ pub fn bbs_plus_encode_message_for_signing(
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let fr = encode_message_for_signing(&message);
-    Ok(fr_to_uint8_array(&fr)?)
+    fr_to_uint8_array(&fr)
 }
 
 #[wasm_bindgen(js_name = bbsPlusEncodeMessagesForSigning)]
@@ -246,7 +244,10 @@ pub fn bbs_plus_encode_messages_for_signing(
     for i in indices_to_encode.values() {
         let index: u32 = serde_wasm_bindgen::from_value(i.unwrap())?;
         if index >= messages.length() {
-            return Err(JsValue::from(&format!("Invalid index {:?} to get message", index)).into());
+            return Err(JsValue::from(&format!(
+                "Invalid index {:?} to get message",
+                index
+            )));
         }
         let msg: Vec<u8> = serde_wasm_bindgen::from_value(messages.get(index))?;
         let fr = encode_message_for_signing(&msg);
@@ -374,7 +375,7 @@ pub fn bbs_plus_verify_g1(
     let params: BBSPlusSigParamsG1 = serde_wasm_bindgen::from_value(params)?;
     let messages = encode_messages_as_js_array_to_fr_vec(&messages, encode_messages)?;
 
-    match signature.verify(messages.as_slice(), pk.clone(), params.clone()) {
+    match signature.verify(messages.as_slice(), pk, params) {
         Ok(_) => Ok(serde_wasm_bindgen::to_value(&VerifyResponse {
             verified: true,
             error: None,
@@ -520,7 +521,7 @@ pub fn bbs_plus_initialize_proof_of_knowledge_of_signature(
         }),
     ) {
         Ok(sig) => Ok(serde_wasm_bindgen::to_value(&sig)
-            .map_err(|e| JsValue::from(e))
+            .map_err(JsValue::from)
             .unwrap()),
         Err(e) => Err(JsValue::from(&format!("{:?}", e))),
     }
@@ -560,7 +561,7 @@ pub fn bbs_plus_verify_proof(
 
     let msgs = encode_messages_as_js_map_to_fr_btreemap(&revealed_msgs, encode_messages)?;
 
-    match proof.verify(&msgs, &challenge, public_key.clone(), params.clone()) {
+    match proof.verify(&msgs, &challenge, public_key, params) {
         Ok(_) => Ok(serde_wasm_bindgen::to_value(&VerifyResponse {
             verified: true,
             error: None,

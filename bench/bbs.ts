@@ -11,13 +11,12 @@ import {
     generateChallengeFromBytes,
     bbsGenerateSignatureParams,
     initializeWasm,
-    bbsEncodeMessageForSigning,
     bbsEncodeMessagesForSigning
 } from "../lib";
 import {benchmark, report} from "@stablelib/benchmark";
 import {generateMessages} from "./helper";
 
-export const benchmarkBBSPlus = async (
+export const benchmarkBBS = async (
     numberOfMessages: number,
     messageSizeInBytes: number,
     numberRevealed: number
@@ -26,14 +25,14 @@ export const benchmarkBBSPlus = async (
 
     // Generate params
     report(
-        `BBB+ Params generation for ${numberOfMessages} messages`,
+        `BBB Params generation for ${numberOfMessages} messages`,
         benchmark(() => bbsGenerateSignatureParams(numberOfMessages))
     );
     const sigParams = bbsGenerateSignatureParams(numberOfMessages);
 
     // Generate a new key pair
     report(
-        "BBB+ Key Generation",
+        "BBB Key Generation",
         benchmark(() => bbsGenerateKeyPair(sigParams))
     );
     const keypair = bbsGenerateKeyPair(sigParams);

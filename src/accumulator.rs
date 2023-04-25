@@ -210,7 +210,7 @@ pub fn universal_accumulator_compute_initial_fv(
     let sk: AccumSk = serde_wasm_bindgen::from_value(secret_key)?;
     let initial_elements = js_array_to_fr_vec(&initial_elements)?;
     let f_v = UniversalAccum::compute_initial_f_V(&initial_elements, &sk);
-    Ok(fr_to_uint8_array(&f_v)?)
+    fr_to_uint8_array(&f_v)
 }
 
 #[wasm_bindgen(js_name = universalAccumulatorCombineMultipleInitialFv)]
@@ -223,7 +223,7 @@ pub fn universal_accumulator_combine_multiple_initial_fv(
         let f_v = f_v.unwrap();
         product *= fr_from_jsvalue(f_v)?;
     }
-    Ok(fr_to_uint8_array(&product)?)
+    fr_to_uint8_array(&product)
 }
 
 #[wasm_bindgen(js_name = universalAccumulatorInitialiseGivenFv)]

@@ -101,8 +101,7 @@ pub fn pedersen_commitment_g2(
 }
 
 fn fr_uin8_array_from_bytes_hash(bytes: &[u8]) -> js_sys::Uint8Array {
-    let f =
-        dock_crypto_utils::hashing_utils::field_elem_from_try_and_incr::<Fr, Blake2b512>(&bytes);
+    let f = dock_crypto_utils::hashing_utils::field_elem_from_try_and_incr::<Fr, Blake2b512>(bytes);
     fr_to_uint8_array(&f).unwrap()
 }
 

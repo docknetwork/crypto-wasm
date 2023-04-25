@@ -40,8 +40,7 @@ pub fn bbs_sig_and_verifiable_encryption() {
         js_array_of_bytearrays_from_vector_of_bytevectors(&encoded_msgs).unwrap();
     let enc_msg_idx = 2usize;
 
-    let sig =
-        bbs_plus_sign_g1(messages_as_array.clone(), sk.clone(), params.clone(), false).unwrap();
+    let sig = bbs_plus_sign_g1(messages_as_array, sk, params.clone(), false).unwrap();
     let mut revealed_indices = BTreeSet::new();
     revealed_indices.insert(0);
     let (revealed_msgs, unrevealed_msgs) =
@@ -60,22 +59,15 @@ pub fn bbs_sig_and_verifiable_encryption() {
     let dk = js_sys::Uint8Array::new(&setup_arr.get(3));
 
     console::time_with_label("decompresssion");
-    let enc_gens_decom = saver_decompress_encryption_generators(enc_gens.clone()).unwrap();
-    let comm_gens_decom =
-        saver_decompress_chunked_commitment_generators(comm_gens.clone()).unwrap();
-    let ek_decom = saver_decompress_encryption_key(ek.clone()).unwrap();
-    let dk_decom = saver_decompress_decryption_key(dk.clone()).unwrap();
+    let enc_gens_decom = saver_decompress_encryption_generators(enc_gens).unwrap();
+    let comm_gens_decom = saver_decompress_chunked_commitment_generators(comm_gens).unwrap();
+    let ek_decom = saver_decompress_encryption_key(ek).unwrap();
+    let dk_decom = saver_decompress_decryption_key(dk).unwrap();
     let snark_pk_decom = saver_decompress_snark_pk(snark_pk.clone()).unwrap();
     console::time_end_with_label("decompresssion");
 
     // Create statements
-    let stmt_1 = generate_pok_bbs_plus_sig_statement(
-        params.clone(),
-        pk.clone(),
-        revealed_msgs.clone(),
-        false,
-    )
-    .unwrap();
+    let stmt_1 = generate_pok_bbs_plus_sig_statement(params, pk, revealed_msgs, false).unwrap();
     console::time_with_label("saver stmt");
     let prover_stmt_2 = generate_saver_prover_statement(
         chunk_bit_size,
@@ -99,7 +91,7 @@ pub fn bbs_sig_and_verifiable_encryption() {
 
     let context = Some("test-context".as_bytes().to_vec());
 
-    let witness_1 = generate_pok_bbs_plus_sig_witness(sig, unrevealed_msgs.clone(), false).unwrap();
+    let witness_1 = generate_pok_bbs_plus_sig_witness(sig, unrevealed_msgs, false).unwrap();
     let witness_2 = generate_saver_witness(js_sys::Uint8Array::from(
         encoded_msgs[enc_msg_idx].as_slice(),
     ))
@@ -112,7 +104,7 @@ pub fn bbs_sig_and_verifiable_encryption() {
 
     console::time_with_label("proof gen");
     let proof = generate_composite_proof_g1_with_deconstructed_proof_spec(
-        prover_statements.clone(),
+        prover_statements,
         meta_statements.clone(),
         js_sys::Array::new(),
         witnesses,
@@ -122,12 +114,12 @@ pub fn bbs_sig_and_verifiable_encryption() {
     .unwrap();
     console::time_end_with_label("proof gen");
 
-    let snark_vk_decom = saver_get_snark_vk_from_pk(snark_pk.clone(), true).unwrap();
+    let snark_vk_decom = saver_get_snark_vk_from_pk(snark_pk, true).unwrap();
     let verifier_stmt_2 = generate_saver_verifier_statement(
         chunk_bit_size,
         enc_gens_decom.clone(),
-        comm_gens_decom.clone(),
-        ek_decom.clone(),
+        comm_gens_decom,
+        ek_decom,
         snark_vk_decom.clone(),
         true,
     )
@@ -141,10 +133,10 @@ pub fn bbs_sig_and_verifiable_encryption() {
     console::time_with_label("proof ver");
     let result = verify_composite_proof_g1_with_deconstructed_proof_spec(
         proof.clone(),
-        verifier_statements.clone(),
-        meta_statements.clone(),
+        verifier_statements,
+        meta_statements,
         js_sys::Array::new(),
-        context.clone(),
+        context,
         nonce,
     )
     .unwrap();
@@ -171,7 +163,7 @@ pub fn bbs_sig_and_verifiable_encryption() {
     console::time_with_label("decrypt with vk");
     let dec_arr_1 = saver_decrypt_ciphertext_using_snark_vk(
         ct.clone(),
-        sk.clone(),
+        sk,
         dk_decom.clone(),
         snark_vk_decom.clone(),
         chunk_bit_size,

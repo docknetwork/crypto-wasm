@@ -291,7 +291,7 @@ pub fn random_bytes() -> Vec<u8> {
 }
 
 pub fn is_positive_safe_integer(num: &js_sys::Number) -> bool {
-    return js_sys::Number::is_safe_integer(num) && num >= &js_sys::Number::from(0);
+    js_sys::Number::is_safe_integer(num) && num >= &js_sys::Number::from(0)
 }
 
 #[macro_export]

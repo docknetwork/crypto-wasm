@@ -22,7 +22,7 @@ fn ps_setup(message_count: usize) -> (JsValue, Uint8Array, Uint8Array) {
     let params = ps_generate_params(message_count, Some(label)).unwrap();
 
     let seed = vec![0, 1, 2, 5, 10, 13];
-    let sk = ps_generate_secret_key(message_count, Some(seed.clone())).unwrap();
+    let sk = ps_generate_secret_key(message_count, Some(seed)).unwrap();
     let pk = ps_generate_public_key(sk.clone(), params.clone()).unwrap();
 
     (params, sk, pk)
@@ -61,8 +61,8 @@ pub fn ps_params_and_keygen() {
     let sk_1 = ps_generate_secret_key(message_count, Some(seed)).unwrap();
     assert_eq!(sk.to_vec(), sk_1.to_vec());
 
-    let pk = ps_generate_public_key(sk.clone(), params.clone()).unwrap();
-    assert!(ps_is_pubkey_valid(pk.clone()).unwrap());
+    let pk = ps_generate_public_key(sk, params.clone()).unwrap();
+    assert!(ps_is_pubkey_valid(pk).unwrap());
 
     let bytes = ps_signature_params_to_bytes(params.clone()).unwrap();
     let desez_params = ps_signature_params_from_bytes(bytes).unwrap();
@@ -154,23 +154,21 @@ pub fn ps_blind_sign_test() {
                 let blinding = blindings.get(&idx).unwrap().clone();
 
                 ps_blinded_message(
-                    ps_message_commitment(blinding, msg.clone().into(), h.clone(), params.clone())
-                        .unwrap(),
+                    ps_message_commitment(blinding, msg.into(), h.clone(), params.clone()).unwrap(),
                 )
                 .unwrap()
             } else {
-                ps_revealed_message(msg.clone().into()).unwrap()
+                ps_revealed_message(msg.into()).unwrap()
             }
         })
         .collect();
 
-    assert_eq!(committed_indices.len() as usize, committed_indices.len());
+    assert_eq!({ committed_indices.len() }, committed_indices.len());
 
-    let blind_sig = ps_blind_sign(msgs.clone().into(), sk.clone(), h.clone()).unwrap();
+    let blind_sig = ps_blind_sign(msgs.into(), sk, h).unwrap();
     let sig = ps_unblind_sig(
         blind_sig,
         blindings
-            .clone()
             .into_iter()
             .fold(js_sys::Map::new(), |map, (idx, msg)| {
                 map.set(&JsValue::from(idx as u32), &JsValue::from(msg));
@@ -179,7 +177,7 @@ pub fn ps_blind_sign_test() {
         pk.clone(),
     )
     .unwrap();
-    let result = ps_verify(messages_as_array.clone(), sig, pk, params.clone()).unwrap();
+    let result = ps_verify(messages_as_array, sig, pk, params).unwrap();
     let r: VerifyResponse = serde_wasm_bindgen::from_value(result).unwrap();
     assert!(r.verified);
     assert!(r.error.is_none());
@@ -238,32 +236,25 @@ pub fn ps_proof_of_knowledge() {
             if !blindings_for.contains(&idx) {
                 ps_reveal_message().unwrap()
             } else {
-                let blinding = blindings.get(&JsValue::from(idx as u32)).clone();
+                let blinding = blindings.get(&JsValue::from(idx as u32));
 
-                ps_blind_message_with_concrete_blinding(msg.clone().into(), blinding.clone().into())
-                    .unwrap()
+                ps_blind_message_with_concrete_blinding(msg.into(), blinding.into()).unwrap()
             }
         })
         .collect();
 
     let (params, sk, pk) = ps_setup(messages.len());
 
-    let sig = ps_sign(messages_as_array.clone(), sk.clone(), params.clone()).unwrap();
+    let sig = ps_sign(messages_as_array.clone(), sk, params.clone()).unwrap();
 
-    let result = ps_verify(
-        messages_as_array.clone(),
-        sig.clone(),
-        pk.clone(),
-        params.clone(),
-    )
-    .unwrap();
+    let result = ps_verify(messages_as_array, sig.clone(), pk.clone(), params.clone()).unwrap();
 
     let r: VerifyResponse = serde_wasm_bindgen::from_value(result).unwrap();
     assert!(r.verified);
     assert!(r.error.is_none());
 
     let protocol =
-        ps_initialize_signature_pok(sig, params.clone(), pk.clone(), msgs.clone().into()).unwrap();
+        ps_initialize_signature_pok(sig, params.clone(), pk.clone(), msgs.into()).unwrap();
 
     let prover_bytes = ps_challenge_signature_pok_contribution_from_protocol(
         protocol.clone(),
@@ -336,7 +327,7 @@ pub fn ps_extend_params() {
             .h[0],
     );
     assert_eq!(
-        serde_wasm_bindgen::from_value::<SignatureParams>(params.clone())
+        serde_wasm_bindgen::from_value::<SignatureParams>(params)
             .unwrap()
             .h[0],
         serde_wasm_bindgen::from_value::<SignatureParams>(params_1.clone())
@@ -390,7 +381,7 @@ pub fn ps_extend_params() {
         serde_wasm_bindgen::from_value::<SignatureParams>(params_1.clone())
             .unwrap()
             .h[1],
-        serde_wasm_bindgen::from_value::<SignatureParams>(params_2.clone())
+        serde_wasm_bindgen::from_value::<SignatureParams>(params_2)
             .unwrap()
             .h[1],
     );
@@ -408,7 +399,7 @@ pub fn ps_extend_params() {
     )
     .unwrap();
 
-    let sk = ps_generate_secret_key(messages.len() as usize, None).unwrap();
+    let sk = ps_generate_secret_key(messages.len(), None).unwrap();
 
     let pk = ps_generate_public_key(sk.clone(), params_1.clone()).unwrap();
 

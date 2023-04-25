@@ -186,7 +186,7 @@ pub fn bbs_blind_sign_test() {
 
     let blinding = generate_random_field_element(None).unwrap();
 
-    let commitment = bbs_commit_to_message_in(
+    let commitment = bbs_commit_to_message(
         msgs_to_commit.clone(),
         blinding.clone(),
         params.clone(),
@@ -219,18 +219,14 @@ pub fn bbs_proof_of_knowledge() {
                 sk.clone(),
                 params.clone(),
                 $encode,
-            )
-
-            .unwrap();
+            ).unwrap();
             let result = bbs_verify(
                 $messages_as_jsvalue.clone(),
                 sig.clone(),
                 pk.clone(),
                 params.clone(),
                 $encode,
-            )
-
-            .unwrap();
+            ).unwrap();
             let r: VerifyResponse = serde_wasm_bindgen::from_value(result).unwrap();
             assert!(r.verified);
             assert!(r.error.is_none());
@@ -259,39 +255,29 @@ pub fn bbs_proof_of_knowledge() {
 
             let protocol = bbs_initialize_proof_of_knowledge_of_signature(
                 sig,
-                None,
-                None,
                 params.clone(),
                 $messages_as_jsvalue,
                 blindings,
                 revealed,
                 $encode,
-            )
-
-            .unwrap();
+            ).unwrap();
 
             let prover_bytes = bbs_challenge_contribution_from_protocol(
                 protocol.clone(),
                 revealed_msgs.clone(),
                 params.clone(),
                 $encode,
-            )
-
-            .unwrap();
+            ).unwrap();
             let prover_challenge = generate_challenge_from_bytes(prover_bytes.to_vec());
 
-            let proof = bbs_gen_proof(protocol, prover_challenge.clone())
-
-                .unwrap();
+            let proof = bbs_gen_proof(protocol, prover_challenge.clone()).unwrap();
 
             let verifier_bytes = bbs_challenge_contribution_from_proof(
                 proof.clone(),
                 revealed_msgs.clone(),
                 params.clone(),
                 $encode,
-            )
-
-            .unwrap();
+            ).unwrap();
             let verifier_challenge = generate_challenge_from_bytes(verifier_bytes.to_vec());
 
             assert_eq!(
@@ -299,9 +285,7 @@ pub fn bbs_proof_of_knowledge() {
                 verifier_challenge.to_vec()
             );
 
-            let result = bbs_verify_proof(proof, revealed_msgs, verifier_challenge, pk, params, $encode)
-
-                .unwrap();
+            let result = bbs_verify_proof(proof, revealed_msgs, verifier_challenge, pk, params, $encode).unwrap();
             let r: VerifyResponse = serde_wasm_bindgen::from_value(result).unwrap();
             r.validate();
         };

@@ -4,6 +4,7 @@ pub mod statement;
 use wasm_bindgen::prelude::*;
 
 use crate::accumulator::{MembershipWit, NonMembershipWit};
+use crate::bbs::BBSSignature;
 use crate::bbs_plus::{encode_messages_as_js_map_to_fr_btreemap, BBSPlusSigG1};
 use crate::common::VerifyResponse;
 use crate::ps::Signature as PSSignature;
@@ -23,8 +24,8 @@ use zeroize::Zeroize;
 
 pub type Witness = witness::Witness<Bls12_381>;
 pub type Witnesses = witness::Witnesses<Bls12_381>;
-pub(crate) type PoKBbsSigWit = witness::PoKBBSSignature23G1<Bls12_381>;
-pub(crate) type PoKBbsPlusSigWit = witness::PoKBBSSignatureG1<Bls12_381>;
+pub(crate) type PoKBBSSigWit = witness::PoKBBSSignature23G1<Bls12_381>;
+pub(crate) type PoKBBSPlusSigWit = witness::PoKBBSSignatureG1<Bls12_381>;
 pub(crate) type PokPSSigWit = witness::PoKPSSignature<Bls12_381>;
 pub(crate) type AccumMemWit = witness::Membership<Bls12_381>;
 pub(crate) type AccumNonMemWit = witness::NonMembership<Bls12_381>;
@@ -32,6 +33,19 @@ pub(crate) type ProofSpec<G> = proof_system::proof_spec::ProofSpec<Bls12_381, G>
 pub(crate) type Proof<G> = proof::Proof<Bls12_381, G>;
 pub(crate) type ProofG1 = proof::Proof<Bls12_381, G1Affine>;
 pub(crate) type StatementProofG1 = proof_system::prelude::StatementProof<Bls12_381, G1Affine>;
+
+#[wasm_bindgen(js_name = generatePoKBBSSignatureWitness)]
+pub fn generate_pok_bbs_sig_witness(
+    signature: Uint8Array,
+    unrevealed_msgs: js_sys::Map,
+    encode_messages: bool,
+) -> Result<JsValue, JsValue> {
+    set_panic_hook();
+    let signature = obj_from_uint8array!(BBSSignature, signature, true);
+    let msgs = encode_messages_as_js_map_to_fr_btreemap(&unrevealed_msgs, encode_messages)?;
+    let witness = PoKBBSSigWit::new_as_witness(signature, msgs);
+    serde_wasm_bindgen::to_value(&witness).map_err(JsValue::from)
+}
 
 #[wasm_bindgen(js_name = generatePoKBBSPlusSignatureWitness)]
 pub fn generate_pok_bbs_plus_sig_witness(
@@ -42,8 +56,8 @@ pub fn generate_pok_bbs_plus_sig_witness(
     set_panic_hook();
     let signature = obj_from_uint8array!(BBSPlusSigG1, signature, true);
     let msgs = encode_messages_as_js_map_to_fr_btreemap(&unrevealed_msgs, encode_messages)?;
-    let witness = PoKBbsPlusSigWit::new_as_witness(signature, msgs);
-    serde_wasm_bindgen::to_value(&witness).map_err(|e| JsValue::from(e))
+    let witness = PoKBBSPlusSigWit::new_as_witness(signature, msgs);
+    serde_wasm_bindgen::to_value(&witness).map_err(JsValue::from)
 }
 
 #[wasm_bindgen(js_name = generatePoKPSSignatureWitness)]
@@ -56,7 +70,7 @@ pub fn generate_pok_ps_sig_witness(
     let msgs = encode_messages_as_js_map_to_fr_btreemap(&unrevealed_msgs, false)?;
     let witness = PokPSSigWit::new_as_witness(signature, msgs);
 
-    serde_wasm_bindgen::to_value(&witness).map_err(|e| JsValue::from(e))
+    serde_wasm_bindgen::to_value(&witness).map_err(JsValue::from)
 }
 
 #[wasm_bindgen(js_name = generateAccumulatorMembershipWitness)]
@@ -68,7 +82,7 @@ pub fn generate_accumulator_membership_witness(
     let element = fr_from_uint8_array(element, true)?;
     let accum_witness: MembershipWit = serde_wasm_bindgen::from_value(accum_witness)?;
     let witness = AccumMemWit::new_as_witness(element, accum_witness);
-    serde_wasm_bindgen::to_value(&witness).map_err(|e| JsValue::from(e))
+    serde_wasm_bindgen::to_value(&witness).map_err(JsValue::from)
 }
 
 #[wasm_bindgen(js_name = generateAccumulatorNonMembershipWitness)]
@@ -80,7 +94,7 @@ pub fn generate_accumulator_non_membership_witness(
     let element = fr_from_uint8_array(element, true)?;
     let accum_witness: NonMembershipWit = serde_wasm_bindgen::from_value(accum_witness)?;
     let witness = AccumNonMemWit::new_as_witness(element, accum_witness);
-    serde_wasm_bindgen::to_value(&witness).map_err(|e| JsValue::from(e))
+    serde_wasm_bindgen::to_value(&witness).map_err(JsValue::from)
 }
 
 #[wasm_bindgen(js_name = generatePedersenCommitmentWitness)]
@@ -88,7 +102,7 @@ pub fn generate_pedersen_commitment_witness(elements: js_sys::Array) -> Result<J
     set_panic_hook();
     let elements = js_array_to_fr_vec(&elements)?;
     let witness = Witness::PedersenCommitment(elements);
-    serde_wasm_bindgen::to_value(&witness).map_err(|e| JsValue::from(e))
+    serde_wasm_bindgen::to_value(&witness).map_err(JsValue::from)
 }
 
 #[wasm_bindgen(js_name = generateProofSpecG1)]
@@ -244,7 +258,7 @@ pub fn generate_saver_witness(message: Uint8Array) -> Result<JsValue, JsValue> {
     set_panic_hook();
     let message = fr_from_uint8_array(message, true)?;
     let witness = Witness::Saver(message);
-    serde_wasm_bindgen::to_value(&witness).map_err(|e| JsValue::from(e))
+    serde_wasm_bindgen::to_value(&witness).map_err(JsValue::from)
 }
 
 /// From the composite proof, get the ciphertext for the statement at index `statement_index`
@@ -278,7 +292,7 @@ pub fn generate_bound_check_witness(message: Uint8Array) -> Result<JsValue, JsVa
     set_panic_hook();
     let message = fr_from_uint8_array(message, true)?;
     let witness = Witness::BoundCheckLegoGroth16(message);
-    serde_wasm_bindgen::to_value(&witness).map_err(|e| JsValue::from(e))
+    serde_wasm_bindgen::to_value(&witness).map_err(JsValue::from)
 }
 
 #[wasm_bindgen(js_name = generateR1CSCircomWitness)]
@@ -302,7 +316,7 @@ pub fn generate_r1cs_circom_witness(
         r1cs_wit.set_public(name, js_array_to_fr_vec(&vals)?);
     }
     let witness = Witness::R1CSLegoGroth16(r1cs_wit);
-    serde_wasm_bindgen::to_value(&witness).map_err(|e| JsValue::from(e))
+    serde_wasm_bindgen::to_value(&witness).map_err(JsValue::from)
 }
 
 pub fn parse_statements_meta_statements_and_setup_params<G: AffineRepr>(

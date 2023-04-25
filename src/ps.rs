@@ -141,7 +141,7 @@ pub fn ps_is_pubkey_valid(public_key: js_sys::Uint8Array) -> Result<bool, JsValu
 pub fn ps_encode_message_for_signing(message: Vec<u8>) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let fr = encode_message_for_signing(&message);
-    Ok(fr_to_uint8_array(&fr)?)
+    fr_to_uint8_array(&fr)
 }
 
 #[wasm_bindgen(js_name = psEncodeMessagesForSigning)]
@@ -155,9 +155,10 @@ pub fn ps_encode_messages_for_signing(
         for i in indices_to_encode.values() {
             let index: u32 = from_value(i.unwrap())?;
             if index >= messages.length() {
-                return Err(
-                    JsValue::from(&format!("Invalid index {:?} to get message", index)).into(),
-                );
+                return Err(JsValue::from(&format!(
+                    "Invalid index {:?} to get message",
+                    index
+                )));
             }
             let msg: Vec<u8> = from_value(messages.get(index))?;
             let fr = encode_message_for_signing(&msg);
@@ -223,7 +224,6 @@ pub fn ps_blind_sign(
 
     let messages = js_sys::try_iter(&messages)?
         .unwrap()
-        .into_iter()
         .map(Result::unwrap)
         .map(|js_msg| -> CommitmentOrMessage<Bls12_381> { from_value(js_msg).unwrap() });
 
@@ -307,7 +307,6 @@ pub fn ps_initialize_signature_pok(
     let pk = obj_from_uint8array!(PsPublicKey, public_key, false, "PsPublicKey");
     let messages = js_sys::try_iter(&messages)?
         .unwrap()
-        .into_iter()
         .map(Result::unwrap)
         .map(|js_msg| from_value::<CommitMessage<Fr>>(js_msg).unwrap());
 
@@ -328,7 +327,6 @@ pub fn ps_initialize_messagese_pok(
 
     let messages = js_sys::try_iter(&messages)?
         .unwrap()
-        .into_iter()
         .map(Result::unwrap)
         .map(|js_msg| from_value::<CommitMessage<Fr>>(js_msg).unwrap());
     let params: SignatureParams = from_value(params)?;

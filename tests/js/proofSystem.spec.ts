@@ -71,8 +71,14 @@ import {
   psGenerateSigningKey,
   psGenerateSignatureParams,
   psGeneratePublicKey,
+  bbsGenerateSignatureParams,
+  bbsGenerateSigningKey,
+  bbsGeneratePublicKey,
+  generatePoKBBSSignatureStatement,
+  bbsSign,
+  generatePoKBBSSignatureWitness,
 } from "../../lib";
-import { PSSigParams } from "../../lib/types";
+import { BbsSigParams, PSSigParams } from "../../lib/types";
 
 function setupMessages(
   messageCount: number,
@@ -88,6 +94,15 @@ function setupMessages(
     messages.push(m);
   }
   return messages;
+}
+
+function setupSignerBBS(
+  messageCount: number
+): [BbsSigParams, Uint8Array, Uint8Array] {
+  const sigParams = bbsGenerateSignatureParams(messageCount);
+  const sk = bbsGenerateSigningKey();
+  const pk = bbsGeneratePublicKey(sk, sigParams);
+  return [sigParams, sk, pk];
 }
 
 function setupSignerBBSPlus(
@@ -106,6 +121,17 @@ function setupSignerPS(
   const sk = psGenerateSigningKey(messageCount);
   const pk = psGeneratePublicKey(sk, sigParams);
   return [sigParams, sk, pk];
+}
+
+function setupBBS(
+  messageCount: number,
+  prefix: string,
+  encode: boolean
+): [BbsSigParams, Uint8Array, Uint8Array, Uint8Array[]] {
+  return [
+    ...setupSignerBBS(messageCount),
+    setupMessages(messageCount, prefix, encode),
+  ];
 }
 
 function setupBBSPlus(
@@ -283,6 +309,33 @@ describe("Proving knowledge of many signatures", () => {
 
   beforeAll(async () => {
     await initializeWasm();
+  });
+
+  it("generate and verify a proof of knowledge of 3 BBS signatures", () => {
+    const messageCount1 = 6;
+    const messageCount2 = 10;
+    const messageCount3 = 9;
+
+    proveAndVerifySig(
+      setupBBS,
+      bbsSign,
+      generatePoKBBSSignatureStatement,
+      generatePoKBBSSignatureWitness,
+      messageCount1,
+      messageCount2,
+      messageCount3,
+      true
+    );
+    proveAndVerifySig(
+      setupBBS,
+      bbsSign,
+      generatePoKBBSSignatureStatement,
+      generatePoKBBSSignatureWitness,
+      messageCount1,
+      messageCount2,
+      messageCount3,
+      false
+    );
   });
 
   it("generate and verify a proof of knowledge of 3 BBS+ signatures", () => {
@@ -485,6 +538,15 @@ describe("Proving knowledge of BBS+ signatures and accumulator membership and no
     const res = verifyCompositeProofG1(proof, proofSpec);
     expect(res.verified).toBe(true);
   }
+
+  it("generate and verify a proof of knowledge of a BBS signature and accumulator membership", () => {
+    checkSig(
+      setupBBS,
+      bbsSign,
+      generatePoKBBSSignatureStatement,
+      generatePoKBBSSignatureWitness
+    );
+  });
 
   it("generate and verify a proof of knowledge of a BBS+ signature and accumulator membership", () => {
     checkSig(

@@ -293,7 +293,7 @@ fn decrypt(
         obj_from_uint8array!(SaverDk, decryption_key, false, "SaverDk")
     };
     let (decrypted_message, nu) = ct
-        .decrypt_given_groth16_vk(&sk, dk.clone(), snark_vk, chunk_bit_size)
+        .decrypt_given_groth16_vk(&sk, dk, snark_vk, chunk_bit_size)
         .map_err(|e| JsValue::from(&format!("Decryption returned error: {:?}", e)))?;
     let dec = js_sys::Array::new();
     let m = fr_to_uint8_array(&decrypted_message)?;
@@ -331,9 +331,9 @@ fn verify_decryption(
         &decrypted_message,
         &nu,
         chunk_bit_size,
-        dk.clone(),
+        dk,
         snark_vk,
-        enc_gens.clone(),
+        enc_gens,
     ) {
         Ok(_) => Ok(serde_wasm_bindgen::to_value(&VerifyResponse {
             verified: true,
