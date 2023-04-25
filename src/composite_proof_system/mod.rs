@@ -124,7 +124,7 @@ pub fn generate_proof_spec_g1(
 #[wasm_bindgen(js_name = isProofSpecG1Valid)]
 pub fn is_proof_spec_g1_valid(proof_spec: Uint8Array) -> Result<bool, JsValue> {
     set_panic_hook();
-    let proof_spec = obj_from_uint8array_unchecked!(
+    let proof_spec = obj_from_uint8array_uncompressed!(
         ProofSpec::<<Bls12_381 as Pairing>::G1Affine>,
         proof_spec,
         "ProofSpecG1"
@@ -151,7 +151,7 @@ pub fn generate_proof_spec_g2(
 #[wasm_bindgen(js_name = isProofSpecG2Valid)]
 pub fn is_proof_spec_g2_valid(proof_spec: Uint8Array) -> Result<bool, JsValue> {
     set_panic_hook();
-    let proof_spec = obj_from_uint8array_unchecked!(
+    let proof_spec = obj_from_uint8array_uncompressed!(
         ProofSpec::<<Bls12_381 as Pairing>::G2Affine>,
         proof_spec,
         "ProofSpecG2"
@@ -339,14 +339,14 @@ pub fn parse_statements_meta_statements_and_setup_params<G: AffineRepr>(
     let mut stmts = Statements::<Bls12_381, G>::new();
     for s in statements.values() {
         let s = Uint8Array::new(&s.unwrap());
-        let stmt = obj_from_uint8array_unchecked!(Statement<Bls12_381, G>, &s, "Statement");
+        let stmt = obj_from_uint8array_uncompressed!(Statement<Bls12_381, G>, &s, "Statement");
         stmts.add(stmt);
     }
 
     let mut s_params = Vec::<SetupParams<Bls12_381, G>>::new();
     for s in setup_params.values() {
         let s = Uint8Array::new(&s.unwrap());
-        let s = obj_from_uint8array_unchecked!(SetupParams<Bls12_381, G>, &s, "SetupParams");
+        let s = obj_from_uint8array_uncompressed!(SetupParams<Bls12_381, G>, &s, "SetupParams");
         s_params.push(s);
     }
 
@@ -365,7 +365,7 @@ fn gen_proof_spec<G: AffineRepr>(
         setup_params,
     )?;
     let proof_spec = ProofSpec::<G>::new(stmts, meta_stmts, setup_params, context);
-    Ok(obj_to_uint8array_unchecked!(&proof_spec, "ProofSpec"))
+    Ok(obj_to_uint8array_uncompressed!(&proof_spec, "ProofSpec"))
 }
 
 fn gen_proof<G: AffineRepr<ScalarField = Fr>>(
@@ -373,7 +373,7 @@ fn gen_proof<G: AffineRepr<ScalarField = Fr>>(
     witnesses: js_sys::Array,
     nonce: Option<Vec<u8>>,
 ) -> Result<Uint8Array, JsValue> {
-    let proof_spec = obj_from_uint8array_unchecked!(ProofSpec::<G>, proof_spec, "ProofSpec");
+    let proof_spec = obj_from_uint8array_uncompressed!(ProofSpec::<G>, proof_spec, "ProofSpec");
     gen_proof_given_proof_spec_obj::<G>(proof_spec, witnesses, nonce)
 }
 
@@ -382,7 +382,7 @@ fn verify_proof<G: AffineRepr<ScalarField = Fr>>(
     proof: Uint8Array,
     nonce: Option<Vec<u8>>,
 ) -> Result<JsValue, JsValue> {
-    let proof_spec = obj_from_uint8array_unchecked!(ProofSpec::<G>, proof_spec, "ProofSpec");
+    let proof_spec = obj_from_uint8array_uncompressed!(ProofSpec::<G>, proof_spec, "ProofSpec");
     verify_proof_given_proof_spec_obj::<G>(proof_spec, proof, nonce)
 }
 

@@ -24,7 +24,7 @@ pub fn generate_setup_param_for_bbs_plus_sig_params_g1(
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let params: BBSPlusSigParamsG1 = serde_wasm_bindgen::from_value(params)?;
-    Ok(obj_to_uint8array_unchecked!(&SetupParams::<
+    Ok(obj_to_uint8array_uncompressed!(&SetupParams::<
         Bls12_381,
         G1Affine,
     >::BBSPlusSignatureParams(
@@ -38,7 +38,7 @@ pub fn generate_setup_param_for_bbs_plus_public_key_g2(
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let pk = obj_from_uint8array!(BBSPlusPublicKeyG2, public_key, false, "BBSPlusPublicKeyG2");
-    Ok(obj_to_uint8array_unchecked!(&SetupParams::<
+    Ok(obj_to_uint8array_uncompressed!(&SetupParams::<
         Bls12_381,
         G2Affine,
     >::BBSPlusPublicKey(pk)))
@@ -51,7 +51,7 @@ pub fn generate_setup_param_for_ps_sig_params(
     set_panic_hook();
     let params: SignatureParams = serde_wasm_bindgen::from_value(params)?;
 
-    Ok(obj_to_uint8array_unchecked!(&SetupParams::<
+    Ok(obj_to_uint8array_uncompressed!(&SetupParams::<
         Bls12_381,
         G1Affine,
     >::PSSignatureParams(
@@ -65,7 +65,7 @@ pub fn generate_setup_param_for_vb_accumulator_params(
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let params = obj_from_uint8array!(AccumSetupParams, params, false, "AccumSetupParams");
-    Ok(obj_to_uint8array_unchecked!(&SetupParams::<
+    Ok(obj_to_uint8array_uncompressed!(&SetupParams::<
         Bls12_381,
         G1Affine,
     >::VbAccumulatorParams(
@@ -79,7 +79,7 @@ pub fn generate_setup_param_for_vb_accumulator_public_key(
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let pk = obj_from_uint8array!(AccumPk, public_key, false, "AccumPk");
-    Ok(obj_to_uint8array_unchecked!(&SetupParams::<
+    Ok(obj_to_uint8array_uncompressed!(&SetupParams::<
         Bls12_381,
         G2Affine,
     >::VbAccumulatorPublicKey(
@@ -93,7 +93,7 @@ pub fn generate_setup_param_for_vb_accumulator_mem_proving_key(
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let k = obj_from_uint8array!(MembershipPrk, key, false, "MembershipPrk");
-    Ok(obj_to_uint8array_unchecked!(&SetupParams::<
+    Ok(obj_to_uint8array_uncompressed!(&SetupParams::<
         Bls12_381,
         G1Affine,
     >::VbAccumulatorMemProvingKey(
@@ -107,12 +107,9 @@ pub fn generate_setup_param_for_vb_accumulator_non_mem_proving_key(
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let k = obj_from_uint8array!(NonMembershipPrk, key, false, "NonMembershipPrk");
-    Ok(obj_to_uint8array_unchecked!(&SetupParams::<
-        Bls12_381,
-        G1Affine,
-    >::VbAccumulatorNonMemProvingKey(
-        k
-    )))
+    Ok(obj_to_uint8array_uncompressed!(
+        &SetupParams::<Bls12_381, G1Affine>::VbAccumulatorNonMemProvingKey(k)
+    ))
 }
 
 #[wasm_bindgen(js_name = generateSetupParamForPedersenCommitmentKeyG1)]
@@ -121,7 +118,7 @@ pub fn generate_setup_param_for_pedersen_commitment_key_g1(
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let k = js_array_to_g1_affine_vec(&commitment_key)?;
-    Ok(obj_to_uint8array_unchecked!(&SetupParams::<
+    Ok(obj_to_uint8array_uncompressed!(&SetupParams::<
         Bls12_381,
         G1Affine,
     >::PedersenCommitmentKey(
@@ -135,7 +132,7 @@ pub fn generate_setup_param_for_pedersen_commitment_key_g2(
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let k = js_array_to_g2_affine_vec(&commitment_key)?;
-    Ok(obj_to_uint8array_unchecked!(&SetupParams::<
+    Ok(obj_to_uint8array_uncompressed!(&SetupParams::<
         Bls12_381,
         G2Affine,
     >::PedersenCommitmentKey(
@@ -152,11 +149,11 @@ pub fn generate_setup_param_for_saver_encryption_gens(
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let enc_gens = if uncompressed {
-        obj_from_uint8array_unchecked!(EncGens, enc_gens, "SaverEncryptionGens")
+        obj_from_uint8array_uncompressed!(EncGens, enc_gens, "SaverEncryptionGens")
     } else {
         obj_from_uint8array!(EncGens, enc_gens, false, "SaverEncryptionGens")
     };
-    Ok(obj_to_uint8array_unchecked!(&SetupParams::<
+    Ok(obj_to_uint8array_uncompressed!(&SetupParams::<
         Bls12_381,
         G1Affine,
     >::SaverEncryptionGens(
@@ -173,11 +170,11 @@ pub fn generate_setup_param_for_saver_commitment_gens(
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let comm_gens = if uncompressed {
-        obj_from_uint8array_unchecked!(ChunkedCommGens, comm_gens, "SaverCommitmentGens")
+        obj_from_uint8array_uncompressed!(ChunkedCommGens, comm_gens, "SaverCommitmentGens")
     } else {
         obj_from_uint8array!(ChunkedCommGens, comm_gens, false, "SaverCommitmentGens")
     };
-    Ok(obj_to_uint8array_unchecked!(&SetupParams::<
+    Ok(obj_to_uint8array_uncompressed!(&SetupParams::<
         Bls12_381,
         G1Affine,
     >::SaverCommitmentGens(
@@ -194,14 +191,16 @@ pub fn generate_setup_param_for_saver_encryption_key(
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let key = if uncompressed {
-        obj_from_uint8array_unchecked!(SaverEk, key, "SaverEncryptionKey")
+        obj_from_uint8array_uncompressed!(SaverEk, key, "SaverEncryptionKey")
     } else {
         obj_from_uint8array!(SaverEk, key, false, "SaverEncryptionKey")
     };
-    Ok(obj_to_uint8array_unchecked!(&SetupParams::<
+    Ok(obj_to_uint8array_uncompressed!(&SetupParams::<
         Bls12_381,
         G1Affine,
-    >::SaverEncryptionKey(key)))
+    >::SaverEncryptionKey(
+        key
+    )))
 }
 
 /// If `uncompressed` is true, expects the snark proving key to be in uncompressed form else
@@ -213,11 +212,11 @@ pub fn generate_setup_param_for_saver_proving_key(
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let key = if uncompressed {
-        obj_from_uint8array_unchecked!(SaverSnarkPk, key, "SaverProvingKey")
+        obj_from_uint8array_uncompressed!(SaverSnarkPk, key, "SaverProvingKey")
     } else {
         obj_from_uint8array!(SaverSnarkPk, key, false, "SaverProvingKey")
     };
-    Ok(obj_to_uint8array_unchecked!(&SetupParams::<
+    Ok(obj_to_uint8array_uncompressed!(&SetupParams::<
         Bls12_381,
         G1Affine,
     >::SaverProvingKey(key)))
@@ -232,14 +231,16 @@ pub fn generate_setup_param_for_saver_verifying_key(
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let key = if uncompressed {
-        obj_from_uint8array_unchecked!(SaverSnarkVk, key, "SaverVerifyingKey")
+        obj_from_uint8array_uncompressed!(SaverSnarkVk, key, "SaverVerifyingKey")
     } else {
         obj_from_uint8array!(SaverSnarkVk, key, false, "SaverVerifyingKey")
     };
-    Ok(obj_to_uint8array_unchecked!(&SetupParams::<
+    Ok(obj_to_uint8array_uncompressed!(&SetupParams::<
         Bls12_381,
         G1Affine,
-    >::SaverVerifyingKey(key)))
+    >::SaverVerifyingKey(
+        key
+    )))
 }
 
 /// If `uncompressed` is true, expects the legosnark proving key to be in uncompressed form else
@@ -251,11 +252,11 @@ pub fn generate_setup_param_for_lego_proving_key(
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let key = if uncompressed {
-        obj_from_uint8array_unchecked!(LegoProvingKey, key, "LegoSnarkProvingKey")
+        obj_from_uint8array_uncompressed!(LegoProvingKey, key, "LegoSnarkProvingKey")
     } else {
         obj_from_uint8array!(LegoProvingKey, key, false, "LegoSnarkProvingKey")
     };
-    Ok(obj_to_uint8array_unchecked!(&SetupParams::<
+    Ok(obj_to_uint8array_uncompressed!(&SetupParams::<
         Bls12_381,
         G1Affine,
     >::LegoSnarkProvingKey(
@@ -272,11 +273,11 @@ pub fn generate_setup_param_for_lego_verifying_key(
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let key = if uncompressed {
-        obj_from_uint8array_unchecked!(LegoVerifyingKey, key, "LegoSnarkVerifyingKey")
+        obj_from_uint8array_uncompressed!(LegoVerifyingKey, key, "LegoSnarkVerifyingKey")
     } else {
         obj_from_uint8array!(LegoVerifyingKey, key, false, "LegoSnarkVerifyingKey")
     };
-    Ok(obj_to_uint8array_unchecked!(&SetupParams::<
+    Ok(obj_to_uint8array_uncompressed!(&SetupParams::<
         Bls12_381,
         G1Affine,
     >::LegoSnarkVerifyingKey(
@@ -292,7 +293,7 @@ pub fn generate_setup_param_for_r1cs(
     constraints: js_sys::Array,
 ) -> Result<js_sys::Uint8Array, JsValue> {
     let r = gen_r1cs(curve_name, num_public, num_private, constraints)?;
-    Ok(obj_to_uint8array_unchecked!(&SetupParams::<
+    Ok(obj_to_uint8array_uncompressed!(&SetupParams::<
         Bls12_381,
         G1Affine,
     >::R1CS(r)))
@@ -302,17 +303,19 @@ pub fn generate_setup_param_for_r1cs(
 pub fn generate_setup_param_for_bytes(
     bytes: js_sys::Uint8Array,
 ) -> Result<js_sys::Uint8Array, JsValue> {
-    Ok(obj_to_uint8array_unchecked!(&SetupParams::<
+    Ok(obj_to_uint8array_uncompressed!(&SetupParams::<
         Bls12_381,
         G1Affine,
-    >::Bytes(bytes.to_vec())))
+    >::Bytes(
+        bytes.to_vec()
+    )))
 }
 
 #[wasm_bindgen(js_name = generateSetupParamForFieldElemVec)]
 pub fn generate_setup_param_for_field_elem_vec(
     arr: js_sys::Array,
 ) -> Result<js_sys::Uint8Array, JsValue> {
-    Ok(obj_to_uint8array_unchecked!(&SetupParams::<
+    Ok(obj_to_uint8array_uncompressed!(&SetupParams::<
         Bls12_381,
         G1Affine,
     >::FieldElemVec(

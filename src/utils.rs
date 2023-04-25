@@ -361,7 +361,7 @@ macro_rules! obj_from_uint8array {
 }
 
 #[macro_export]
-macro_rules! obj_to_uint8array_unchecked {
+macro_rules! obj_to_uint8array_uncompressed {
     ($obj:expr) => {{
         let mut serz = vec![];
         CanonicalSerialize::serialize_uncompressed($obj, &mut serz).map_err(|e| {
@@ -386,7 +386,7 @@ macro_rules! obj_to_uint8array_unchecked {
 }
 
 #[macro_export]
-macro_rules! obj_from_uint8array_unchecked {
+macro_rules! obj_from_uint8array_uncompressed {
     ($obj_type:ty, $uint8array:expr) => {{
         let serz = $uint8array.to_vec();
         let deserz: $obj_type =

@@ -65,7 +65,7 @@ pub fn saver_decryptor_setup(
         .map_err(|e| JsValue::from(&format!("Decryptor setup returned error: {:?}", e)))?;
     let setup = js_sys::Array::new();
     let snark_pk = if return_uncompressed_snark_pk {
-        obj_to_uint8array_unchecked!(&snark_pk, "SaverSnarkPk")
+        obj_to_uint8array_uncompressed!(&snark_pk, "SaverSnarkPk")
     } else {
         obj_to_uint8array!(&snark_pk, false, "SaverSnarkPk")
     };
@@ -86,7 +86,7 @@ pub fn saver_decompress_encryption_generators(
     enc_gens: js_sys::Uint8Array,
 ) -> Result<js_sys::Uint8Array, JsValue> {
     let enc_gens = obj_from_uint8array!(EncGens, enc_gens, false, "EncryptionGenerators");
-    Ok(obj_to_uint8array_unchecked!(
+    Ok(obj_to_uint8array_uncompressed!(
         &enc_gens,
         "EncryptionGenerators"
     ))
@@ -103,7 +103,7 @@ pub fn saver_decompress_chunked_commitment_generators(
         false,
         "ChunkedCommitmentGenerators"
     );
-    Ok(obj_to_uint8array_unchecked!(
+    Ok(obj_to_uint8array_uncompressed!(
         &comm_gens,
         "ChunkedCommitmentGenerators"
     ))
@@ -115,7 +115,7 @@ pub fn saver_decompress_encryption_key(
     enc_key: js_sys::Uint8Array,
 ) -> Result<js_sys::Uint8Array, JsValue> {
     let enc_key = obj_from_uint8array!(SaverEk, enc_key, false, "SaverEk");
-    Ok(obj_to_uint8array_unchecked!(&enc_key, "SaverEk"))
+    Ok(obj_to_uint8array_uncompressed!(&enc_key, "SaverEk"))
 }
 
 /// Takes compressed decryption key and returns its uncompressed form
@@ -124,7 +124,7 @@ pub fn saver_decompress_decryption_key(
     dec_key: js_sys::Uint8Array,
 ) -> Result<js_sys::Uint8Array, JsValue> {
     let dec_key = obj_from_uint8array!(SaverDk, dec_key, false, "SaverDk");
-    Ok(obj_to_uint8array_unchecked!(&dec_key, "SaverDk"))
+    Ok(obj_to_uint8array_uncompressed!(&dec_key, "SaverDk"))
 }
 
 /// Takes a compressed proving key for SAVER's snark and return the uncompressed proving key
@@ -133,7 +133,7 @@ pub fn saver_decompress_snark_pk(
     snark_pk: js_sys::Uint8Array,
 ) -> Result<js_sys::Uint8Array, JsValue> {
     let snark_pk = obj_from_uint8array!(SaverSnarkPk, snark_pk, false, "SaverSnarkPk");
-    Ok(obj_to_uint8array_unchecked!(&snark_pk, "SaverSnarkPk"))
+    Ok(obj_to_uint8array_uncompressed!(&snark_pk, "SaverSnarkPk"))
 }
 
 /// Return the compressed or uncompressed SNARK verification key from compressed proving key
@@ -144,7 +144,7 @@ pub fn saver_get_snark_vk_from_pk(
 ) -> Result<js_sys::Uint8Array, JsValue> {
     let snark_pk = obj_from_uint8array!(SaverSnarkPk, snark_pk, false, "SaverSnarkPk");
     Ok(if return_uncompressed {
-        obj_to_uint8array_unchecked!(&snark_pk.pk.vk, "SaverSnarkVk")
+        obj_to_uint8array_uncompressed!(&snark_pk.pk.vk, "SaverSnarkVk")
     } else {
         obj_to_uint8array!(&snark_pk.pk.vk, false, "SaverSnarkVk")
     })
@@ -156,7 +156,7 @@ pub fn saver_decompress_snark_vk(
     snark_vk: js_sys::Uint8Array,
 ) -> Result<js_sys::Uint8Array, JsValue> {
     let snark_vk = obj_from_uint8array!(SaverSnarkVk, snark_vk, false, "SaverSnarkVk");
-    Ok(obj_to_uint8array_unchecked!(&snark_vk, "SaverSnarkVk"))
+    Ok(obj_to_uint8array_uncompressed!(&snark_vk, "SaverSnarkVk"))
 }
 
 /// Decrypt the ciphertext using snark verification key. If `uncompressed_public_params` is true, it
@@ -173,7 +173,7 @@ pub fn saver_decrypt_ciphertext_using_snark_vk(
 ) -> Result<js_sys::Array, JsValue> {
     set_panic_hook();
     let snark_vk = if uncompressed_public_params {
-        obj_from_uint8array_unchecked!(SaverSnarkVk, snark_vk, "SaverSnarkVk")
+        obj_from_uint8array_uncompressed!(SaverSnarkVk, snark_vk, "SaverSnarkVk")
     } else {
         obj_from_uint8array!(SaverSnarkVk, snark_vk, false, "SaverSnarkVk")
     };
@@ -200,7 +200,7 @@ pub fn saver_decrypt_ciphertext_using_snark_pk(
 ) -> Result<js_sys::Array, JsValue> {
     set_panic_hook();
     let snark_pk = if uncompressed_public_params {
-        obj_from_uint8array_unchecked!(SaverSnarkPk, snark_pk, "SaverSnarkPk")
+        obj_from_uint8array_uncompressed!(SaverSnarkPk, snark_pk, "SaverSnarkPk")
     } else {
         obj_from_uint8array!(SaverSnarkPk, snark_pk, false, "SaverSnarkPk")
     };
@@ -230,7 +230,7 @@ pub fn saver_verify_decryption_using_snark_vk(
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
     let snark_vk = if uncompressed_public_params {
-        obj_from_uint8array_unchecked!(SaverSnarkVk, snark_vk, "SaverSnarkVk")
+        obj_from_uint8array_uncompressed!(SaverSnarkVk, snark_vk, "SaverSnarkVk")
     } else {
         obj_from_uint8array!(SaverSnarkVk, snark_vk, false, "SaverSnarkVk")
     };
@@ -261,7 +261,7 @@ pub fn saver_verify_decryption_using_snark_pk(
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
     let snark_pk = if uncompressed_public_params {
-        obj_from_uint8array_unchecked!(SaverSnarkPk, snark_pk, "SaverSnarkPk")
+        obj_from_uint8array_uncompressed!(SaverSnarkPk, snark_pk, "SaverSnarkPk")
     } else {
         obj_from_uint8array!(SaverSnarkPk, snark_pk, false, "SaverSnarkPk")
     };
@@ -288,7 +288,7 @@ fn decrypt(
     let ct = obj_from_uint8array!(SaverCiphertext, ciphertext, false, "SaverCiphertext");
     let sk = obj_from_uint8array!(SaverSk, secret_key, true, "SaverSk");
     let dk = if uncompressed_public_params {
-        obj_from_uint8array_unchecked!(SaverDk, decryption_key, "SaverDk")
+        obj_from_uint8array_uncompressed!(SaverDk, decryption_key, "SaverDk")
     } else {
         obj_from_uint8array!(SaverDk, decryption_key, false, "SaverDk")
     };
@@ -315,8 +315,8 @@ fn verify_decryption(
 ) -> Result<JsValue, JsValue> {
     let (enc_gens, dk) = if uncompressed_public_params {
         (
-            obj_from_uint8array_unchecked!(EncGens, enc_gens, "EncryptionGenerators"),
-            obj_from_uint8array_unchecked!(SaverDk, decryption_key, "SaverDk"),
+            obj_from_uint8array_uncompressed!(EncGens, enc_gens, "EncryptionGenerators"),
+            obj_from_uint8array_uncompressed!(SaverDk, decryption_key, "SaverDk"),
         )
     } else {
         (
