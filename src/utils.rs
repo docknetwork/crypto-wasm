@@ -364,7 +364,7 @@ macro_rules! obj_from_uint8array {
 macro_rules! obj_to_uint8array_unchecked {
     ($obj:expr) => {{
         let mut serz = vec![];
-        CanonicalSerialize::serialize_compressed($obj, &mut serz).map_err(|e| {
+        CanonicalSerialize::serialize_uncompressed($obj, &mut serz).map_err(|e| {
             JsValue::from(format!(
                 "Failed to serialize to bytes due to error: {:?}",
                 e
@@ -375,7 +375,7 @@ macro_rules! obj_to_uint8array_unchecked {
 
     ($obj:expr, $obj_name:expr) => {{
         let mut serz = vec![];
-        CanonicalSerialize::serialize_compressed($obj, &mut serz).map_err(|e| {
+        CanonicalSerialize::serialize_uncompressed($obj, &mut serz).map_err(|e| {
             JsValue::from(format!(
                 "Failed to serialize a {} to bytes due to error: {:?}",
                 $obj_name, e
@@ -390,7 +390,7 @@ macro_rules! obj_from_uint8array_unchecked {
     ($obj_type:ty, $uint8array:expr) => {{
         let serz = $uint8array.to_vec();
         let deserz: $obj_type =
-            CanonicalDeserialize::deserialize_compressed(&serz[..]).map_err(|e| {
+            CanonicalDeserialize::deserialize_uncompressed(&serz[..]).map_err(|e| {
                 JsValue::from(format!(
                     "Failed to deserialize from bytes due to error: {:?}",
                     e
@@ -402,7 +402,7 @@ macro_rules! obj_from_uint8array_unchecked {
     ($obj_type:ty, $uint8array:expr, $obj_name:expr) => {{
         let serz = $uint8array.to_vec();
         let deserz: $obj_type =
-            CanonicalDeserialize::deserialize_compressed(&serz[..]).map_err(|e| {
+            CanonicalDeserialize::deserialize_uncompressed(&serz[..]).map_err(|e| {
                 JsValue::from(format!(
                     "Failed to deserialize a {} from bytes due to error: {:?}",
                     $obj_name, e

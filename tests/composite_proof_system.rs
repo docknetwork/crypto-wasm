@@ -63,7 +63,7 @@ fn test_bbs_plus_statement(stmt_j: js_sys::Uint8Array, revealed_msgs: js_sys::Ma
     let s = js_sys::Uint8Array::new(&stmt_j);
     let serz = s.to_vec();
     let stmt: statement::Statement<Bls12_381, <Bls12_381 as Pairing>::G1Affine> =
-        CanonicalDeserialize::deserialize_compressed(&serz[..]).unwrap();
+        CanonicalDeserialize::deserialize_uncompressed(&serz[..]).unwrap();
     match stmt {
         statement::Statement::PoKBBSSignatureG1(s) => {
             assert_eq!(s.revealed_messages.len() as u32, revealed_msgs.size());

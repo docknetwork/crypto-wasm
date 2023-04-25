@@ -48,7 +48,6 @@ macro_rules! check_sig_ver {
 pub fn ps_params_and_keygen() {
     let message_count = 5;
     let label = b"test-g1".to_vec();
-    let label = b"test-g2".to_vec();
     let params = ps_generate_params(message_count, Some(label)).unwrap();
     assert!(ps_is_params_valid(params.clone()).unwrap());
     assert_eq!(ps_params_max_supported_msgs(params.clone()).unwrap(), 5);
@@ -146,16 +145,6 @@ pub fn ps_blind_sign_test() {
         .iter()
         .copied()
         .map(|idx| (idx, generate_random_field_element(None).unwrap()))
-        .collect();
-    let msgs_to_commit: Vec<_> = committed_indices
-        .iter()
-        .map(|&idx| messages_as_array.get(idx as u32))
-        .collect();
-    let msgs_not_to_commit: Vec<_> = messages_as_array
-        .iter()
-        .enumerate()
-        .filter(|(idx, _)| !committed_indices.contains(&idx))
-        .map(|(_, msg)| msg)
         .collect();
     let msgs: js_sys::Array = messages_as_array
         .iter()
@@ -357,12 +346,6 @@ pub fn ps_extend_params() {
 
     let new_message_count = 2;
 
-    let params_2 = adapt_sig_params_for_msg_count(
-        params_1.clone(),
-        js_sys::Uint8Array::from(label.as_slice()),
-        new_message_count,
-    )
-    .unwrap();
     let params_2 = adapt_sig_params_for_msg_count(
         params_1.clone(),
         js_sys::Uint8Array::from(label.as_slice()),
