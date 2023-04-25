@@ -16,9 +16,9 @@ use dock_crypto_wasm::accumulator::{
     universal_accumulator_membership_witness, universal_accumulator_non_membership_witness,
 };
 use dock_crypto_wasm::bbs_plus::{
-    bbs_blind_sign_g1, bbs_commit_to_message_in_g1, bbs_encode_message_for_signing,
-    bbs_encode_messages_for_signing, bbs_get_bases_for_commitment_g1, bbs_sign_g1,
-    bbs_unblind_sig_g1, bbs_verify_g1, encode_messages_as_js_map_to_fr_btreemap,
+    bbs_plus_blind_sign_g1, bbs_plus_commit_to_message_in_g1, bbs_plus_encode_message_for_signing,
+    bbs_plus_encode_messages_for_signing, bbs_plus_get_bases_for_commitment_g1, bbs_plus_sign_g1,
+    bbs_plus_unblind_sig_g1, bbs_plus_verify_g1, encode_messages_as_js_map_to_fr_btreemap,
 };
 use dock_crypto_wasm::common::{
     field_element_as_bytes, field_element_from_number, generate_field_element_from_bytes,
@@ -117,21 +117,21 @@ pub fn three_bbs_plus_sigs_and_msg_equality() {
     let msgs_1_as_array = js_array_of_bytearrays_from_vector_of_bytevectors(&msgs_1).unwrap();
     let msgs_2_as_array = js_array_of_bytearrays_from_vector_of_bytevectors(&msgs_2).unwrap();
     let msgs_3_as_array = js_array_of_bytearrays_from_vector_of_bytevectors(&msgs_3).unwrap();
-    let sig_1 = bbs_sign_g1(
+    let sig_1 = bbs_plus_sign_g1(
         msgs_1_as_array.clone(),
         sk_1.clone(),
         params_1.clone(),
         true,
     )
     .unwrap();
-    let sig_2 = bbs_sign_g1(
+    let sig_2 = bbs_plus_sign_g1(
         msgs_2_as_array.clone(),
         sk_2.clone(),
         params_2.clone(),
         true,
     )
     .unwrap();
-    let sig_3 = bbs_sign_g1(
+    let sig_3 = bbs_plus_sign_g1(
         msgs_3_as_array.clone(),
         sk_3.clone(),
         params_3.clone(),
@@ -238,7 +238,7 @@ pub fn bbs_sig_and_accumulator() {
         let mut msgs_1 = vec![];
         for _ in 0..msg_count_1 - 2 {
             let m = random_bytes();
-            let bytes = bbs_encode_message_for_signing(m).unwrap();
+            let bytes = bbs_plus_encode_message_for_signing(m).unwrap();
             msgs_1.push(bytes.to_vec());
         }
 
@@ -246,7 +246,7 @@ pub fn bbs_sig_and_accumulator() {
         msgs_1.push(member_2.to_vec());
 
         let msgs_1_as_array = js_array_of_bytearrays_from_vector_of_bytevectors(&msgs_1).unwrap();
-        let sig_1 = bbs_sign_g1(
+        let sig_1 = bbs_plus_sign_g1(
             msgs_1_as_array.clone(),
             sk_1.clone(),
             params_1.clone(),
@@ -259,7 +259,7 @@ pub fn bbs_sig_and_accumulator() {
         let mut msgs_2 = vec![];
         for _ in 0..msg_count_2 - 2 {
             let m = random_bytes();
-            let bytes = bbs_encode_message_for_signing(m).unwrap();
+            let bytes = bbs_plus_encode_message_for_signing(m).unwrap();
             msgs_2.push(bytes.to_vec());
         }
 
@@ -278,7 +278,7 @@ pub fn bbs_sig_and_accumulator() {
         assert_eq!(msgs_2[5], member_3.to_vec());
 
         let msgs_2_as_array = js_array_of_bytearrays_from_vector_of_bytevectors(&msgs_2).unwrap();
-        let sig_2 = bbs_sign_g1(
+        let sig_2 = bbs_plus_sign_g1(
             msgs_2_as_array.clone(),
             sk_2.clone(),
             params_2.clone(),
@@ -657,7 +657,7 @@ pub fn request_blind_bbs_plus_sig() {
     msgs_2[5] = msgs_1[4].clone();
 
     let msgs_1_as_array = js_array_of_bytearrays_from_vector_of_bytevectors(&msgs_1).unwrap();
-    let sig_1 = bbs_sign_g1(
+    let sig_1 = bbs_plus_sign_g1(
         msgs_1_as_array.clone(),
         sk_1.clone(),
         params_1.clone(),
@@ -691,7 +691,7 @@ pub fn request_blind_bbs_plus_sig() {
     }
     let blinding = generate_random_field_element(None).unwrap();
 
-    let commitment = bbs_commit_to_message_in_g1(
+    let commitment = bbs_plus_commit_to_message_in_g1(
         msgs_to_commit.clone(),
         blinding.clone(),
         params_2.clone(),
@@ -710,7 +710,7 @@ pub fn request_blind_bbs_plus_sig() {
     statements.push(&stmt_1);
 
     let bases =
-        bbs_get_bases_for_commitment_g1(params_2.clone(), indices_to_commit.clone()).unwrap();
+        bbs_plus_get_bases_for_commitment_g1(params_2.clone(), indices_to_commit.clone()).unwrap();
     let stmt_2 = generate_pedersen_commitment_g1_statement(bases, commitment.clone()).unwrap();
     statements.push(&stmt_2);
 
@@ -725,8 +725,9 @@ pub fn request_blind_bbs_plus_sig() {
 
     let witness_1 = generate_pok_bbs_plus_sig_witness(sig_1, unrevealed_msgs_1, true).unwrap();
 
-    let wits = bbs_encode_messages_for_signing(msgs_2_as_array.clone(), indices_to_commit.clone())
-        .unwrap();
+    let wits =
+        bbs_plus_encode_messages_for_signing(msgs_2_as_array.clone(), indices_to_commit.clone())
+            .unwrap();
     wits.unshift(&blinding);
     let witness_2 = generate_pedersen_commitment_witness(wits).unwrap();
 
@@ -741,10 +742,11 @@ pub fn request_blind_bbs_plus_sig() {
     r.validate();
 
     let blinded_sig =
-        bbs_blind_sign_g1(commitment, msgs_to_not_commit, sk_2, params_2.clone(), true).unwrap();
-    let sig_2 = bbs_unblind_sig_g1(blinded_sig, blinding).unwrap();
+        bbs_plus_blind_sign_g1(commitment, msgs_to_not_commit, sk_2, params_2.clone(), true)
+            .unwrap();
+    let sig_2 = bbs_plus_unblind_sig_g1(blinded_sig, blinding).unwrap();
 
-    let result = bbs_verify_g1(msgs_2_as_array, sig_2, pk_2, params_2, true).unwrap();
+    let result = bbs_plus_verify_g1(msgs_2_as_array, sig_2, pk_2, params_2, true).unwrap();
     let r: VerifyResponse = serde_wasm_bindgen::from_value(result).unwrap();
     r.validate();
 }

@@ -21,15 +21,15 @@ fn js_value_to_bytes(js_value: JsValue) -> Vec<u8> {
 fn bbs_setup(message_count: usize) -> (JsValue, JsValue, Uint8Array, Uint8Array, Uint8Array) {
     let label_g1 = b"test-g1".to_vec();
     let label_g2 = b"test-g2".to_vec();
-    let params_g1 = bbs_generate_g1_params(message_count, Some(label_g1)).unwrap();
-    let params_g2 = bbs_generate_g2_params(message_count, Some(label_g2)).unwrap();
+    let params_g1 = bbs_plus_generate_g1_params(message_count, Some(label_g1)).unwrap();
+    let params_g2 = bbs_plus_generate_g2_params(message_count, Some(label_g2)).unwrap();
 
     let seed = vec![0, 1, 2, 5, 10, 13];
 
-    let sk = bbs_generate_secret_key(Some(seed.clone())).unwrap();
+    let sk = bbs_plus_generate_secret_key(Some(seed.clone())).unwrap();
 
-    let pk_g1 = bbs_generate_public_key_g1(sk.clone(), params_g2.clone()).unwrap();
-    let pk_g2 = bbs_generate_public_key_g2(sk.clone(), params_g1.clone()).unwrap();
+    let pk_g1 = bbs_plus_generate_public_key_g1(sk.clone(), params_g2.clone()).unwrap();
+    let pk_g2 = bbs_plus_generate_public_key_g2(sk.clone(), params_g1.clone()).unwrap();
 
     (params_g1, params_g2, sk, pk_g1, pk_g2)
 }
@@ -62,24 +62,24 @@ pub fn bbs_params_and_keygen() {
     let message_count = 5;
     let label_g1 = b"test-g1".to_vec();
     let label_g2 = b"test-g2".to_vec();
-    let params_g1 = bbs_generate_g1_params(message_count, Some(label_g1)).unwrap();
-    assert!(bbs_is_params_g1_valid(params_g1.clone()).unwrap());
+    let params_g1 = bbs_plus_generate_g1_params(message_count, Some(label_g1)).unwrap();
+    assert!(bbs_plus_is_params_g1_valid(params_g1.clone()).unwrap());
     assert_eq!(
-        bbs_params_g1_max_supported_msgs(params_g1.clone()).unwrap(),
+        bbs_plus_params_g1_max_supported_msgs(params_g1.clone()).unwrap(),
         5
     );
 
-    let params_g2 = bbs_generate_g2_params(message_count, Some(label_g2)).unwrap();
-    assert!(bbs_is_params_g2_valid(params_g2.clone()).unwrap());
+    let params_g2 = bbs_plus_generate_g2_params(message_count, Some(label_g2)).unwrap();
+    assert!(bbs_plus_is_params_g2_valid(params_g2.clone()).unwrap());
     assert_eq!(
-        bbs_params_g2_max_supported_msgs(params_g2.clone()).unwrap(),
+        bbs_plus_params_g2_max_supported_msgs(params_g2.clone()).unwrap(),
         5
     );
 
     let seed = vec![0, 1, 2, 5, 10, 13];
 
-    let keypair_g1 = bbs_generate_g1_keypair(params_g2.clone(), Some(seed.clone())).unwrap();
-    let keypair_g2 = bbs_generate_g2_keypair(params_g1.clone(), Some(seed.clone())).unwrap();
+    let keypair_g1 = bbs_plus_generate_g1_keypair(params_g2.clone(), Some(seed.clone())).unwrap();
+    let keypair_g2 = bbs_plus_generate_g2_keypair(params_g1.clone(), Some(seed.clone())).unwrap();
 
     let keypair_g1_obj = js_sys::Object::try_from(&keypair_g1).unwrap();
     let keypair_g2_obj = js_sys::Object::try_from(&keypair_g2).unwrap();
@@ -92,14 +92,14 @@ pub fn bbs_params_and_keygen() {
     assert_eq!(keys.get(0), "secret_key");
     assert_eq!(keys.get(1), "public_key");
 
-    let sk = bbs_generate_secret_key(Some(seed.clone())).unwrap();
-    let sk_1 = bbs_generate_secret_key(Some(seed)).unwrap();
+    let sk = bbs_plus_generate_secret_key(Some(seed.clone())).unwrap();
+    let sk_1 = bbs_plus_generate_secret_key(Some(seed)).unwrap();
     assert_eq!(sk.to_vec(), sk_1.to_vec());
 
-    let pk_g1 = bbs_generate_public_key_g1(sk.clone(), params_g2.clone()).unwrap();
-    assert!(bbs_is_pubkey_g1_valid(pk_g1.clone()).unwrap());
-    let pk_g2 = bbs_generate_public_key_g2(sk.clone(), params_g1.clone()).unwrap();
-    assert!(bbs_is_pubkey_g2_valid(pk_g2.clone()).unwrap());
+    let pk_g1 = bbs_plus_generate_public_key_g1(sk.clone(), params_g2.clone()).unwrap();
+    assert!(bbs_plus_is_pubkey_g1_valid(pk_g1.clone()).unwrap());
+    let pk_g2 = bbs_plus_generate_public_key_g2(sk.clone(), params_g1.clone()).unwrap();
+    assert!(bbs_plus_is_pubkey_g2_valid(pk_g2.clone()).unwrap());
 
     let values_g1_obj = js_sys::Object::values(&keypair_g1_obj);
     assert_eq!(js_value_to_bytes(values_g1_obj.get(0)), sk.to_vec());
@@ -109,16 +109,16 @@ pub fn bbs_params_and_keygen() {
     assert_eq!(js_value_to_bytes(values_g2_obj.get(0)), sk.to_vec());
     assert_eq!(js_value_to_bytes(values_g2_obj.get(1)), pk_g2.to_vec());
 
-    let bytes = bbs_params_g1_to_bytes(params_g1.clone()).unwrap();
-    let desez_params = bbs_params_g1_from_bytes(bytes).unwrap();
-    assert!(bbs_is_params_g1_valid(desez_params.clone()).unwrap());
+    let bytes = bbs_plus_params_g1_to_bytes(params_g1.clone()).unwrap();
+    let desez_params = bbs_plus_params_g1_from_bytes(bytes).unwrap();
+    assert!(bbs_plus_is_params_g1_valid(desez_params.clone()).unwrap());
     let params_1: SigParamsG1 = serde_wasm_bindgen::from_value(params_g1).unwrap();
     let params_2: SigParamsG1 = serde_wasm_bindgen::from_value(desez_params).unwrap();
     assert_eq!(params_1, params_2);
 
-    let bytes = bbs_params_g2_to_bytes(params_g2.clone()).unwrap();
-    let desez_params = bbs_params_g2_from_bytes(bytes).unwrap();
-    assert!(bbs_is_params_g2_valid(desez_params.clone()).unwrap());
+    let bytes = bbs_plus_params_g2_to_bytes(params_g2.clone()).unwrap();
+    let desez_params = bbs_plus_params_g2_from_bytes(bytes).unwrap();
+    assert!(bbs_plus_is_params_g2_valid(desez_params.clone()).unwrap());
     let params_1: SigParamsG2 = serde_wasm_bindgen::from_value(params_g2).unwrap();
     let params_2: SigParamsG2 = serde_wasm_bindgen::from_value(desez_params).unwrap();
     assert_eq!(params_1, params_2);
@@ -139,8 +139,8 @@ pub fn bbs_sign_verify() {
     let (params_g1, params_g2, sk, pk_g1, pk_g2) = bbs_setup(message_count);
 
     check_sig_ver!(
-        bbs_sign_g1,
-        bbs_verify_g1,
+        bbs_plus_sign_g1,
+        bbs_plus_verify_g1,
         messages_as_array,
         sk,
         pk_g2,
@@ -148,8 +148,8 @@ pub fn bbs_sign_verify() {
         true
     );
     check_sig_ver!(
-        bbs_sign_g2,
-        bbs_verify_g2,
+        bbs_plus_sign_g2,
+        bbs_plus_verify_g2,
         messages_as_array,
         sk,
         pk_g1,
@@ -171,15 +171,15 @@ pub fn bbs_sign_verify() {
         } else {
             // Messages are encoded from text
             let m = format!("Message{}", i).as_bytes().to_vec();
-            let bytes = bbs_encode_message_for_signing(m).unwrap();
+            let bytes = bbs_plus_encode_message_for_signing(m).unwrap();
             msgs.push(bytes.to_vec());
         }
     }
     let messages_as_array = js_array_of_bytearrays_from_vector_of_bytevectors(&msgs).unwrap();
 
     check_sig_ver!(
-        bbs_sign_g1,
-        bbs_verify_g1,
+        bbs_plus_sign_g1,
+        bbs_plus_verify_g1,
         messages_as_array,
         sk,
         pk_g2,
@@ -187,8 +187,8 @@ pub fn bbs_sign_verify() {
         false
     );
     check_sig_ver!(
-        bbs_sign_g2,
-        bbs_verify_g2,
+        bbs_plus_sign_g2,
+        bbs_plus_verify_g2,
         messages_as_array,
         sk,
         pk_g1,
@@ -237,14 +237,14 @@ pub fn bbs_blind_sign() {
 
     let blinding = generate_random_field_element(None).unwrap();
 
-    let commitment_g1 = bbs_commit_to_message_in_g1(
+    let commitment_g1 = bbs_plus_commit_to_message_in_g1(
         msgs_to_commit.clone(),
         blinding.clone(),
         params_g1.clone(),
         true,
     )
     .unwrap();
-    let blind_sig_g1 = bbs_blind_sign_g1(
+    let blind_sig_g1 = bbs_plus_blind_sign_g1(
         commitment_g1,
         msgs_to_not_commit.clone(),
         sk.clone(),
@@ -252,20 +252,21 @@ pub fn bbs_blind_sign() {
         true,
     )
     .unwrap();
-    let sig_g1 = bbs_unblind_sig_g1(blind_sig_g1, blinding.clone()).unwrap();
-    let result = bbs_verify_g1(messages_as_array.clone(), sig_g1, pk_g2, params_g1, true).unwrap();
+    let sig_g1 = bbs_plus_unblind_sig_g1(blind_sig_g1, blinding.clone()).unwrap();
+    let result =
+        bbs_plus_verify_g1(messages_as_array.clone(), sig_g1, pk_g2, params_g1, true).unwrap();
     let r: VerifyResponse = serde_wasm_bindgen::from_value(result).unwrap();
     assert!(r.verified);
     assert!(r.error.is_none());
 
-    let commitment_g2 = bbs_commit_to_message_in_g2(
+    let commitment_g2 = bbs_plus_commit_to_message_in_g2(
         msgs_to_commit.clone(),
         blinding.clone(),
         params_g2.clone(),
         true,
     )
     .unwrap();
-    let blind_sig_g2 = bbs_blind_sign_g2(
+    let blind_sig_g2 = bbs_plus_blind_sign_g2(
         commitment_g2,
         msgs_to_not_commit.clone(),
         sk.clone(),
@@ -273,8 +274,8 @@ pub fn bbs_blind_sign() {
         true,
     )
     .unwrap();
-    let sig_g2 = bbs_unblind_sig_g2(blind_sig_g2, blinding.clone()).unwrap();
-    let result = bbs_verify_g2(messages_as_array, sig_g2, pk_g1, params_g2, true).unwrap();
+    let sig_g2 = bbs_plus_unblind_sig_g2(blind_sig_g2, blinding.clone()).unwrap();
+    let result = bbs_plus_verify_g2(messages_as_array, sig_g2, pk_g1, params_g2, true).unwrap();
     let r: VerifyResponse = serde_wasm_bindgen::from_value(result).unwrap();
     assert!(r.verified);
     assert!(r.error.is_none());
@@ -287,7 +288,7 @@ pub fn bbs_proof_of_knowledge() {
         ($messages: ident, $messages_as_jsvalue: ident, $encode: ident) => {
             let (params, _, sk, _, pk) = bbs_setup($messages.len());
 
-            let sig = bbs_sign_g1(
+            let sig = bbs_plus_sign_g1(
                 $messages_as_jsvalue.clone(),
                 sk.clone(),
                 params.clone(),
@@ -295,7 +296,7 @@ pub fn bbs_proof_of_knowledge() {
             )
 
             .unwrap();
-            let result = bbs_verify_g1(
+            let result = bbs_plus_verify_g1(
                 $messages_as_jsvalue.clone(),
                 sig.clone(),
                 pk.clone(),
@@ -330,7 +331,7 @@ pub fn bbs_proof_of_knowledge() {
                 }
             }
 
-            let protocol = bbs_initialize_proof_of_knowledge_of_signature(
+            let protocol = bbs_plus_initialize_proof_of_knowledge_of_signature(
                 sig,
                 params.clone(),
                 $messages_as_jsvalue,
@@ -341,7 +342,7 @@ pub fn bbs_proof_of_knowledge() {
 
             .unwrap();
 
-            let prover_bytes = bbs_challenge_contribution_from_protocol(
+            let prover_bytes = bbs_plus_challenge_contribution_from_protocol(
                 protocol.clone(),
                 revealed_msgs.clone(),
                 params.clone(),
@@ -351,11 +352,11 @@ pub fn bbs_proof_of_knowledge() {
             .unwrap();
             let prover_challenge = generate_challenge_from_bytes(prover_bytes.to_vec());
 
-            let proof = bbs_gen_proof(protocol, prover_challenge.clone())
+            let proof = bbs_plus_gen_proof(protocol, prover_challenge.clone())
 
                 .unwrap();
 
-            let verifier_bytes = bbs_challenge_contribution_from_proof(
+            let verifier_bytes = bbs_plus_challenge_contribution_from_proof(
                 proof.clone(),
                 revealed_msgs.clone(),
                 params.clone(),
@@ -370,7 +371,7 @@ pub fn bbs_proof_of_knowledge() {
                 verifier_challenge.to_vec()
             );
 
-            let result = bbs_verify_proof(proof, revealed_msgs, verifier_challenge, pk, params, $encode)
+            let result = bbs_plus_verify_proof(proof, revealed_msgs, verifier_challenge, pk, params, $encode)
 
                 .unwrap();
             let r: VerifyResponse = serde_wasm_bindgen::from_value(result).unwrap();
@@ -406,7 +407,7 @@ pub fn bbs_proof_of_knowledge() {
         } else {
             // Messages are encoded from text
             let m = format!("Message{}", i).as_bytes().to_vec();
-            let bytes = bbs_encode_message_for_signing(m).unwrap();
+            let bytes = bbs_plus_encode_message_for_signing(m).unwrap();
             messages.push(bytes.to_vec());
         }
     }
@@ -423,27 +424,27 @@ pub fn bbs_extend_params() {
     let label_g1 = b"test-g1".to_vec();
     let label_g2 = b"test-g2".to_vec();
 
-    let params_g1 = bbs_generate_g1_params(message_count, Some(label_g1.clone())).unwrap();
-    let params_g2 = bbs_generate_g2_params(message_count, Some(label_g2.clone())).unwrap();
+    let params_g1 = bbs_plus_generate_g1_params(message_count, Some(label_g1.clone())).unwrap();
+    let params_g2 = bbs_plus_generate_g2_params(message_count, Some(label_g2.clone())).unwrap();
 
     assert_eq!(
-        bbs_params_g1_max_supported_msgs(params_g1.clone()).unwrap(),
+        bbs_plus_params_g1_max_supported_msgs(params_g1.clone()).unwrap(),
         message_count
     );
     assert_eq!(
-        bbs_params_g2_max_supported_msgs(params_g2.clone()).unwrap(),
+        bbs_plus_params_g2_max_supported_msgs(params_g2.clone()).unwrap(),
         message_count
     );
 
     let new_message_count = 5;
 
-    let params_g1_1 = adapt_sig_params_g1_for_msg_count(
+    let params_g1_1 = bbs_plus_adapt_sig_params_g1_for_msg_count(
         params_g1.clone(),
         js_sys::Uint8Array::from(label_g1.as_slice()),
         new_message_count,
     )
     .unwrap();
-    let params_g2_1 = adapt_sig_params_g2_for_msg_count(
+    let params_g2_1 = bbs_plus_adapt_sig_params_g2_for_msg_count(
         params_g2.clone(),
         js_sys::Uint8Array::from(label_g2.as_slice()),
         new_message_count,
@@ -451,11 +452,11 @@ pub fn bbs_extend_params() {
     .unwrap();
 
     assert_eq!(
-        bbs_params_g1_max_supported_msgs(params_g1_1.clone()).unwrap(),
+        bbs_plus_params_g1_max_supported_msgs(params_g1_1.clone()).unwrap(),
         new_message_count
     );
     assert_eq!(
-        bbs_params_g2_max_supported_msgs(params_g2_1.clone()).unwrap(),
+        bbs_plus_params_g2_max_supported_msgs(params_g2_1.clone()).unwrap(),
         new_message_count
     );
 
@@ -478,13 +479,13 @@ pub fn bbs_extend_params() {
 
     let new_message_count = 2;
 
-    let params_g1_2 = adapt_sig_params_g1_for_msg_count(
+    let params_g1_2 = bbs_plus_adapt_sig_params_g1_for_msg_count(
         params_g1_1.clone(),
         js_sys::Uint8Array::from(label_g1.as_slice()),
         new_message_count,
     )
     .unwrap();
-    let params_g2_2 = adapt_sig_params_g2_for_msg_count(
+    let params_g2_2 = bbs_plus_adapt_sig_params_g2_for_msg_count(
         params_g2_1.clone(),
         js_sys::Uint8Array::from(label_g2.as_slice()),
         new_message_count,
@@ -492,11 +493,11 @@ pub fn bbs_extend_params() {
     .unwrap();
 
     assert_eq!(
-        bbs_params_g1_max_supported_msgs(params_g1_2.clone()).unwrap(),
+        bbs_plus_params_g1_max_supported_msgs(params_g1_2.clone()).unwrap(),
         new_message_count
     );
     assert_eq!(
-        bbs_params_g2_max_supported_msgs(params_g2_2.clone()).unwrap(),
+        bbs_plus_params_g2_max_supported_msgs(params_g2_2.clone()).unwrap(),
         new_message_count
     );
 
@@ -542,14 +543,14 @@ pub fn bbs_extend_params() {
     ];
     let messages_as_array = js_array_of_bytearrays_from_vector_of_bytevectors(&messages).unwrap();
 
-    let sk = bbs_generate_secret_key(None).unwrap();
+    let sk = bbs_plus_generate_secret_key(None).unwrap();
 
-    let pk_g1 = bbs_generate_public_key_g1(sk.clone(), params_g2_1.clone()).unwrap();
-    let pk_g2 = bbs_generate_public_key_g2(sk.clone(), params_g1_1.clone()).unwrap();
+    let pk_g1 = bbs_plus_generate_public_key_g1(sk.clone(), params_g2_1.clone()).unwrap();
+    let pk_g2 = bbs_plus_generate_public_key_g2(sk.clone(), params_g1_1.clone()).unwrap();
 
     check_sig_ver!(
-        bbs_sign_g1,
-        bbs_verify_g1,
+        bbs_plus_sign_g1,
+        bbs_plus_verify_g1,
         messages_as_array,
         sk,
         pk_g2,
@@ -558,8 +559,8 @@ pub fn bbs_extend_params() {
     );
 
     check_sig_ver!(
-        bbs_sign_g2,
-        bbs_verify_g2,
+        bbs_plus_sign_g2,
+        bbs_plus_verify_g2,
         messages_as_array,
         sk,
         pk_g1,

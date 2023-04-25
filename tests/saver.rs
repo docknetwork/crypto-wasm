@@ -5,7 +5,7 @@ use ark_std::{collections::BTreeSet, vec};
 use wasm_bindgen_test::*;
 use web_sys::console;
 
-use dock_crypto_wasm::bbs_plus::{bbs_encode_message_for_signing, bbs_sign_g1};
+use dock_crypto_wasm::bbs_plus::{bbs_plus_encode_message_for_signing, bbs_plus_sign_g1};
 use dock_crypto_wasm::common::VerifyResponse;
 use dock_crypto_wasm::composite_proof_system::{
     generate_composite_proof_g1_with_deconstructed_proof_spec, generate_pok_bbs_plus_sig_witness,
@@ -32,7 +32,7 @@ pub fn bbs_sig_and_verifiable_encryption() {
 
     for _ in 0..msg_count {
         let m = random_bytes();
-        let bytes = bbs_encode_message_for_signing(m).unwrap();
+        let bytes = bbs_plus_encode_message_for_signing(m).unwrap();
         encoded_msgs.push(bytes.to_vec());
     }
 
@@ -40,7 +40,8 @@ pub fn bbs_sig_and_verifiable_encryption() {
         js_array_of_bytearrays_from_vector_of_bytevectors(&encoded_msgs).unwrap();
     let enc_msg_idx = 2usize;
 
-    let sig = bbs_sign_g1(messages_as_array.clone(), sk.clone(), params.clone(), false).unwrap();
+    let sig =
+        bbs_plus_sign_g1(messages_as_array.clone(), sk.clone(), params.clone(), false).unwrap();
     let mut revealed_indices = BTreeSet::new();
     revealed_indices.insert(0);
     let (revealed_msgs, unrevealed_msgs) =

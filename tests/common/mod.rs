@@ -5,7 +5,7 @@ use dock_crypto_wasm::accumulator::{
     universal_accumulator_initialize_given_f_v,
 };
 use dock_crypto_wasm::bbs_plus::{
-    bbs_generate_g1_params, bbs_generate_public_key_g2, bbs_generate_secret_key,
+    bbs_plus_generate_g1_params, bbs_plus_generate_public_key_g2, bbs_plus_generate_secret_key,
 };
 use dock_crypto_wasm::common::random_ff;
 use dock_crypto_wasm::composite_proof_system::statement::generate_witness_equality_meta_statement;
@@ -14,9 +14,9 @@ use js_sys::Uint8Array;
 use wasm_bindgen::JsValue;
 
 pub fn bbs_params_and_keys(message_count: usize) -> (JsValue, Uint8Array, Uint8Array) {
-    let params = bbs_generate_g1_params(message_count, None).unwrap();
-    let sk = bbs_generate_secret_key(None).unwrap();
-    let pk = bbs_generate_public_key_g2(sk.clone(), params.clone()).unwrap();
+    let params = bbs_plus_generate_g1_params(message_count, None).unwrap();
+    let sk = bbs_plus_generate_secret_key(None).unwrap();
+    let pk = bbs_plus_generate_public_key_g2(sk.clone(), params.clone()).unwrap();
     (params, sk, pk)
 }
 

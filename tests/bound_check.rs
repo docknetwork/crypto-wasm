@@ -5,7 +5,7 @@ use ark_std::{collections::BTreeSet, vec};
 use wasm_bindgen_test::*;
 use web_sys::console;
 
-use dock_crypto_wasm::bbs_plus::{bbs_encode_message_for_signing, bbs_sign_g1};
+use dock_crypto_wasm::bbs_plus::{bbs_plus_encode_message_for_signing, bbs_plus_sign_g1};
 use dock_crypto_wasm::bound_check::*;
 use dock_crypto_wasm::common::VerifyResponse;
 use dock_crypto_wasm::composite_proof_system::{
@@ -74,14 +74,15 @@ pub fn bbs_sig_and_bound_check_message() {
             fr_to_uint8_array(&field_element_from_u32(msg)).unwrap()
         } else {
             let m = random_bytes();
-            bbs_encode_message_for_signing(m).unwrap()
+            bbs_plus_encode_message_for_signing(m).unwrap()
         };
         encoded_msgs.push(byte_array.to_vec());
     }
 
     let messages_as_array =
         js_array_of_bytearrays_from_vector_of_bytevectors(&encoded_msgs).unwrap();
-    let sig = bbs_sign_g1(messages_as_array.clone(), sk.clone(), params.clone(), false).unwrap();
+    let sig =
+        bbs_plus_sign_g1(messages_as_array.clone(), sk.clone(), params.clone(), false).unwrap();
     let mut revealed_indices = BTreeSet::new();
     revealed_indices.insert(0);
     let (revealed_msgs, unrevealed_msgs) =
