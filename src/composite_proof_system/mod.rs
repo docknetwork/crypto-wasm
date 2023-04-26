@@ -7,7 +7,7 @@ use crate::accumulator::{MembershipWit, NonMembershipWit};
 use crate::bbs::BBSSignature;
 use crate::bbs_plus::{encode_messages_as_js_map_to_fr_btreemap, BBSPlusSigG1};
 use crate::common::VerifyResponse;
-use crate::ps::Signature as PSSignature;
+use crate::ps::PSSignature;
 use crate::utils::{fr_from_uint8_array, get_seeded_rng, js_array_to_fr_vec, set_panic_hook};
 use crate::{Fr, G1Affine};
 use ark_bls12_381::Bls12_381;

@@ -1,4 +1,13 @@
-import { psChallengeMessagesPoKContributionFromProof, psChallengeMessagesPoKContributionFromProtocol, psEncodeMessageForSigning, psGenMessagesPoK, psInitializeMessagesPoK, psVerifyMessagesPoK } from "../../lib";
+import {
+  psChallengeMessagesPoKContributionFromProof,
+  psChallengeMessagesPoKContributionFromProtocol,
+  psEncodeMessageForSigning,
+  psGenMessagesPoK,
+  psInitializeMessagesPoK,
+  psPublicKeyMaxSupportedMsgs,
+  psSigningKeyMaxSupportedMsgs,
+  psVerifyMessagesPoK,
+} from "../../lib";
 import {
   psGenerateSignatureParams,
   psIsSignatureParamsValid,
@@ -30,9 +39,8 @@ import { generateRandomG1Element } from "../../lib/dock_crypto_wasm";
 import { stringToBytes } from "../utilities";
 
 describe("For PS signatures", () => {
-  let sigParams: PSSigParams, sk: Uint8Array, pk: Uint8Array;
+  let sigParams: PSSigParams, sk: Uint8Array, pk: Uint8Array, messages, h;
   const seed = new Uint8Array([0, 2, 3, 4, 5]);
-  let messages, h
   const messageCount = 6;
 
   beforeAll(async () => {
@@ -47,12 +55,17 @@ describe("For PS signatures", () => {
       stringToBytes("Message4"),
       stringToBytes("Message6"),
     ].map(psEncodeMessageForSigning);
+    sigParams = psGenerateSignatureParams(
+      messageCount,
+      stringToBytes("test label")
+    );
     sk = psGenerateSigningKey(messageCount);
-    sigParams = psGenerateSignatureParams(messageCount, stringToBytes("test label"));
+    pk = psGeneratePublicKey(sk, sigParams);
   });
 
   it("checks key generation", () => {
     const sk_ = psGenerateSigningKey(6);
+    expect(psSigningKeyMaxSupportedMsgs(sk_)).toBe(6);
     expect(sk_).toBeInstanceOf(Uint8Array);
 
     const sk1 = psGenerateSigningKey(6, seed);
@@ -103,12 +116,10 @@ describe("For PS signatures", () => {
     const bytes = psSignatureParamsToBytes(params);
     const deserzParams = psSignatureParamsFromBytes(bytes);
     expect(params).toEqual(deserzParams);
-
-    sigParams = params;
   });
 
   it("generate public key from secret key", () => {
-    pk = psGeneratePublicKey(sk, sigParams);
+    expect(psPublicKeyMaxSupportedMsgs(pk)).toBe(messageCount);
     expect(pk).toBeInstanceOf(Uint8Array);
     expect(psIsPublicKeyValid(pk)).toBe(true);
   });
@@ -218,12 +229,20 @@ describe("For PS signatures", () => {
           : "RevealMessage";
       })
     );
-    const pBytes = psChallengeSignaturePoKContributionFromProtocol(protocol, pk, sigParams);
+    const pBytes = psChallengeSignaturePoKContributionFromProtocol(
+      protocol,
+      pk,
+      sigParams
+    );
     expect(pBytes).toBeInstanceOf(Uint8Array);
     const proverChallenge = generateChallengeFromBytes(pBytes);
     const proof = psGenSignaturePoK(protocol, proverChallenge);
 
-    const vBytes = psChallengeSignaturePoKContributionFromProof(proof, pk, sigParams);
+    const vBytes = psChallengeSignaturePoKContributionFromProof(
+      proof,
+      pk,
+      sigParams
+    );
     expect(vBytes).toBeInstanceOf(Uint8Array);
     expect(pBytes).toEqual(vBytes);
     const verifierChallenge = generateChallengeFromBytes(vBytes);
@@ -262,12 +281,20 @@ describe("For PS signatures", () => {
       sigParams,
       h
     );
-    const pBytes = psChallengeMessagesPoKContributionFromProtocol(protocol, sigParams, h);
+    const pBytes = psChallengeMessagesPoKContributionFromProtocol(
+      protocol,
+      sigParams,
+      h
+    );
     expect(pBytes).toBeInstanceOf(Uint8Array);
     const proverChallenge = generateChallengeFromBytes(pBytes);
     const proof = psGenMessagesPoK(protocol, proverChallenge);
 
-    const vBytes = psChallengeMessagesPoKContributionFromProof(proof, sigParams, h);
+    const vBytes = psChallengeMessagesPoKContributionFromProof(
+      proof,
+      sigParams,
+      h
+    );
     expect(vBytes).toBeInstanceOf(Uint8Array);
     expect(pBytes).toEqual(vBytes);
     const verifierChallenge = generateChallengeFromBytes(vBytes);

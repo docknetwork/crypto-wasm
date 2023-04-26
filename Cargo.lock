@@ -254,7 +254,7 @@ dependencies = [
 [[package]]
 name = "bbs_plus"
 version = "0.13.0"
-source = "git+https://github.com/docknetwork/crypto.git?branch=coconut-pok-generators-ser-deser#7ca036af03a2ece7edf6e3eb3e8ed53db8840a67"
+source = "git+https://github.com/docknetwork/crypto.git?branch=coconut-pok-generators-ser-deser#e267365844c3fde8cc487ad50daf3203068c4989"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -342,7 +342,7 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 [[package]]
 name = "coconut-crypto"
 version = "0.2.0"
-source = "git+https://github.com/docknetwork/crypto.git?branch=coconut-pok-generators-ser-deser#7ca036af03a2ece7edf6e3eb3e8ed53db8840a67"
+source = "git+https://github.com/docknetwork/crypto.git?branch=coconut-pok-generators-ser-deser#e267365844c3fde8cc487ad50daf3203068c4989"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -504,7 +504,7 @@ dependencies = [
 [[package]]
 name = "dock_crypto_utils"
 version = "0.11.0"
-source = "git+https://github.com/docknetwork/crypto.git?branch=coconut-pok-generators-ser-deser#7ca036af03a2ece7edf6e3eb3e8ed53db8840a67"
+source = "git+https://github.com/docknetwork/crypto.git?branch=coconut-pok-generators-ser-deser#e267365844c3fde8cc487ad50daf3203068c4989"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -725,7 +725,7 @@ checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 [[package]]
 name = "legogroth16"
 version = "0.7.0"
-source = "git+https://github.com/docknetwork/crypto.git?branch=coconut-pok-generators-ser-deser#7ca036af03a2ece7edf6e3eb3e8ed53db8840a67"
+source = "git+https://github.com/docknetwork/crypto.git?branch=coconut-pok-generators-ser-deser#e267365844c3fde8cc487ad50daf3203068c4989"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -937,7 +937,7 @@ dependencies = [
 [[package]]
 name = "proof_system"
 version = "0.19.0"
-source = "git+https://github.com/docknetwork/crypto.git?branch=coconut-pok-generators-ser-deser#7ca036af03a2ece7edf6e3eb3e8ed53db8840a67"
+source = "git+https://github.com/docknetwork/crypto.git?branch=coconut-pok-generators-ser-deser#e267365844c3fde8cc487ad50daf3203068c4989"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -1134,7 +1134,7 @@ checksum = "f91339c0467de62360649f8d3e185ca8de4224ff281f66000de5eb2a77a79041"
 [[package]]
 name = "saver"
 version = "0.10.0"
-source = "git+https://github.com/docknetwork/crypto.git?branch=coconut-pok-generators-ser-deser#7ca036af03a2ece7edf6e3eb3e8ed53db8840a67"
+source = "git+https://github.com/docknetwork/crypto.git?branch=coconut-pok-generators-ser-deser#e267365844c3fde8cc487ad50daf3203068c4989"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -1155,7 +1155,7 @@ dependencies = [
 [[package]]
 name = "schnorr_pok"
 version = "0.10.0"
-source = "git+https://github.com/docknetwork/crypto.git?branch=coconut-pok-generators-ser-deser#7ca036af03a2ece7edf6e3eb3e8ed53db8840a67"
+source = "git+https://github.com/docknetwork/crypto.git?branch=coconut-pok-generators-ser-deser#e267365844c3fde8cc487ad50daf3203068c4989"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -1189,7 +1189,7 @@ checksum = "1c107b6f4780854c8b126e228ea8869f4d7b71260f962fefb57b996b8959ba6b"
 [[package]]
 name = "secret_sharing_and_dkg"
 version = "0.3.0"
-source = "git+https://github.com/docknetwork/crypto.git?branch=coconut-pok-generators-ser-deser#7ca036af03a2ece7edf6e3eb3e8ed53db8840a67"
+source = "git+https://github.com/docknetwork/crypto.git?branch=coconut-pok-generators-ser-deser#e267365844c3fde8cc487ad50daf3203068c4989"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -1410,7 +1410,7 @@ checksum = "e5464a87b239f13a63a501f2701565754bae92d243d4bb7eb12f6d57d2269bf4"
 [[package]]
 name = "vb_accumulator"
 version = "0.13.0"
-source = "git+https://github.com/docknetwork/crypto.git?branch=coconut-pok-generators-ser-deser#7ca036af03a2ece7edf6e3eb3e8ed53db8840a67"
+source = "git+https://github.com/docknetwork/crypto.git?branch=coconut-pok-generators-ser-deser#e267365844c3fde8cc487ad50daf3203068c4989"
 dependencies = [
  "ark-ec",
  "ark-ff",

@@ -18,8 +18,12 @@ export function psGenerateSignatureParams(
     label?: Uint8Array
 ): Required<PSSigParams>;
 
-export function psSignatureParamsMaxSupportedMsgs(
-    params: PSSigParams
+export function psPublicKeyMaxSupportedMsgs(
+    publicKey: Uint8Array
+): number;
+
+export function psSigningKeyMaxSupportedMsgs(
+    signingKey: Uint8Array
 ): number;
 
 export function psSignatureParamsToBytes(
@@ -50,11 +54,6 @@ export function psEncodeMessageForSigning(
 export function psEncodeMessagesForSigning(
     messages: Uint8Array[],
     indicesToEncode: number[]
-): Uint8Array[];
-
-export function psGetBasesForCommitment(
-    params: PSSigParams,
-    indicesToCommit: number[]
 ): Uint8Array[];
 
 export function psSign(

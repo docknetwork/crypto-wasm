@@ -36,6 +36,11 @@ module.exports.psSignatureParamsMaxSupportedMsgs = (params) => {
     return wasm.psSignatureParamsMaxSupportedMsgs(params);
 };
 
+module.exports.psSigningKeyMaxSupportedMsgs = (params) => {
+    requireWasmInitialized();
+    return wasm.psSigningKeyMaxSupportedMsgs(params);
+};
+
 module.exports.psGenerateSignatureParams = (messageCount, label) => {
     requireWasmInitialized();
     ensurePositiveInteger(messageCount);
@@ -83,9 +88,9 @@ module.exports.psRevealedMessage = function(
     return wasm.psRevealedMessage(message)
 }
 
-module.exports.psSignatureParamsMaxSupportedMsgs = (params) => {
+module.exports.psPublicKeyMaxSupportedMsgs = (params) => {
     requireWasmInitialized();
-    return wasm.psSignatureParamsMaxSupportedMsgs(params);
+    return wasm.psPublicKeyMaxSupportedMsgs(params);
 };
 
 module.exports.psSignatureParamsToBytes = (params) => {
@@ -122,11 +127,6 @@ module.exports.psEncodeMessagesForSigning = (messages, indicesToEncode) => {
     requireWasmInitialized();
     return wasm.psEncodeMessagesForSigning(messages, indicesToEncode);
 }
-
-module.exports.psGetBasesForCommitment = (params, indicesToCommit) => {
-    requireWasmInitialized();
-    return wasm.psGetBasesForCommitment(params, indicesToCommit);
-};
 
 module.exports.psSign = (
     messages,

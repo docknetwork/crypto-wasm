@@ -130,41 +130,6 @@ fn test_bbs_plus_witness(wit_j: JsValue, unrevealed_msgs: js_sys::Map) {
     }
 }
 
-fn test_ps_statement(stmt_j: js_sys::Uint8Array, revealed_msgs: js_sys::Map) {
-    let s = js_sys::Uint8Array::new(&stmt_j);
-    let serz = s.to_vec();
-    let stmt: statement::Statement<Bls12_381, <Bls12_381 as Pairing>::G1Affine> =
-        CanonicalDeserialize::deserialize_uncompressed(&serz[..]).unwrap();
-    match stmt {
-        statement::Statement::PoKPSSignature(s) => {
-            assert_eq!(s.revealed_messages.len() as u32, revealed_msgs.size());
-            for (i, m) in s.revealed_messages.iter() {
-                assert_eq!(
-                    *m,
-                    fr_from_jsvalue(revealed_msgs.get(&JsValue::from(*i as u32))).unwrap()
-                );
-            }
-        }
-        _ => assert!(false),
-    }
-}
-
-fn test_ps_witness(wit_j: JsValue, unrevealed_msgs: js_sys::Map) {
-    let wit: Witness = serde_wasm_bindgen::from_value(wit_j).unwrap();
-    match wit {
-        Witness::PoKPSSignature(s) => {
-            assert_eq!(s.unrevealed_messages.len() as u32, unrevealed_msgs.size());
-            for (i, m) in s.unrevealed_messages.iter() {
-                assert_eq!(
-                    *m,
-                    fr_from_jsvalue(unrevealed_msgs.get(&JsValue::from(*i as u32))).unwrap()
-                );
-            }
-        }
-        _ => assert!(false),
-    }
-}
-
 #[allow(non_snake_case)]
 #[wasm_bindgen_test]
 pub fn three_bbs_plus_sigs_and_msg_equality() {

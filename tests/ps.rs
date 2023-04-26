@@ -12,7 +12,7 @@ use dock_crypto_wasm::common::{
     field_element_as_bytes, field_element_from_number, generate_challenge_from_bytes,
     generate_random_field_element, VerifyResponse,
 };
-use dock_crypto_wasm::ps::{ps_blind_message_with_concrete_blinding, *};
+use dock_crypto_wasm::ps::*;
 use dock_crypto_wasm::utils::js_array_of_bytearrays_from_vector_of_bytevectors;
 
 wasm_bindgen_test_configure!(run_in_browser);
@@ -60,22 +60,24 @@ pub fn ps_params_and_keygen() {
     let sk = ps_generate_secret_key(message_count, Some(seed.clone())).unwrap();
     let sk_1 = ps_generate_secret_key(message_count, Some(seed)).unwrap();
     assert_eq!(sk.to_vec(), sk_1.to_vec());
+    assert_eq!(ps_secret_key_supported_msgs(sk.clone()).unwrap(), message_count);
 
     let pk = ps_generate_public_key(sk, params.clone()).unwrap();
-    assert!(ps_is_pubkey_valid(pk).unwrap());
+    assert!(ps_is_pubkey_valid(pk.clone()).unwrap());
+    assert_eq!(ps_public_key_supported_msgs(pk).unwrap(), message_count);
 
     let bytes = ps_signature_params_to_bytes(params.clone()).unwrap();
     let desez_params = ps_signature_params_from_bytes(bytes).unwrap();
     assert!(ps_is_params_valid(desez_params.clone()).unwrap());
-    let params_1: SignatureParams = serde_wasm_bindgen::from_value(params.clone()).unwrap();
-    let params_2: SignatureParams = serde_wasm_bindgen::from_value(desez_params).unwrap();
+    let params_1: PSSignatureParams = serde_wasm_bindgen::from_value(params.clone()).unwrap();
+    let params_2: PSSignatureParams = serde_wasm_bindgen::from_value(desez_params).unwrap();
     assert_eq!(params_1, params_2);
 
     let bytes = ps_signature_params_to_bytes(params.clone()).unwrap();
     let desez_params = ps_signature_params_from_bytes(bytes).unwrap();
     assert!(ps_is_params_valid(desez_params.clone()).unwrap());
-    let params_1: SignatureParams = serde_wasm_bindgen::from_value(params).unwrap();
-    let params_2: SignatureParams = serde_wasm_bindgen::from_value(desez_params).unwrap();
+    let params_1: PSSignatureParams = serde_wasm_bindgen::from_value(params).unwrap();
+    let params_2: PSSignatureParams = serde_wasm_bindgen::from_value(desez_params).unwrap();
     assert_eq!(params_1, params_2);
 }
 
@@ -319,18 +321,18 @@ pub fn ps_extend_params() {
     );
 
     assert_eq!(
-        serde_wasm_bindgen::from_value::<SignatureParams>(params.clone())
+        serde_wasm_bindgen::from_value::<PSSignatureParams>(params.clone())
             .unwrap()
             .h[0],
-        serde_wasm_bindgen::from_value::<SignatureParams>(params_1.clone())
+        serde_wasm_bindgen::from_value::<PSSignatureParams>(params_1.clone())
             .unwrap()
             .h[0],
     );
     assert_eq!(
-        serde_wasm_bindgen::from_value::<SignatureParams>(params)
+        serde_wasm_bindgen::from_value::<PSSignatureParams>(params)
             .unwrap()
             .h[0],
-        serde_wasm_bindgen::from_value::<SignatureParams>(params_1.clone())
+        serde_wasm_bindgen::from_value::<PSSignatureParams>(params_1.clone())
             .unwrap()
             .h[0],
     );
@@ -354,34 +356,34 @@ pub fn ps_extend_params() {
     );
 
     assert_eq!(
-        serde_wasm_bindgen::from_value::<SignatureParams>(params_1.clone())
+        serde_wasm_bindgen::from_value::<PSSignatureParams>(params_1.clone())
             .unwrap()
             .h[0],
-        serde_wasm_bindgen::from_value::<SignatureParams>(params_2.clone())
-            .unwrap()
-            .h[0],
-    );
-    assert_eq!(
-        serde_wasm_bindgen::from_value::<SignatureParams>(params_1.clone())
-            .unwrap()
-            .h[1],
-        serde_wasm_bindgen::from_value::<SignatureParams>(params_2.clone())
-            .unwrap()
-            .h[1],
-    );
-    assert_eq!(
-        serde_wasm_bindgen::from_value::<SignatureParams>(params_1.clone())
-            .unwrap()
-            .h[0],
-        serde_wasm_bindgen::from_value::<SignatureParams>(params_2.clone())
+        serde_wasm_bindgen::from_value::<PSSignatureParams>(params_2.clone())
             .unwrap()
             .h[0],
     );
     assert_eq!(
-        serde_wasm_bindgen::from_value::<SignatureParams>(params_1.clone())
+        serde_wasm_bindgen::from_value::<PSSignatureParams>(params_1.clone())
             .unwrap()
             .h[1],
-        serde_wasm_bindgen::from_value::<SignatureParams>(params_2)
+        serde_wasm_bindgen::from_value::<PSSignatureParams>(params_2.clone())
+            .unwrap()
+            .h[1],
+    );
+    assert_eq!(
+        serde_wasm_bindgen::from_value::<PSSignatureParams>(params_1.clone())
+            .unwrap()
+            .h[0],
+        serde_wasm_bindgen::from_value::<PSSignatureParams>(params_2.clone())
+            .unwrap()
+            .h[0],
+    );
+    assert_eq!(
+        serde_wasm_bindgen::from_value::<PSSignatureParams>(params_1.clone())
+            .unwrap()
+            .h[1],
+        serde_wasm_bindgen::from_value::<PSSignatureParams>(params_2)
             .unwrap()
             .h[1],
     );

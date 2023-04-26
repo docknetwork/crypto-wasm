@@ -7,7 +7,7 @@ use zeroize::Zeroize;
 use crate::accumulator::{AccumPk, AccumSetupParams, MembershipPrk, NonMembershipPrk};
 use crate::bbs_plus::{BBSPlusPublicKeyG2, BBSPlusSigParamsG1};
 use crate::legosnark::{LegoProvingKey, LegoVerifyingKey};
-use crate::ps::SignatureParams;
+use crate::ps::PSSignatureParams;
 use crate::r1cs::gen_r1cs;
 use crate::saver::{ChunkedCommGens, EncGens, SaverEk, SaverSnarkPk, SaverSnarkVk};
 use crate::utils::{
@@ -49,7 +49,7 @@ pub fn generate_setup_param_for_ps_sig_params(
     params: JsValue,
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
-    let params: SignatureParams = serde_wasm_bindgen::from_value(params)?;
+    let params: PSSignatureParams = serde_wasm_bindgen::from_value(params)?;
 
     Ok(obj_to_uint8array_uncompressed!(&SetupParams::<
         Bls12_381,

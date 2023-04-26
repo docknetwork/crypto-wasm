@@ -16,7 +16,7 @@ use crate::bbs_plus::{
     encode_messages_as_js_map_to_fr_btreemap, BBSPlusPublicKeyG2, BBSPlusSigParamsG1,
 };
 use crate::legosnark::{LegoProvingKey, LegoVerifyingKey};
-use crate::ps::{PsPublicKey, SignatureParams};
+use crate::ps::{PSPublicKey, PSSignatureParams};
 use crate::r1cs::gen_r1cs;
 use crate::saver::{ChunkedCommGens, EncGens, SaverEk, SaverSnarkPk, SaverSnarkVk};
 use crate::utils::{
@@ -89,8 +89,8 @@ pub fn generate_pok_ps_sig_statement(
     revealed_msgs: js_sys::Map,
 ) -> Result<Uint8Array, JsValue> {
     set_panic_hook();
-    let params: SignatureParams = serde_wasm_bindgen::from_value(params)?;
-    let pk = obj_from_uint8array!(PsPublicKey, public_key, false, "BBSPlusPublicKeyG2");
+    let params: PSSignatureParams = serde_wasm_bindgen::from_value(params)?;
+    let pk = obj_from_uint8array!(PSPublicKey, public_key, false, "BBSPlusPublicKeyG2");
     let msgs = encode_messages_as_js_map_to_fr_btreemap(&revealed_msgs, false)?;
     let statement = PoKPSSigStmt::new_statement_from_params::<G1Affine>(params, pk, msgs);
     Ok(obj_to_uint8array_uncompressed!(
