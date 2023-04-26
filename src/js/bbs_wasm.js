@@ -112,6 +112,16 @@ module.exports.bbsBlindSign = (
     return wasm.bbsBlindSign(commitment, uncommittedMessages, secretKey, params, encodeMessages);
 };
 
+module.exports.bbsEncodeMessageForSigning = (message) => {
+    requireWasmInitialized();
+    return wasm.bbsEncodeMessageForSigning(message);
+};
+
+module.exports.bbsEncodeMessagesForSigning = (messages, indicesToEncode) => {
+    requireWasmInitialized();
+    return wasm.bbsEncodeMessagesForSigning(messages, indicesToEncode);
+};
+
 module.exports.bbsInitializeProofOfKnowledgeOfSignature = (
     signature,
     params,
