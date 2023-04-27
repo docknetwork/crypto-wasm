@@ -1,4 +1,4 @@
-import {BbsPlusSigParams, BbsSigParams, Constraint} from "../types";
+import {BbsPlusSigParams, BbsSigParams, Constraint, PSSigParams} from "../types";
 
 export function generateSetupParamForBBSPlusSignatureParametersG1(
     params: BbsPlusSigParams
@@ -10,6 +10,10 @@ export function generateSetupParamForBBSPlusPublicKeyG2(
 
 export function generateSetupParamForBBSSignatureParameters(
     params: BbsSigParams
+): Uint8Array;
+
+export function generateSetupParamForPSSignatureParameters(
+    params: PSSigParams
 ): Uint8Array;
 
 export function generateSetupParamForVbAccumulatorParams(

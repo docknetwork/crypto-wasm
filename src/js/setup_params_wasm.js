@@ -12,6 +12,11 @@ module.exports.generateSetupParamForBBSPlusPublicKeyG2 = (publicKey) => {
     return wasm.generateSetupParamForBBSPlusPublicKeyG2(publicKey);
 };
 
+module.exports.generateSetupParamForPSSignatureParameters = (params) => {
+    requireWasmInitialized();
+    return wasm.generateSetupParamForPSSignatureParameters(params);
+};
+
 module.exports.generateSetupParamForBBSSignatureParameters = (params) => {
     requireWasmInitialized();
     return wasm.generateSetupParamForBBSSignatureParameters(params);
