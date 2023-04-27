@@ -60,7 +60,10 @@ pub fn ps_params_and_keygen() {
     let sk = ps_generate_secret_key(message_count, Some(seed.clone())).unwrap();
     let sk_1 = ps_generate_secret_key(message_count, Some(seed)).unwrap();
     assert_eq!(sk.to_vec(), sk_1.to_vec());
-    assert_eq!(ps_secret_key_supported_msgs(sk.clone()).unwrap(), message_count);
+    assert_eq!(
+        ps_secret_key_supported_msgs(sk.clone()).unwrap(),
+        message_count
+    );
 
     let pk = ps_generate_public_key(sk, params.clone()).unwrap();
     assert!(ps_is_pubkey_valid(pk.clone()).unwrap());

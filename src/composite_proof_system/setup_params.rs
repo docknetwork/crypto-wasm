@@ -5,6 +5,7 @@ use wasm_bindgen::prelude::*;
 use zeroize::Zeroize;
 
 use crate::accumulator::{AccumPk, AccumSetupParams, MembershipPrk, NonMembershipPrk};
+use crate::bbs::BBSSigParams;
 use crate::bbs_plus::{BBSPlusPublicKeyG2, BBSPlusSigParamsG1};
 use crate::legosnark::{LegoProvingKey, LegoVerifyingKey};
 use crate::ps::PSSignatureParams;
@@ -32,8 +33,8 @@ pub fn generate_setup_param_for_bbs_plus_sig_params_g1(
     )))
 }
 
-#[wasm_bindgen(js_name = generateSetupParamForBBSPublicKey)]
-pub fn generate_setup_param_for_bbs_plus_public_key_g2(
+#[wasm_bindgen(js_name = generateSetupParamForBBSPlusPublicKeyG2)]
+pub fn generate_setup_param_for_bbs_plus_public_key(
     public_key: js_sys::Uint8Array,
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
@@ -44,7 +45,22 @@ pub fn generate_setup_param_for_bbs_plus_public_key_g2(
     >::BBSPlusPublicKey(pk)))
 }
 
-#[wasm_bindgen(js_name = generateSetupParamForPSSignatureParameter)]
+#[wasm_bindgen(js_name = generateSetupParamForBBSSignatureParameters)]
+pub fn generate_setup_param_for_bbs_sig_params(
+    params: JsValue,
+) -> Result<js_sys::Uint8Array, JsValue> {
+    set_panic_hook();
+    let params: BBSSigParams = serde_wasm_bindgen::from_value(params)?;
+
+    Ok(obj_to_uint8array_uncompressed!(&SetupParams::<
+        Bls12_381,
+        G2Affine,
+    >::BBSSignatureParams23(
+        params
+    )))
+}
+
+#[wasm_bindgen(js_name = generateSetupParamForPSSignatureParameters)]
 pub fn generate_setup_param_for_ps_sig_params(
     params: JsValue,
 ) -> Result<js_sys::Uint8Array, JsValue> {
