@@ -98,19 +98,39 @@ module.exports.psSignatureParamsToBytes = (params) => {
     return wasm.psSignatureParamsToBytes(params);
 };
 
-module.exports.psSignatureParamsFromBytes = (bytes) => {
+module.exports.psAggregateSignatures = (participantSignatures, h) => {
     requireWasmInitialized();
-    return wasm.psSignatureParamsFromBytes(bytes);
+    return wasm.psAggregateSignatures(participantSignatures, h);
 };
 
 module.exports.psSignatureParamsFromBytes = (bytes) => {
     requireWasmInitialized();
     return wasm.psSignatureParamsFromBytes(bytes);
+};
+
+module.exports.psShamirDeal = (messageCount, threshold, total) => {
+    requireWasmInitialized();
+    return wasm.psShamirDeal(messageCount, threshold, total);
 };
 
 module.exports.psGeneratePublicKey = (secretKey, params) => {
     requireWasmInitialized();
     return wasm.psGeneratePublicKey(secretKey, params);
+};
+
+module.exports.psAdaptSecretKeyForLessMessages = (secretKey, messageCount) => {
+    requireWasmInitialized();
+    return wasm.psAdaptSecretKeyForLessMessages(secretKey, messageCount);
+};
+
+module.exports.psAdaptPublicKeyForLessMessages = (secretKey, messageCount) => {
+    requireWasmInitialized();
+    return wasm.psAdaptPublicKeyForLessMessages(secretKey, messageCount);
+};
+
+module.exports.psAdaptSecretKeyForMoreMessages = (secretKey, seed, messageCount) => {
+    requireWasmInitialized();
+    return wasm.psAdaptSecretKeyForMoreMessages(secretKey, seed, messageCount);
 };
 
 module.exports.psIsPublicKeyValid = (publicKey) => {

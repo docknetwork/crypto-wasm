@@ -34,10 +34,42 @@ export function psSignatureParamsFromBytes(
     bytes: Uint8Array
 ): PSSigParams;
 
+export function psShamirDeal(
+    message_count: number,
+    threshold: number,
+    total: number,
+): [Uint8Array, Uint8Array[]];
+
+export function psAggregateSignatures(
+    participantSignatures: Map<number, Uint8Array>,
+    h: Uint8Array
+): PSSig;
+
 export function psGeneratePublicKey(
     secretKey: Uint8Array,
     params: PSSigParams
 ): Uint8Array;
+
+export function psAdaptSecretKeyForMoreMessages(
+    secretKey: Uint8Array,
+    seed: Uint8Array,
+    messageCount: number
+): Uint8Array | null;
+
+export function psAdaptSecretKeyForLessMessages(
+    secretKey: Uint8Array,
+    messageCount: number
+): Uint8Array | null;
+
+export function psAdaptPublicKeyForLessMessages(
+    publicKey: Uint8Array,
+    messageCount: number
+): Uint8Array | null;
+
+export function psAdaptSecretKeyForMoreMessages(
+    secretKey: Uint8Array,
+    messageCount: number
+): Uint8Array | null;
 
 export function psIsPublicKeyValid(
     publicKey: Uint8Array

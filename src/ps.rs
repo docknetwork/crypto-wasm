@@ -9,6 +9,8 @@ use ark_bls12_381::Bls12_381;
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use ark_std::collections::{BTreeMap, BTreeSet};
 use blake2::Blake2b512;
+use coconut_crypto::keygen::common::Threshold;
+use coconut_crypto::keygen::shamir_ss;
 use coconut_crypto::{proof, setup, signature};
 use coconut_crypto::{CommitMessage, CommitmentOrMessage, MessageCommitment};
 use dock_crypto_utils::concat_slices;
@@ -23,11 +25,46 @@ pub type PSSecretKey = setup::SecretKey<Fr>;
 pub type PSBlindSignature = signature::BlindSignature<Bls12_381>;
 pub type PSPublicKey = setup::PublicKey<Bls12_381>;
 pub type PSSignatureParams = setup::SignatureParams<Bls12_381>;
+pub type PSAggregatedSignature = signature::AggregatedSignature<Bls12_381>;
 pub(crate) type PSSignature = signature::Signature<Bls12_381>;
 pub(crate) type PSPoKOfSigProtocol = proof::SignaturePoKGenerator<Bls12_381>;
 pub(crate) type PSPoKOfMessagesProtocol = proof::MessagesPoKGenerator<Bls12_381>;
 pub(crate) type PSPoKOfSignatureProof = proof::SignaturePoK<Bls12_381>;
 pub(crate) type PSPoKOfMessagesProof = proof::MessagesPoK<Bls12_381>;
+
+macro_rules! adapt_key_for_less_messages {
+    ($key: ident: $key_type: ident for $new_count: ident using $pop_element: expr) => {{
+        let mut $key = obj_from_uint8array!($key_type, $key, true, stringify!($key_type));
+        let current_count = $key.supported_message_count();
+
+        if current_count >= $new_count {
+            for _ in 0..(current_count - $new_count) {
+                $pop_element;
+            }
+        } else if current_count < $new_count {
+            return Ok(None);
+        }
+
+        Ok(Some(obj_to_uint8array!(&$key, true, stringify!($key_type))))
+    }};
+}
+
+macro_rules! adapt_key_for_more_messages {
+    ($key: ident: $key_type: ident for $new_count: ident using $add_element: expr) => {{
+        let mut $key = obj_from_uint8array!($key_type, $key, true, stringify!($key_type));
+        let current_count = $key.supported_message_count();
+
+        if current_count <= $new_count {
+            for i in current_count..$new_count {
+                $add_element(i);
+            }
+        } else if current_count > $new_count {
+            return Ok(None);
+        }
+
+        Ok(Some(obj_to_uint8array!(&$key, true, stringify!($key_type))))
+    }};
+}
 
 #[wasm_bindgen(js_name = psIsSignatureParamsValid)]
 pub fn ps_is_params_valid(params: JsValue) -> Result<bool, JsValue> {
@@ -100,6 +137,37 @@ pub fn ps_generate_public_key(
     let pk = PSPublicKey::new(&sk, &params);
 
     Ok(obj_to_uint8array!(&pk, false, "PSPublicKey"))
+}
+
+#[wasm_bindgen(js_name = psAdaptSecretKeyForLessMessages)]
+pub fn ps_adapt_secret_key_for_less_messages(
+    secret_key: js_sys::Uint8Array,
+    message_count: usize,
+) -> Result<Option<js_sys::Uint8Array>, JsValue> {
+    adapt_key_for_less_messages! { secret_key: PSSecretKey for message_count using secret_key.y.pop() }
+}
+
+#[wasm_bindgen(js_name = psAdaptPublicKeyForLessMessages)]
+pub fn ps_adapt_public_key_for_less_messages(
+    public_key: js_sys::Uint8Array,
+    message_count: usize,
+) -> Result<Option<js_sys::Uint8Array>, JsValue> {
+    adapt_key_for_less_messages! { public_key: PSPublicKey for message_count using { public_key.beta.pop(); public_key.beta_tilde.pop(); } }
+}
+
+#[wasm_bindgen(js_name = psAdaptSecretKeyForMoreMessages)]
+pub fn ps_adapt_secret_key_for_more_messages(
+    secret_key: js_sys::Uint8Array,
+    seed: Vec<u8>,
+    message_count: usize,
+) -> Result<Option<js_sys::Uint8Array>, JsValue> {
+    use ark_ff::field_hashers::{DefaultFieldHasher, HashToField};
+    let hasher = <DefaultFieldHasher<Blake2b512> as HashToField<Fr>>::new(PSSecretKey::Y_SALT);
+
+    adapt_key_for_more_messages! {
+        secret_key: PSSecretKey for message_count using
+        |i: usize| secret_key.y.push(hasher.hash_to_field(&concat_slices!(seed, i.to_be_bytes()), 1).pop().unwrap())
+    }
 }
 
 #[wasm_bindgen(js_name = psBlindedMessage)]
@@ -332,7 +400,7 @@ pub fn ps_initialize_signature_pok(
 }
 
 #[wasm_bindgen(js_name = psInitializeMessagesPoK)]
-pub fn ps_initialize_messagese_pok(
+pub fn ps_initialize_messages_pok(
     messages: JsValue,
     params: JsValue,
     h: js_sys::Uint8Array,
@@ -351,10 +419,6 @@ pub fn ps_initialize_messagese_pok(
     PSPoKOfMessagesProtocol::init(&mut rng, messages, &params, &h)
         .map_err(debug_to_js_value)
         .and_then(|protocol| to_value(&protocol).map_err(Into::into))
-}
-
-fn debug_to_js_value<V: core::fmt::Debug>(value: V) -> JsValue {
-    JsValue::from(&format!("{:?}", value))
 }
 
 #[wasm_bindgen(js_name = psGenSignaturePoK)]
@@ -565,7 +629,54 @@ pub fn ps_challenge_messages_pok_contribution_from_proof(
 pub fn ps_signature_params_from_bytes(bytes: js_sys::Uint8Array) -> Result<JsValue, JsValue> {
     set_panic_hook();
     let params = obj_from_uint8array!(PSSignatureParams, bytes, false, "PSSignatureParams");
-    serde_wasm_bindgen::to_value(&params).map_err(JsValue::from)
+    to_value(&params).map_err(JsValue::from)
+}
+
+#[wasm_bindgen(js_name = psAggregateSignatures)]
+pub fn ps_aggregate_signatures(
+    participant_signatures: js_sys::Map,
+    h: js_sys::Uint8Array,
+) -> Result<js_sys::Uint8Array, JsValue> {
+    set_panic_hook();
+
+    let sorted_participant_signatures: BTreeMap<_, _> = js_map_to_iter(&participant_signatures)
+        .map(|part_sig| {
+            part_sig.and_then(|(participant, signature)| {
+                participant
+                    .try_into()
+                    .map_err(|_| "Invalid participant id".into())
+                    .map(|participant| (participant, signature))
+            })
+        })
+        .collect::<Result<_, _>>()?;
+    let sorted_participant_signatures_iter = sorted_participant_signatures
+        .iter()
+        .map(|(&participant, signature)| (participant, signature));
+    let h = obj_from_uint8array!(G1Affine, h, false);
+    let aggregated = PSAggregatedSignature::new(sorted_participant_signatures_iter, &h)
+        .map_err(debug_to_js_value)?;
+
+    Ok(obj_to_uint8array!(
+        &aggregated,
+        true,
+        "PSAggregatedSignature"
+    ))
+}
+
+#[wasm_bindgen(js_name = psShamirDeal)]
+pub fn ps_shamir_deal(
+    message_count: usize,
+    threshold: u16,
+    total: u16,
+) -> Result<JsValue, JsValue> {
+    set_panic_hook();
+
+    let threshold = Threshold::new(threshold, total).ok_or("Invalid threshold")?;
+    let mut rng = get_seeded_rng();
+    let keys =
+        shamir_ss::deal::<_, Fr>(&mut rng, message_count, threshold).map_err(debug_to_js_value)?;
+
+    to_value(&keys).map_err(JsValue::from)
 }
 
 #[wasm_bindgen(js_name = psAdaptSignatureParamsForMsgCount)]
@@ -610,6 +721,10 @@ pub fn js_map_to_iter<Item: CanonicalDeserialize>(
 
         Ok((idx, msg))
     })
+}
+
+fn debug_to_js_value<V: core::fmt::Debug>(value: V) -> JsValue {
+    JsValue::from(&format!("{:?}", value))
 }
 
 /// This is to convert a message to field element. This encoding needs to be collision resistant but

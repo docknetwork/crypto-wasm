@@ -1,4 +1,7 @@
 import {
+  psAdaptPublicKeyForLessMessages,
+  psAdaptSecretKeyForLessMessages,
+  psAdaptSecretKeyForMoreMessages,
   psChallengeMessagesPoKContributionFromProof,
   psChallengeMessagesPoKContributionFromProtocol,
   psEncodeMessageForSigning,
@@ -168,6 +171,32 @@ describe("For PS signatures", () => {
     expect(psIsSignatureParamsValid(params2)).toBe(true);
     expect(params1.h[0]).toEqual(params2.h[0]);
     expect(params1.h[1]).toEqual(params2.h[1]);
+  });
+
+  it("adapt secret key", () => {
+    const seed = stringToBytes("123");
+    const sk5 = psGenerateSigningKey(5, seed);
+    expect(psSigningKeyMaxSupportedMsgs(sk5)).toBe(5);
+
+    const sk2 = psAdaptSecretKeyForLessMessages(sk5, 2)!;
+    expect(psAdaptSecretKeyForLessMessages(sk5, 6)).toBe(undefined);
+    expect(psSigningKeyMaxSupportedMsgs(sk2)).toBe(2);
+
+    const sk7 = psAdaptSecretKeyForMoreMessages(sk5, seed, 7)!;
+    expect(psSigningKeyMaxSupportedMsgs(sk7)).toBe(7);
+    expect(sk7).toEqual(psGenerateSigningKey(7, seed));
+  });
+
+  it("adapt public key", () => {
+    const sk = psGenerateSigningKey(5);
+    const pk = psGeneratePublicKey(sk, sigParams);
+    expect(psPublicKeyMaxSupportedMsgs(pk)).toBe(5);
+
+    const pk1 = psAdaptPublicKeyForLessMessages(pk, 1)!;
+    expect(psAdaptPublicKeyForLessMessages(pk, messageCount + 1)).toBe(
+      undefined
+    );
+    expect(psPublicKeyMaxSupportedMsgs(pk1)).toBe(1);
   });
 
   it("generate and verify a blind signature", () => {
