@@ -212,7 +212,7 @@ describe("For PS signatures", () => {
         const blinding = generateRandomFieldElement();
 
         msgOrCom = {
-          BlindedMessage: psMessageCommitment(blinding, msg, h, sigParams),
+          BlindedMessage: psMessageCommitment(msg, blinding, h, sigParams),
         };
         usedBlindings.set(i, blinding);
       } else {

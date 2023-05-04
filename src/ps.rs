@@ -259,15 +259,15 @@ pub fn ps_encode_messages_for_signing(
 
 #[wasm_bindgen(js_name = psMessageCommitment)]
 pub fn ps_message_commitment(
-    blinding: js_sys::Uint8Array,
     message: js_sys::Uint8Array,
+    blinding: js_sys::Uint8Array,
     h: js_sys::Uint8Array,
     params: JsValue,
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
 
-    let blinding = fr_from_uint8_array(blinding, true)?;
     let message = fr_from_uint8_array(message, true)?;
+    let blinding = fr_from_uint8_array(blinding, true)?;
     let params: PSSignatureParams = from_value(params)?;
     let h = obj_from_uint8array!(G1Affine, h, false);
 
