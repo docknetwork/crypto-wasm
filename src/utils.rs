@@ -482,7 +482,6 @@ mod tests {
     wasm_bindgen_test_configure!(run_in_browser);
 
     use super::*;
-    use crate::bbs_plus::encode_messages_as_js_map_to_fr_btreemap;
     use ark_bls12_381::{G1Projective, G2Projective};
     use ark_ec::CurveGroup;
     use ark_std::UniformRand;

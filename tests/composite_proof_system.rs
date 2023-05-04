@@ -21,7 +21,7 @@ use dock_crypto_wasm::{
         bbs_plus_blind_sign_g1, bbs_plus_commit_to_message_in_g1,
         bbs_plus_encode_message_for_signing, bbs_plus_encode_messages_for_signing,
         bbs_plus_get_bases_for_commitment_g1, bbs_plus_sign_g1, bbs_plus_unblind_sig_g1,
-        bbs_plus_verify_g1, encode_messages_as_js_map_to_fr_btreemap,
+        bbs_plus_verify_g1,
     },
     common::{
         field_element_as_bytes, field_element_from_number, generate_field_element_from_bytes,
@@ -41,7 +41,10 @@ use dock_crypto_wasm::{
         },
         verify_composite_proof_g1, verify_composite_proof_g2, Witness,
     },
-    utils::{fr_from_jsvalue, js_array_of_bytearrays_from_vector_of_bytevectors, random_bytes},
+    utils::{
+        encode_messages_as_js_map_to_fr_btreemap, fr_from_jsvalue,
+        js_array_of_bytearrays_from_vector_of_bytevectors, random_bytes,
+    },
 };
 use proof_system::statement;
 mod common;
