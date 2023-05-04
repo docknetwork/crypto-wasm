@@ -7,39 +7,41 @@ use ark_bls12_381::Bls12_381;
 use ark_ec::pairing::Pairing;
 use ark_serialize::CanonicalDeserialize;
 use ark_std::collections::BTreeSet;
-use dock_crypto_wasm::accumulator::{
-    accumulator_derive_membership_proving_key_from_non_membership_key,
-    generate_non_membership_proving_key, positive_accumulator_add,
-    positive_accumulator_get_accumulated, positive_accumulator_initialize,
-    positive_accumulator_membership_witness, universal_accumulator_add,
-    universal_accumulator_compute_d, universal_accumulator_get_accumulated,
-    universal_accumulator_membership_witness, universal_accumulator_non_membership_witness,
-};
-use dock_crypto_wasm::bbs::*;
-use dock_crypto_wasm::bbs_plus::{
-    bbs_plus_blind_sign_g1, bbs_plus_commit_to_message_in_g1, bbs_plus_encode_message_for_signing,
-    bbs_plus_encode_messages_for_signing, bbs_plus_get_bases_for_commitment_g1, bbs_plus_sign_g1,
-    bbs_plus_unblind_sig_g1, bbs_plus_verify_g1, encode_messages_as_js_map_to_fr_btreemap,
-};
-use dock_crypto_wasm::common::{
-    field_element_as_bytes, field_element_from_number, generate_field_element_from_bytes,
-    generate_random_field_element, generate_random_g1_element, generate_random_g2_element,
-    pedersen_commitment_g1, pedersen_commitment_g2, VerifyResponse,
-};
-use dock_crypto_wasm::composite_proof_system::setup_params::{
-    generate_setup_param_for_vb_accumulator_mem_proving_key,
-    generate_setup_param_for_vb_accumulator_non_mem_proving_key,
-    generate_setup_param_for_vb_accumulator_params,
-    generate_setup_param_for_vb_accumulator_public_key,
-};
-use dock_crypto_wasm::composite_proof_system::{
-    generate_accumulator_membership_witness, generate_accumulator_non_membership_witness,
-    generate_composite_proof_g1, generate_composite_proof_g2, generate_pedersen_commitment_witness,
-    generate_pok_bbs_plus_sig_witness, generate_pok_bbs_sig_witness, generate_proof_spec_g1,
-    generate_proof_spec_g2, verify_composite_proof_g1, verify_composite_proof_g2, Witness,
-};
-use dock_crypto_wasm::utils::{
-    fr_from_jsvalue, js_array_of_bytearrays_from_vector_of_bytevectors, random_bytes,
+use dock_crypto_wasm::{
+    accumulator::{
+        accumulator_derive_membership_proving_key_from_non_membership_key,
+        generate_non_membership_proving_key, positive_accumulator_add,
+        positive_accumulator_get_accumulated, positive_accumulator_initialize,
+        positive_accumulator_membership_witness, universal_accumulator_add,
+        universal_accumulator_compute_d, universal_accumulator_get_accumulated,
+        universal_accumulator_membership_witness, universal_accumulator_non_membership_witness,
+    },
+    bbs::*,
+    bbs_plus::{
+        bbs_plus_blind_sign_g1, bbs_plus_commit_to_message_in_g1,
+        bbs_plus_encode_message_for_signing, bbs_plus_encode_messages_for_signing,
+        bbs_plus_get_bases_for_commitment_g1, bbs_plus_sign_g1, bbs_plus_unblind_sig_g1,
+        bbs_plus_verify_g1, encode_messages_as_js_map_to_fr_btreemap,
+    },
+    common::{
+        field_element_as_bytes, field_element_from_number, generate_field_element_from_bytes,
+        generate_random_field_element, generate_random_g1_element, generate_random_g2_element,
+        pedersen_commitment_g1, pedersen_commitment_g2, VerifyResponse,
+    },
+    composite_proof_system::{
+        generate_accumulator_membership_witness, generate_accumulator_non_membership_witness,
+        generate_composite_proof_g1, generate_composite_proof_g2,
+        generate_pedersen_commitment_witness, generate_pok_bbs_plus_sig_witness,
+        generate_pok_bbs_sig_witness, generate_proof_spec_g1, generate_proof_spec_g2,
+        setup_params::{
+            generate_setup_param_for_vb_accumulator_mem_proving_key,
+            generate_setup_param_for_vb_accumulator_non_mem_proving_key,
+            generate_setup_param_for_vb_accumulator_params,
+            generate_setup_param_for_vb_accumulator_public_key,
+        },
+        verify_composite_proof_g1, verify_composite_proof_g2, Witness,
+    },
+    utils::{fr_from_jsvalue, js_array_of_bytearrays_from_vector_of_bytevectors, random_bytes},
 };
 use proof_system::statement;
 mod common;

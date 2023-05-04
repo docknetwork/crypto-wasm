@@ -1,23 +1,20 @@
 use crate::utils::{
-    fr_from_uint8_array, fr_to_jsvalue, fr_to_uint8_array, get_seeded_rng, random_bytes,
-    set_panic_hook, encode_message_for_signing
+    encode_message_for_signing, fr_from_uint8_array, fr_to_jsvalue, fr_to_uint8_array,
+    get_seeded_rng, random_bytes, set_panic_hook,
 };
 
-use crate::common::VerifyResponse;
-use crate::{Fr, G1Affine};
+use crate::{common::VerifyResponse, Fr, G1Affine};
 use ark_bls12_381::Bls12_381;
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use ark_std::collections::{BTreeMap, BTreeSet};
 use blake2::Blake2b512;
-use coconut_crypto::keygen::common::Threshold;
-use coconut_crypto::keygen::shamir_ss;
-use coconut_crypto::{proof, setup, signature};
-use coconut_crypto::{CommitMessage, CommitmentOrMessage, MessageCommitment};
-use dock_crypto_utils::concat_slices;
-use dock_crypto_utils::hashing_utils::affine_group_elem_from_try_and_incr;
+use coconut_crypto::{
+    keygen::{common::Threshold, shamir_ss},
+    proof, setup, signature, CommitMessage, CommitmentOrMessage, MessageCommitment,
+};
+use dock_crypto_utils::{concat_slices, hashing_utils::affine_group_elem_from_try_and_incr};
 use js_sys::Uint8Array;
-use serde_wasm_bindgen::from_value;
-use serde_wasm_bindgen::to_value;
+use serde_wasm_bindgen::{from_value, to_value};
 use wasm_bindgen::prelude::*;
 use zeroize::Zeroize;
 

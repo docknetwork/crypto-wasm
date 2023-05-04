@@ -5,15 +5,17 @@ use ark_std::{collections::BTreeSet, vec};
 use wasm_bindgen_test::*;
 use web_sys::console;
 
-use dock_crypto_wasm::bbs_plus::{bbs_plus_encode_message_for_signing, bbs_plus_sign_g1};
-use dock_crypto_wasm::common::VerifyResponse;
-use dock_crypto_wasm::composite_proof_system::{
-    generate_composite_proof_g1_with_deconstructed_proof_spec, generate_pok_bbs_plus_sig_witness,
-    generate_saver_witness, saver_get_ciphertext_from_proof,
-    verify_composite_proof_g1_with_deconstructed_proof_spec,
+use dock_crypto_wasm::{
+    bbs_plus::{bbs_plus_encode_message_for_signing, bbs_plus_sign_g1},
+    common::VerifyResponse,
+    composite_proof_system::{
+        generate_composite_proof_g1_with_deconstructed_proof_spec,
+        generate_pok_bbs_plus_sig_witness, generate_saver_witness, saver_get_ciphertext_from_proof,
+        verify_composite_proof_g1_with_deconstructed_proof_spec,
+    },
+    saver::*,
+    utils::{js_array_of_bytearrays_from_vector_of_bytevectors, random_bytes},
 };
-use dock_crypto_wasm::saver::*;
-use dock_crypto_wasm::utils::{js_array_of_bytearrays_from_vector_of_bytevectors, random_bytes};
 
 mod common;
 use common::{bbs_params_and_keys, get_revealed_unrevealed, get_witness_equality_statement};

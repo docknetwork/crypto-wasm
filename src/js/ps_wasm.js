@@ -10,10 +10,6 @@ function ensurePositiveInteger(num) {
 
 module.exports.DEFAULT_BLS12381_PRIVATE_KEY_LENGTH = 32;
 
-module.exports.DEFAULT_BLS12381__PUBLIC_KEY_LENGTH = 48;
-
-module.exports.DEFAULT_BLS12381__PUBLIC_KEY_LENGTH = 96;
-
 module.exports.psGenerateSigningKey = (messageCount, seed) => {
     requireWasmInitialized();
     ensurePositiveInteger(messageCount);

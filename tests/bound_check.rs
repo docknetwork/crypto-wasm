@@ -5,25 +5,29 @@ use ark_std::{collections::BTreeSet, vec};
 use wasm_bindgen_test::*;
 use web_sys::console;
 
-use dock_crypto_wasm::bbs_plus::{bbs_plus_encode_message_for_signing, bbs_plus_sign_g1};
-use dock_crypto_wasm::bound_check::*;
-use dock_crypto_wasm::common::VerifyResponse;
-use dock_crypto_wasm::composite_proof_system::{
-    generate_bound_check_witness, generate_composite_proof_g1_with_deconstructed_proof_spec,
-    generate_pok_bbs_plus_sig_witness, verify_composite_proof_g1_with_deconstructed_proof_spec,
-};
-use dock_crypto_wasm::utils::{
-    field_element_from_u32, fr_to_uint8_array, js_array_of_bytearrays_from_vector_of_bytevectors,
-    random_bytes,
+use dock_crypto_wasm::{
+    bbs_plus::{bbs_plus_encode_message_for_signing, bbs_plus_sign_g1},
+    bound_check::*,
+    common::VerifyResponse,
+    composite_proof_system::{
+        generate_bound_check_witness, generate_composite_proof_g1_with_deconstructed_proof_spec,
+        generate_pok_bbs_plus_sig_witness, verify_composite_proof_g1_with_deconstructed_proof_spec,
+    },
+    utils::{
+        field_element_from_u32, fr_to_uint8_array,
+        js_array_of_bytearrays_from_vector_of_bytevectors, random_bytes,
+    },
 };
 
 mod common;
 use common::{bbs_params_and_keys, get_revealed_unrevealed, get_witness_equality_statement};
-use dock_crypto_wasm::composite_proof_system::statement::{
-    generate_bound_check_lego_prover_statement, generate_bound_check_lego_verifier_statement,
-    generate_pok_bbs_plus_sig_statement, get_valid_min_max,
+use dock_crypto_wasm::{
+    composite_proof_system::statement::{
+        generate_bound_check_lego_prover_statement, generate_bound_check_lego_verifier_statement,
+        generate_pok_bbs_plus_sig_statement, get_valid_min_max,
+    },
+    legosnark::{legosnark_decompress_pk, legosnark_vk_from_pk},
 };
-use dock_crypto_wasm::legosnark::{legosnark_decompress_pk, legosnark_vk_from_pk};
 
 wasm_bindgen_test_configure!(run_in_browser);
 

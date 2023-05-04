@@ -3,26 +3,28 @@ use ark_ec::pairing::Pairing;
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use ark_std::collections::BTreeSet;
 use js_sys::Uint8Array;
-use proof_system::prelude::{EqualWitnesses, MetaStatement};
-use proof_system::statement;
+use proof_system::{
+    prelude::{EqualWitnesses, MetaStatement},
+    statement,
+};
 use wasm_bindgen::prelude::*;
 use zeroize::Zeroize;
 
-use crate::accumulator::{
-    deserialize_params, deserialize_public_key, MembershipPrk, NonMembershipPrk,
+use crate::{
+    accumulator::{deserialize_params, deserialize_public_key, MembershipPrk, NonMembershipPrk},
+    bbs::{BBSPublicKey, BBSSigParams},
+    bbs_plus::{BBSPlusPublicKeyG2, BBSPlusSigParamsG1},
+    legosnark::{LegoProvingKey, LegoVerifyingKey},
+    ps::{PSPublicKey, PSSignatureParams},
+    r1cs::gen_r1cs,
+    saver::{ChunkedCommGens, EncGens, SaverEk, SaverSnarkPk, SaverSnarkVk},
+    utils::{
+        encode_messages_as_js_map_to_fr_btreemap, g1_affine_from_uint8_array,
+        g2_affine_from_uint8_array, is_positive_safe_integer, js_array_to_fr_vec,
+        js_array_to_g1_affine_vec, js_array_to_g2_affine_vec, set_panic_hook,
+    },
+    G1Affine,
 };
-use crate::bbs::{BBSPublicKey, BBSSigParams};
-use crate::bbs_plus::{BBSPlusPublicKeyG2, BBSPlusSigParamsG1};
-use crate::utils::encode_messages_as_js_map_to_fr_btreemap;
-use crate::legosnark::{LegoProvingKey, LegoVerifyingKey};
-use crate::ps::{PSPublicKey, PSSignatureParams};
-use crate::r1cs::gen_r1cs;
-use crate::saver::{ChunkedCommGens, EncGens, SaverEk, SaverSnarkPk, SaverSnarkVk};
-use crate::utils::{
-    g1_affine_from_uint8_array, g2_affine_from_uint8_array, is_positive_safe_integer,
-    js_array_to_fr_vec, js_array_to_g1_affine_vec, js_array_to_g2_affine_vec, set_panic_hook,
-};
-use crate::G1Affine;
 
 pub(crate) type PoKBBSSigStmt = statement::bbs_23::PoKBBSSignature23G1<Bls12_381>;
 pub(crate) type PoKBBSPlusSigStmt = statement::bbs_plus::PoKBBSSignatureG1<Bls12_381>;

@@ -1,9 +1,11 @@
-use crate::common::VerifyResponse;
-use crate::utils::{
-    fr_from_uint8_array, fr_to_uint8_array, g1_affine_from_uint8_array, g1_affine_to_uint8_array,
-    get_seeded_rng, random_bytes, set_panic_hook,
+use crate::{
+    common::VerifyResponse,
+    utils::{
+        fr_from_uint8_array, fr_to_uint8_array, g1_affine_from_uint8_array,
+        g1_affine_to_uint8_array, get_seeded_rng, random_bytes, set_panic_hook,
+    },
+    Fr,
 };
-use crate::Fr;
 use ark_bls12_381::Bls12_381;
 use ark_ec::pairing::Pairing;
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};

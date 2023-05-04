@@ -1,11 +1,12 @@
-use crate::utils::{
-    field_element_from_u64, fr_from_uint8_array, fr_to_uint8_array, g1_affine_to_uint8_array,
-    g2_affine_to_uint8_array, is_positive_safe_integer, js_array_to_fr_vec,
-    js_array_to_g1_affine_vec, js_array_to_g2_affine_vec, random_bytes, set_panic_hook,
+use crate::{
+    utils::{
+        field_element_from_u64, fr_from_uint8_array, fr_to_uint8_array, g1_affine_to_uint8_array,
+        g2_affine_to_uint8_array, is_positive_safe_integer, js_array_to_fr_vec,
+        js_array_to_g1_affine_vec, js_array_to_g2_affine_vec, random_bytes, set_panic_hook,
+    },
+    Fr, G1Affine, G1Projective, G2Affine, G2Projective,
 };
-use crate::{Fr, G1Affine, G1Projective, G2Affine, G2Projective};
-use ark_ec::CurveGroup;
-use ark_ec::VariableBaseMSM;
+use ark_ec::{CurveGroup, VariableBaseMSM};
 use ark_serialize::CanonicalSerialize;
 use blake2::Blake2b512;
 use serde::{Deserialize, Serialize};

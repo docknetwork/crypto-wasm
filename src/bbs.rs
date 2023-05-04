@@ -1,16 +1,19 @@
 use crate::utils::{
     fr_from_uint8_array, fr_to_jsvalue, fr_to_uint8_array, g1_affine_from_uint8_array,
-    g1_affine_to_jsvalue, g1_affine_to_uint8_array, get_seeded_rng,
-    random_bytes, set_panic_hook,
+    g1_affine_to_jsvalue, g1_affine_to_uint8_array, get_seeded_rng, random_bytes, set_panic_hook,
 };
 
-use bbs_plus::proof::MessageOrBlinding;
-use bbs_plus::setup::MultiMessageSignatureParams;
+use bbs_plus::{proof::MessageOrBlinding, setup::MultiMessageSignatureParams};
 use wasm_bindgen::prelude::*;
 
-use crate::common::VerifyResponse;
-use crate::{Fr, G1Affine};
-use crate::utils::{encode_messages_as_js_array_to_fr_vec, encode_messages_as_js_map_to_fr_btreemap, encode_message_for_signing};
+use crate::{
+    common::VerifyResponse,
+    utils::{
+        encode_message_for_signing, encode_messages_as_js_array_to_fr_vec,
+        encode_messages_as_js_map_to_fr_btreemap,
+    },
+    Fr, G1Affine,
+};
 use ark_bls12_381::Bls12_381;
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use ark_std::collections::{BTreeMap, BTreeSet};
@@ -19,8 +22,7 @@ use bbs_plus::prelude::{
     Signature23G1, SignatureParams23G1,
 };
 use blake2::Blake2b512;
-use dock_crypto_utils::concat_slices;
-use dock_crypto_utils::hashing_utils::affine_group_elem_from_try_and_incr;
+use dock_crypto_utils::{concat_slices, hashing_utils::affine_group_elem_from_try_and_incr};
 use zeroize::Zeroize;
 
 pub type BBSSecretKey = SecretKey<Fr>;

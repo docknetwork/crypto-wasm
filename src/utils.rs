@@ -13,12 +13,14 @@
 
 use crate::{Fr, G1Affine, G2Affine};
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
-use ark_std::rand::prelude::{RngCore, SeedableRng, StdRng};
-use ark_std::collections::BTreeMap;
-use wasm_bindgen::prelude::*;
-use zeroize::Zeroize;
+use ark_std::{
+    collections::BTreeMap,
+    rand::prelude::{RngCore, SeedableRng, StdRng},
+};
 use blake2::Blake2b512;
 use dock_crypto_utils::concat_slices;
+use wasm_bindgen::prelude::*;
+use zeroize::Zeroize;
 
 pub fn set_panic_hook() {
     // When the `console_error_panic_hook` feature is enabled, we can call the
@@ -333,8 +335,7 @@ pub fn zeroize_uint8array(value: js_sys::Uint8Array) {
 
 pub fn get_seeded_rng() -> StdRng {
     let mut buf = [0u8; 32];
-    use rand::thread_rng;
-    use rand::RngCore as RngCoreOld;
+    use rand::{thread_rng, RngCore as RngCoreOld};
     let mut rng = thread_rng();
     rng.fill_bytes(&mut buf);
     // getrandom is using node-js crypto module which doesn't work when building for target web. It
