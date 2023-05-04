@@ -26,7 +26,7 @@ fn bbs_setup(message_count: usize) -> (JsValue, Uint8Array, Uint8Array) {
 
     let seed = vec![0, 1, 2, 5, 10, 13];
 
-    let sk = bbs_generate_secret_key(Some(seed.clone())).unwrap();
+    let sk = bbs_generate_secret_key(Some(seed)).unwrap();
 
     let pk = bbs_generate_public_key(sk.clone(), params.clone()).unwrap();
 
@@ -70,7 +70,7 @@ pub fn bbs_params_and_keygen() {
 
     let keypair_obj = js_sys::Object::try_from(&keypair).unwrap();
 
-    let keys = js_sys::Object::keys(&keypair_obj);
+    let keys = js_sys::Object::keys(keypair_obj);
     assert_eq!(keys.get(0), "secret_key");
     assert_eq!(keys.get(1), "public_key");
 
@@ -81,7 +81,7 @@ pub fn bbs_params_and_keygen() {
     let pk = bbs_generate_public_key(sk.clone(), params.clone()).unwrap();
     assert!(bbs_is_pubkey_valid(pk.clone()).unwrap());
 
-    let values_obj = js_sys::Object::values(&keypair_obj);
+    let values_obj = js_sys::Object::values(keypair_obj);
     assert_eq!(js_value_to_bytes(values_obj.get(0)), sk.to_vec());
     assert_eq!(js_value_to_bytes(values_obj.get(1)), pk.to_vec());
 
@@ -189,21 +189,21 @@ pub fn bbs_blind_sign_test() {
     let blinding = generate_random_field_element(None).unwrap();
 
     let commitment = bbs_commit_to_message(
-        msgs_to_commit.clone(),
-        blinding.clone(),
+        msgs_to_commit,
+        blinding,
         params.clone(),
         true,
     )
     .unwrap();
     let sig = bbs_blind_sign(
         commitment,
-        msgs_to_not_commit.clone(),
-        sk.clone(),
+        msgs_to_not_commit,
+        sk,
         params.clone(),
         true,
     )
     .unwrap();
-    let result = bbs_verify(messages_as_array.clone(), sig, pk, params, true).unwrap();
+    let result = bbs_verify(messages_as_array, sig, pk, params, true).unwrap();
     let r: VerifyResponse = serde_wasm_bindgen::from_value(result).unwrap();
     assert!(r.verified);
     assert!(r.error.is_none());
@@ -359,7 +359,7 @@ pub fn bbs_extend_params() {
     );
 
     assert_eq!(
-        serde_wasm_bindgen::from_value::<BBSSigParams>(params.clone())
+        serde_wasm_bindgen::from_value::<BBSSigParams>(params)
             .unwrap()
             .h[0],
         serde_wasm_bindgen::from_value::<BBSSigParams>(params_1.clone())
@@ -393,7 +393,7 @@ pub fn bbs_extend_params() {
         serde_wasm_bindgen::from_value::<BBSSigParams>(params_1.clone())
             .unwrap()
             .h[1],
-        serde_wasm_bindgen::from_value::<BBSSigParams>(params_2.clone())
+        serde_wasm_bindgen::from_value::<BBSSigParams>(params_2)
             .unwrap()
             .h[1],
     );

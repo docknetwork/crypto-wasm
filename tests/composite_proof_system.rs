@@ -1057,7 +1057,7 @@ pub fn request_blind_bbs_sig() {
     let blinding = generate_random_field_element(None).unwrap();
 
     let commitment =
-        bbs_commit_to_message(msgs_to_commit, blinding.clone(), params_2.clone(), true).unwrap();
+        bbs_commit_to_message(msgs_to_commit, blinding, params_2.clone(), true).unwrap();
 
     let statements = js_sys::Array::new();
     let stmt_1 = generate_pok_bbs_sig_statement(params_1, pk_1, revealed_msgs_1, true).unwrap();
