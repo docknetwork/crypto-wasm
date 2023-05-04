@@ -166,7 +166,7 @@ pub fn ps_adapt_secret_key_for_more_messages(
 
     adapt_key_for_more_messages! {
         secret_key: PSSecretKey for message_count using
-        |i: usize| secret_key.y.push(hasher.hash_to_field(&concat_slices!(seed, i.to_be_bytes()), 1).pop().unwrap())
+        |i: usize| secret_key.y.push(hasher.hash_to_field(&concat_slices!(seed, i.to_le_bytes()), 1).pop().unwrap())
     }
 }
 

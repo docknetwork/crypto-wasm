@@ -271,23 +271,18 @@ pub fn bbs_initialize_proof_of_knowledge_of_signature(
         .into_iter()
         .map(|i| serde_wasm_bindgen::from_value(i.unwrap()).unwrap())
         .collect();
+    let msg_iter = messages.iter().enumerate().map(|(idx, message)| {
+        if revealed_indices.contains(&idx) {
+            MessageOrBlinding::RevealMessage(message)
+        } else if let Some(blinding) = blindings.remove(&idx) {
+            MessageOrBlinding::BlindMessageWithConcreteBlinding { message, blinding }
+        } else {
+            MessageOrBlinding::BlindMessageRandomly(message)
+        }
+    });
 
-    // TODO!
     let mut rng = get_seeded_rng();
-    match BBSPoKOfSigProtocol::init(
-        &mut rng,
-        &signature,
-        &params,
-        messages.iter().enumerate().map(|(idx, message)| {
-            if revealed_indices.contains(&idx) {
-                MessageOrBlinding::RevealMessage(message)
-            } else if let Some(blinding) = blindings.remove(&idx) {
-                MessageOrBlinding::BlindMessageWithConcreteBlinding { message, blinding }
-            } else {
-                MessageOrBlinding::BlindMessageRandomly(message)
-            }
-        }),
-    ) {
+    match BBSPoKOfSigProtocol::init(&mut rng, &signature, &params, msg_iter) {
         Ok(sig) => Ok(serde_wasm_bindgen::to_value(&sig)
             .map_err(JsValue::from)
             .unwrap()),

@@ -150,7 +150,7 @@ macro_rules! adapt_params {
             let generating_label = $generating_label.to_vec();
             for i in current_count + 1..=$new_count {
                 let h = affine_group_elem_from_try_and_incr::<$sig_group, Blake2b512>(
-                    &concat_slices!(&generating_label, b" : h_", i.to_be_bytes()),
+                    &concat_slices!(&generating_label, b" : h_", i.to_le_bytes()),
                 );
                 params.h.push(h);
             }
