@@ -188,21 +188,8 @@ pub fn bbs_blind_sign_test() {
 
     let blinding = generate_random_field_element(None).unwrap();
 
-    let commitment = bbs_commit_to_message(
-        msgs_to_commit,
-        blinding,
-        params.clone(),
-        true,
-    )
-    .unwrap();
-    let sig = bbs_blind_sign(
-        commitment,
-        msgs_to_not_commit,
-        sk,
-        params.clone(),
-        true,
-    )
-    .unwrap();
+    let commitment = bbs_commit_to_message(msgs_to_commit, blinding, params.clone(), true).unwrap();
+    let sig = bbs_blind_sign(commitment, msgs_to_not_commit, sk, params.clone(), true).unwrap();
     let result = bbs_verify(messages_as_array, sig, pk, params, true).unwrap();
     let r: VerifyResponse = serde_wasm_bindgen::from_value(result).unwrap();
     assert!(r.verified);

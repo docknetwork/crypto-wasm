@@ -161,7 +161,7 @@ pub fn ps_blind_sign_test() {
                 let blinding = blindings.get(&idx).unwrap().clone();
 
                 ps_blinded_message(
-                    ps_message_commitment(blinding, msg.into(), h.clone(), params.clone()).unwrap(),
+                    ps_message_commitment(msg.into(), blinding, h.clone(), params.clone()).unwrap(),
                 )
                 .unwrap()
             } else {
