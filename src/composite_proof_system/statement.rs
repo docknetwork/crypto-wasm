@@ -12,9 +12,8 @@ use crate::accumulator::{
     deserialize_params, deserialize_public_key, MembershipPrk, NonMembershipPrk,
 };
 use crate::bbs::{BBSPublicKey, BBSSigParams};
-use crate::bbs_plus::{
-    encode_messages_as_js_map_to_fr_btreemap, BBSPlusPublicKeyG2, BBSPlusSigParamsG1,
-};
+use crate::bbs_plus::{BBSPlusPublicKeyG2, BBSPlusSigParamsG1};
+use crate::utils::encode_messages_as_js_map_to_fr_btreemap;
 use crate::legosnark::{LegoProvingKey, LegoVerifyingKey};
 use crate::ps::{PSPublicKey, PSSignatureParams};
 use crate::r1cs::gen_r1cs;

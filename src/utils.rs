@@ -14,8 +14,11 @@
 use crate::{Fr, G1Affine, G2Affine};
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use ark_std::rand::prelude::{RngCore, SeedableRng, StdRng};
+use ark_std::collections::BTreeMap;
 use wasm_bindgen::prelude::*;
 use zeroize::Zeroize;
+use blake2::Blake2b512;
+use dock_crypto_utils::concat_slices;
 
 pub fn set_panic_hook() {
     // When the `console_error_panic_hook` feature is enabled, we can call the
@@ -209,6 +212,63 @@ pub fn js_array_to_fr_vec(array: &js_sys::Array) -> Result<Vec<Fr>, JsValue> {
         frs.push(fr_from_jsvalue(a.unwrap())?);
     }
     Ok(frs)
+}
+
+/// This is to convert a message to field element. This encoding needs to be collision resistant but
+/// not preimage-resistant and thus use of hash function is not necessary. However, the encoding must
+/// be constant time
+pub fn encode_message_for_signing(msg: &[u8]) -> Fr {
+    dock_crypto_utils::hashing_utils::field_elem_from_try_and_incr::<Fr, Blake2b512>(
+        &concat_slices!(msg, b"message to sign"),
+    )
+}
+
+pub fn messages_as_bytes_to_fr_vec(
+    messages_as_bytes: &[Vec<u8>],
+    encode_messages: bool,
+) -> Result<Vec<Fr>, JsValue> {
+    let mut result = vec![];
+    for m in messages_as_bytes {
+        result.push({
+            if encode_messages {
+                encode_message_for_signing(m)
+            } else {
+                Fr::deserialize_compressed(m.as_slice()).map_err(|e| {
+                    JsValue::from(&format!("Cannot deserialize to Fr due to error: {:?}", e))
+                })?
+            }
+        });
+    }
+    Ok(result)
+}
+
+pub fn encode_messages_as_js_array_to_fr_vec(
+    messages: &js_sys::Array,
+    encode_messages: bool,
+) -> Result<Vec<Fr>, JsValue> {
+    let messages_as_bytes = js_array_of_bytearrays_to_vector_of_bytevectors(messages)?;
+    messages_as_bytes_to_fr_vec(&messages_as_bytes, encode_messages)
+}
+
+pub fn encode_messages_as_js_map_to_fr_btreemap(
+    messages: &js_sys::Map,
+    encode_messages: bool,
+) -> Result<BTreeMap<usize, Fr>, JsValue> {
+    let mut msgs = BTreeMap::new();
+    for e in messages.entries() {
+        let arr = js_sys::Array::from(&e.unwrap());
+        let index: usize = serde_wasm_bindgen::from_value(arr.get(0))?;
+        let msg: Vec<u8> = serde_wasm_bindgen::from_value(arr.get(1))?;
+        let m = if encode_messages {
+            encode_message_for_signing(&msg)
+        } else {
+            Fr::deserialize_compressed(msg.as_slice()).map_err(|e| {
+                JsValue::from(&format!("Cannot deserialize to Fr due to error: {:?}", e))
+            })?
+        };
+        msgs.insert(index, m);
+    }
+    Ok(msgs)
 }
 
 pub fn js_array_from_frs(frs: &[Fr]) -> Result<js_sys::Array, JsValue> {

@@ -1,6 +1,6 @@
 use crate::utils::{
     fr_from_uint8_array, fr_to_jsvalue, fr_to_uint8_array, get_seeded_rng, random_bytes,
-    set_panic_hook,
+    set_panic_hook, encode_message_for_signing
 };
 
 use crate::common::VerifyResponse;
@@ -725,13 +725,4 @@ pub fn js_map_to_iter<Item: CanonicalDeserialize>(
 
 fn debug_to_js_value<V: core::fmt::Debug>(value: V) -> JsValue {
     JsValue::from(&format!("{:?}", value))
-}
-
-/// This is to convert a message to field element. This encoding needs to be collision resistant but
-/// not preimage-resistant and thus use of hash function is not necessary. However, the encoding must
-/// be constant time
-pub fn encode_message_for_signing(msg: &[u8]) -> Fr {
-    dock_crypto_utils::hashing_utils::field_elem_from_try_and_incr::<Fr, Blake2b512>(
-        &concat_slices!(msg, b"PS message"),
-    )
 }

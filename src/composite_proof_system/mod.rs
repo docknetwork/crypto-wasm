@@ -5,7 +5,8 @@ use wasm_bindgen::prelude::*;
 
 use crate::accumulator::{MembershipWit, NonMembershipWit};
 use crate::bbs::BBSSignature;
-use crate::bbs_plus::{encode_messages_as_js_map_to_fr_btreemap, BBSPlusSigG1};
+use crate::bbs_plus::BBSPlusSigG1;
+use crate::utils::encode_messages_as_js_map_to_fr_btreemap;
 use crate::common::VerifyResponse;
 use crate::ps::PSSignature;
 use crate::utils::{fr_from_uint8_array, get_seeded_rng, js_array_to_fr_vec, set_panic_hook};

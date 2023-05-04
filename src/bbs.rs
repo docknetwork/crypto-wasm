@@ -1,7 +1,7 @@
 use crate::utils::{
     fr_from_uint8_array, fr_to_jsvalue, fr_to_uint8_array, g1_affine_from_uint8_array,
     g1_affine_to_jsvalue, g1_affine_to_uint8_array, get_seeded_rng,
-    js_array_of_bytearrays_to_vector_of_bytevectors, random_bytes, set_panic_hook,
+    random_bytes, set_panic_hook,
 };
 
 use bbs_plus::proof::MessageOrBlinding;
@@ -10,6 +10,7 @@ use wasm_bindgen::prelude::*;
 
 use crate::common::VerifyResponse;
 use crate::{Fr, G1Affine};
+use crate::utils::{encode_messages_as_js_array_to_fr_vec, encode_messages_as_js_map_to_fr_btreemap, encode_message_for_signing};
 use ark_bls12_381::Bls12_381;
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use ark_std::collections::{BTreeMap, BTreeSet};
@@ -392,61 +393,4 @@ pub fn bbs_adapt_sig_params_for_msg_count(
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
     crate::adapt_params!(params, generating_label, new_count, BBSSigParams, G1Affine)
-}
-
-pub fn messages_as_bytes_to_fr_vec(
-    messages_as_bytes: &[Vec<u8>],
-    encode_messages: bool,
-) -> Result<Vec<Fr>, JsValue> {
-    let mut result = vec![];
-    for m in messages_as_bytes {
-        result.push({
-            if encode_messages {
-                encode_message_for_signing(m)
-            } else {
-                Fr::deserialize_compressed(m.as_slice()).map_err(|e| {
-                    JsValue::from(&format!("Cannot deserialize to Fr due to error: {:?}", e))
-                })?
-            }
-        });
-    }
-    Ok(result)
-}
-
-pub fn encode_messages_as_js_array_to_fr_vec(
-    messages: &js_sys::Array,
-    encode_messages: bool,
-) -> Result<Vec<Fr>, JsValue> {
-    let messages_as_bytes = js_array_of_bytearrays_to_vector_of_bytevectors(messages)?;
-    messages_as_bytes_to_fr_vec(&messages_as_bytes, encode_messages)
-}
-
-pub fn encode_messages_as_js_map_to_fr_btreemap(
-    messages: &js_sys::Map,
-    encode_messages: bool,
-) -> Result<BTreeMap<usize, Fr>, JsValue> {
-    let mut msgs = BTreeMap::new();
-    for e in messages.entries() {
-        let arr = js_sys::Array::from(&e.unwrap());
-        let index: usize = serde_wasm_bindgen::from_value(arr.get(0))?;
-        let msg: Vec<u8> = serde_wasm_bindgen::from_value(arr.get(1))?;
-        let m = if encode_messages {
-            encode_message_for_signing(&msg)
-        } else {
-            Fr::deserialize_compressed(msg.as_slice()).map_err(|e| {
-                JsValue::from(&format!("Cannot deserialize to Fr due to error: {:?}", e))
-            })?
-        };
-        msgs.insert(index, m);
-    }
-    Ok(msgs)
-}
-
-/// This is to convert a message to field element. This encoding needs to be collision resistant but
-/// not preimage-resistant and thus use of hash function is not necessary. However, the encoding must
-/// be constant time
-pub fn encode_message_for_signing(msg: &[u8]) -> Fr {
-    dock_crypto_utils::hashing_utils::field_elem_from_try_and_incr::<Fr, Blake2b512>(
-        &concat_slices!(msg, b"BBS+ message"),
-    )
 }
