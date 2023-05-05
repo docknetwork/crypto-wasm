@@ -43,7 +43,7 @@ export function psShamirDeal(
 export function psAggregateSignatures(
     participantSignatures: Map<number, Uint8Array>,
     h: Uint8Array
-): PSSig;
+): Uint8Array;
 
 export function psGeneratePublicKey(
     secretKey: Uint8Array,
@@ -96,7 +96,14 @@ export function psMessageCommitment(
     blinding: Uint8Array,
     message: Uint8Array,
     h: Uint8Array,
-    params: PSSigParams,
+    g: Uint8Array,
+): Uint8Array;
+
+export function psMultiMessageCommitment(
+    messages: Uint8Array[],
+    h: Uint8Array[],
+    g: Uint8Array,
+    blinding: Uint8Array
 ): Uint8Array;
 
 export function psBlindSign(

@@ -8,8 +8,9 @@ use blake2::Blake2b512;
 use coconut_crypto::{
     keygen::{common::Threshold, shamir_ss},
     proof, setup, signature, CommitMessage, CommitmentOrMessage, MessageCommitment,
+    MultiMessageCommitment,
 };
-use dock_crypto_utils::{concat_slices, hashing_utils::affine_group_elem_from_try_and_incr};
+use dock_crypto_utils::{concat_slices, hashing_utils::affine_group_elem_from_try_and_incr, pairs};
 use js_sys::Uint8Array;
 use serde_wasm_bindgen::{from_value, to_value};
 use wasm_bindgen::prelude::*;
@@ -220,17 +221,39 @@ pub fn ps_message_commitment(
     message: js_sys::Uint8Array,
     blinding: js_sys::Uint8Array,
     h: js_sys::Uint8Array,
-    params: JsValue,
+    g: js_sys::Uint8Array,
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
 
     let message = fr_from_uint8_array(message, true)?;
     let blinding = fr_from_uint8_array(blinding, true)?;
-    let params: PSSignatureParams = from_value(params)?;
     let h = obj_from_uint8array!(G1Affine, h, false);
+    let g = obj_from_uint8array!(G1Affine, g, false);
 
     to_value(&MessageCommitment::<Bls12_381>::new(
-        &params.g, &blinding, &h, &message,
+        &g, &blinding, &h, &message,
+    ))
+    .map_err(Into::into)
+}
+
+#[wasm_bindgen(js_name = psMultiMessageCommitment)]
+pub fn ps_multi_message_commitment(
+    messages: js_sys::Array,
+    h: js_sys::Array,
+    g: js_sys::Uint8Array,
+    blinding: js_sys::Uint8Array,
+) -> Result<JsValue, JsValue> {
+    set_panic_hook();
+
+    let m: Vec<Fr> = js_array_to_iter(&messages).collect::<Result<_, _>>()?;
+    let h: Vec<G1Affine> = js_array_to_iter(&h).collect::<Result<_, _>>()?;
+    let g = obj_from_uint8array!(G1Affine, g, false);
+    let blinding = fr_from_uint8_array(blinding, true)?;
+
+    to_value(&MultiMessageCommitment::<Bls12_381>::new(
+        pairs!(h, m),
+        &g,
+        &blinding,
     ))
     .map_err(Into::into)
 }
@@ -628,10 +651,18 @@ pub fn ps_shamir_deal(
 
     let threshold = Threshold::new(threshold, total).ok_or("Invalid threshold")?;
     let mut rng = get_seeded_rng();
-    let keys =
+    let (threshold_sk, sks) =
         shamir_ss::deal::<_, Fr>(&mut rng, message_count, threshold).map_err(debug_to_js_value)?;
+    let threshold_sk: JsValue = obj_to_uint8array!(&threshold_sk, true, "PSSecretKey").into();
+    let sks: js_sys::Array = sks
+        .into_iter()
+        .map(|sk| Ok(JsValue::from(obj_to_uint8array!(&sk, true, "PSSecretKey"))))
+        .collect::<Result<_, JsValue>>()?;
+    let res = js_sys::Array::new();
+    res.push(&threshold_sk);
+    res.push(&sks.into());
 
-    to_value(&keys).map_err(JsValue::from)
+    Ok(res.into())
 }
 
 #[wasm_bindgen(js_name = psAdaptSignatureParamsForMsgCount)]
