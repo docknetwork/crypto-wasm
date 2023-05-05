@@ -11,7 +11,7 @@ import {
     generateChallengeFromBytes,
     bbsGenerateSignatureParams,
     initializeWasm,
-    bbsEncodeMessagesForSigning
+    encodeMessagesForSigning
 } from "../lib";
 import {benchmark, report} from "@stablelib/benchmark";
 import {generateMessages} from "./helper";
@@ -43,7 +43,7 @@ export const benchmarkBBS = async (
     report(
         `BBS encode ${numberOfMessages}, ${messageSizeInBytes} byte message(s)`,
         benchmark(() => {
-            bbsEncodeMessagesForSigning(messages, Object.keys(messages).map(idx => +idx))
+            encodeMessagesForSigning(messages, Object.keys(messages).map(idx => +idx))
         })
       );
 

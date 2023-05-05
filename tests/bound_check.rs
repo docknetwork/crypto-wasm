@@ -6,7 +6,7 @@ use wasm_bindgen_test::*;
 use web_sys::console;
 
 use dock_crypto_wasm::{
-    bbs_plus::{bbs_plus_encode_message_for_signing, bbs_plus_sign_g1},
+    bbs_plus::{bbs_plus_sign_g1, encode_message_for_signing},
     bound_check::*,
     common::VerifyResponse,
     composite_proof_system::{
@@ -78,7 +78,7 @@ pub fn bbs_sig_and_bound_check_message() {
             fr_to_uint8_array(&field_element_from_u32(msg)).unwrap()
         } else {
             let m = random_bytes();
-            bbs_plus_encode_message_for_signing(m).unwrap()
+            encode_message_for_signing(m).unwrap()
         };
         encoded_msgs.push(byte_array.to_vec());
     }

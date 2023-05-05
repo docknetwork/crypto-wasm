@@ -129,39 +129,9 @@ pub fn bbs_get_bases_for_commitment(
     Ok(bases)
 }
 
-#[wasm_bindgen(js_name = bbsEncodeMessageForSigning)]
-pub fn bbs_encode_message_for_signing(message: Vec<u8>) -> Result<js_sys::Uint8Array, JsValue> {
-    set_panic_hook();
-    let fr = encode_message_for_signing(&message);
-    fr_to_uint8_array(&fr)
-}
-
-#[wasm_bindgen(js_name = bbsEncodeMessagesForSigning)]
-pub fn bbs_encode_messages_for_signing(
-    messages: js_sys::Array,
-    indices_to_encode: js_sys::Array,
-) -> Result<js_sys::Array, JsValue> {
-    set_panic_hook();
-    let encoded = js_sys::Array::new();
-    for i in indices_to_encode.values() {
-        let index: u32 = serde_wasm_bindgen::from_value(i.unwrap())?;
-        if index >= messages.length() {
-            return Err(JsValue::from(&format!(
-                "Invalid index {:?} to get message",
-                index
-            )));
-        }
-        let msg: Vec<u8> = serde_wasm_bindgen::from_value(messages.get(index))?;
-        let fr = encode_message_for_signing(&msg);
-        encoded.push(&fr_to_jsvalue(&fr)?);
-    }
-    Ok(encoded)
-}
-
 #[wasm_bindgen(js_name = bbsCommitMsgs)]
 pub fn bbs_commit_to_message(
     messages_to_commit: js_sys::Map,
-    blinding: js_sys::Uint8Array,
     params: JsValue,
     encode_messages: bool,
 ) -> Result<js_sys::Uint8Array, JsValue> {
@@ -173,7 +143,6 @@ pub fn bbs_commit_to_message(
         .collect::<BTreeMap<_, _>>();
 
     let params: BBSSigParams = serde_wasm_bindgen::from_value(params)?;
-    let _blinding = fr_from_uint8_array(blinding, true)?;
     match params.commit_to_messages(msgs_ref) {
         Ok(comm) => g1_affine_to_uint8_array(&comm),
         Err(e) => Err(JsValue::from(&format!("{:?}", e))),

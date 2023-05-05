@@ -134,16 +134,6 @@ module.exports.psIsPublicKeyValid = (publicKey) => {
     return wasm.psIsPublicKeyValid(publicKey);
 };
 
-module.exports.psEncodeMessageForSigning = (message) => {
-    requireWasmInitialized();
-    return wasm.psEncodeMessageForSigning(message);
-};
-
-module.exports.psEncodeMessagesForSigning = (messages, indicesToEncode) => {
-    requireWasmInitialized();
-    return wasm.psEncodeMessagesForSigning(messages, indicesToEncode);
-}
-
 module.exports.psSign = (
     messages,
     secretKey,

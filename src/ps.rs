@@ -218,45 +218,6 @@ pub fn ps_is_pubkey_valid(public_key: js_sys::Uint8Array) -> Result<bool, JsValu
     Ok(pk.valid())
 }
 
-#[wasm_bindgen(js_name = psEncodeMessageForSigning)]
-pub fn ps_encode_message_for_signing(message: Vec<u8>) -> Result<js_sys::Uint8Array, JsValue> {
-    set_panic_hook();
-    let fr = encode_message_for_signing(&message);
-    fr_to_uint8_array(&fr)
-}
-
-#[wasm_bindgen(js_name = psEncodeMessagesForSigning)]
-pub fn ps_encode_messages_for_signing(
-    messages: js_sys::Array,
-    indices_to_encode: Option<js_sys::Array>,
-) -> Result<js_sys::Array, JsValue> {
-    set_panic_hook();
-    let encoded = js_sys::Array::new();
-    if let Some(indices_to_encode) = indices_to_encode {
-        for i in indices_to_encode.values() {
-            let index: u32 = from_value(i.unwrap())?;
-            if index >= messages.length() {
-                return Err(JsValue::from(&format!(
-                    "Invalid index {:?} to get message",
-                    index
-                )));
-            }
-            let msg: Vec<u8> = from_value(messages.get(index))?;
-            let fr = encode_message_for_signing(&msg);
-            encoded.push(&fr_to_jsvalue(&fr)?);
-        }
-    } else {
-        for value in messages.values() {
-            let msg: Vec<u8> = from_value(value?)?;
-            let fr = encode_message_for_signing(&msg);
-
-            encoded.push(&fr_to_jsvalue(&fr)?);
-        }
-    }
-
-    Ok(encoded)
-}
-
 #[wasm_bindgen(js_name = psMessageCommitment)]
 pub fn ps_message_commitment(
     message: js_sys::Uint8Array,

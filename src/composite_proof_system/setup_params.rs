@@ -9,7 +9,7 @@ use crate::{
     bbs::BBSSigParams,
     bbs_plus::{BBSPlusPublicKeyG2, BBSPlusSigParamsG1},
     legosnark::{LegoProvingKey, LegoVerifyingKey},
-    ps::PSSignatureParams,
+    ps::{PSPublicKey, PSSignatureParams},
     r1cs::gen_r1cs,
     saver::{ChunkedCommGens, EncGens, SaverEk, SaverSnarkPk, SaverSnarkVk},
     utils::{
@@ -45,6 +45,20 @@ pub fn generate_setup_param_for_bbs_plus_public_key(
         Bls12_381,
         G2Affine,
     >::BBSPlusPublicKey(pk)))
+}
+
+#[wasm_bindgen(js_name = generateSetupParamForPSPublicKey)]
+pub fn generate_setup_param_for_ps_public_key(
+    public_key: js_sys::Uint8Array,
+) -> Result<js_sys::Uint8Array, JsValue> {
+    set_panic_hook();
+    let pk = obj_from_uint8array!(PSPublicKey, public_key, false, "PSPublicKey");
+    Ok(obj_to_uint8array_uncompressed!(&SetupParams::<
+        Bls12_381,
+        G2Affine,
+    >::PSSignaturePublicKey(
+        pk
+    )))
 }
 
 #[wasm_bindgen(js_name = generateSetupParamForBBSSignatureParameters)]

@@ -79,15 +79,6 @@ export function psIsPublicKeyValid(
     publicKey: Uint8Array
 ): boolean;
 
-export function psEncodeMessageForSigning(
-    message: Uint8Array
-): Uint8Array;
-
-export function psEncodeMessagesForSigning(
-    messages: Uint8Array[],
-    indicesToEncode: number[]
-): Uint8Array[];
-
 export function psSign(
     messages: Uint8Array[],
     secretKey: Uint8Array,

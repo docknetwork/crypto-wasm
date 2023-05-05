@@ -73,15 +73,6 @@ export function bbsGenerateKeyPair(
     seed?: Uint8Array
 ): Required<IKeypair>;
 
-export function bbsEncodeMessageForSigning(
-    message: Uint8Array
-): Uint8Array;
-
-export function bbsEncodeMessagesForSigning(
-    messages: Uint8Array[],
-    indicesToEncode: number[]
-): Uint8Array[];
-
 export function bbsGetBasesForCommitmentG1(
     params: BbsSigParams,
     indicesToCommit: number[]
@@ -116,14 +107,6 @@ export function bbsVerify(
 
 export function bbsCommitMsgs(
     messages: Map<number, Uint8Array>,
-    blinding: Uint8Array,
-    params: BbsSigParams,
-    encodeMessages: boolean
-): Uint8Array;
-
-export function bbsCommitMsgs(
-    messages: Map<number, Uint8Array>,
-    blinding: Uint8Array,
     params: BbsSigParams,
     encodeMessages: boolean
 ): Uint8Array;

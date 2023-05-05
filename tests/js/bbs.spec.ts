@@ -133,8 +133,7 @@ describe("For BBS signatures", () => {
     msgsNotToCommit.set(3, messages[3]);
     msgsNotToCommit.set(4, messages[4]);
 
-    const blinding = generateRandomFieldElement();
-    const commitment = bbsCommitMsgs(msgsToCommit, blinding, sigParamsG1, true);
+    const commitment = bbsCommitMsgs(msgsToCommit, sigParamsG1, true);
     const sig = bbsBlindSign(
       commitment,
       msgsNotToCommit,

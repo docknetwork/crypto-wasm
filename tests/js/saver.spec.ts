@@ -1,5 +1,5 @@
 import {
-  bbsPlusEncodeMessageForSigning,
+  encodeMessageForSigning,
   bbsPlusSignG1,
   BbsPlusSigParams,
   bbsPlusVerifyG1,
@@ -100,7 +100,7 @@ describe("Verifiable encryption of a signed message", () => {
 
     for (let i = 0; i < messageCount; i++) {
       let m = stringToBytes(`${i + 1}`);
-      m = bbsPlusEncodeMessageForSigning(m);
+      m = encodeMessageForSigning(m);
       messages.push(m);
     }
     sig = bbsPlusSignG1(messages, sigSk, sigParams, false);

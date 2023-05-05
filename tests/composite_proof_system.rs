@@ -19,12 +19,12 @@ use dock_crypto_wasm::{
     bbs::*,
     bbs_plus::{
         bbs_plus_blind_sign_g1, bbs_plus_commit_to_message_in_g1,
-        bbs_plus_encode_message_for_signing, bbs_plus_encode_messages_for_signing,
         bbs_plus_get_bases_for_commitment_g1, bbs_plus_sign_g1, bbs_plus_unblind_sig_g1,
         bbs_plus_verify_g1,
     },
     common::{
-        field_element_as_bytes, field_element_from_number, generate_field_element_from_bytes,
+        encode_message_for_signing, encode_messages_for_signing, field_element_as_bytes,
+        field_element_from_number, generate_field_element_from_bytes,
         generate_random_field_element, generate_random_g1_element, generate_random_g2_element,
         pedersen_commitment_g1, pedersen_commitment_g2, VerifyResponse,
     },
@@ -246,7 +246,7 @@ pub fn bbs_plus_sig_and_accumulator() {
         let mut msgs_1 = vec![];
         for _ in 0..msg_count_1 - 2 {
             let m = random_bytes();
-            let bytes = bbs_plus_encode_message_for_signing(m).unwrap();
+            let bytes = encode_message_for_signing(m).unwrap();
             msgs_1.push(bytes.to_vec());
         }
 
@@ -261,7 +261,7 @@ pub fn bbs_plus_sig_and_accumulator() {
         let mut msgs_2 = vec![];
         for _ in 0..msg_count_2 - 2 {
             let m = random_bytes();
-            let bytes = bbs_plus_encode_message_for_signing(m).unwrap();
+            let bytes = encode_message_for_signing(m).unwrap();
             msgs_2.push(bytes.to_vec());
         }
 
@@ -650,7 +650,7 @@ pub fn bbs_sig_and_accumulator() {
         let mut msgs_1 = vec![];
         for _ in 0..msg_count_1 - 2 {
             let m = random_bytes();
-            let bytes = bbs_encode_message_for_signing(m).unwrap();
+            let bytes = encode_message_for_signing(m).unwrap();
             msgs_1.push(bytes.to_vec());
         }
 
@@ -665,7 +665,7 @@ pub fn bbs_sig_and_accumulator() {
         let mut msgs_2 = vec![];
         for _ in 0..msg_count_2 - 2 {
             let m = random_bytes();
-            let bytes = bbs_encode_message_for_signing(m).unwrap();
+            let bytes = encode_message_for_signing(m).unwrap();
             msgs_2.push(bytes.to_vec());
         }
 
@@ -1168,8 +1168,7 @@ pub fn request_blind_bbs_plus_sig() {
 
     let witness_1 = generate_pok_bbs_plus_sig_witness(sig_1, unrevealed_msgs_1, true).unwrap();
 
-    let wits =
-        bbs_plus_encode_messages_for_signing(msgs_2_as_array.clone(), indices_to_commit).unwrap();
+    let wits = encode_messages_for_signing(msgs_2_as_array.clone(), indices_to_commit).unwrap();
     wits.unshift(&blinding);
     let witness_2 = generate_pedersen_commitment_witness(wits).unwrap();
 

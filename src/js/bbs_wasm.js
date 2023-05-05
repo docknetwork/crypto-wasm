@@ -60,16 +60,6 @@ module.exports.bbsGenerateKeyPair = (params, seed) => {
     return wasm.bbsGenerateKeyPair(params, seed);
 };
 
-module.exports.bbsEncodeMessagesForSigning = (messages, indicesToEncode) => {
-    requireWasmInitialized();
-    return wasm.bbsEncodeMessagesForSigning(messages, indicesToEncode);
-};
-
-module.exports.bbsGetBasesForCommitment = (params, indicesToCommit) => {
-    requireWasmInitialized();
-    return wasm.bbsGetBasesForCommitment(params, indicesToCommit);
-};;
-
 module.exports.bbsSign = (
     messages,
     secretKey,
@@ -93,12 +83,11 @@ module.exports.bbsVerify = (
 
 module.exports.bbsCommitMsgs = (
     messages,
-    blinding,
     params,
     encodeMessages
 ) => {
     requireWasmInitialized();
-    return wasm.bbsCommitMsgs(messages, blinding, params, encodeMessages);
+    return wasm.bbsCommitMsgs(messages, params, encodeMessages);
 };
 
 module.exports.bbsBlindSign = (
@@ -110,16 +99,6 @@ module.exports.bbsBlindSign = (
 ) => {
     requireWasmInitialized();
     return wasm.bbsBlindSign(commitment, uncommittedMessages, secretKey, params, encodeMessages);
-};
-
-module.exports.bbsEncodeMessageForSigning = (message) => {
-    requireWasmInitialized();
-    return wasm.bbsEncodeMessageForSigning(message);
-};
-
-module.exports.bbsEncodeMessagesForSigning = (messages, indicesToEncode) => {
-    requireWasmInitialized();
-    return wasm.bbsEncodeMessagesForSigning(messages, indicesToEncode);
 };
 
 module.exports.bbsInitializeProofOfKnowledgeOfSignature = (

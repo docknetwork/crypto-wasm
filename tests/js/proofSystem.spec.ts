@@ -4,8 +4,8 @@ import {
   accumulatorDeriveMembershipProvingKeyFromNonMembershipKey,
   bbsPlusBlindSignG1,
   bbsPlusCommitMsgsInG1,
-  bbsPlusEncodeMessageForSigning,
-  bbsPlusEncodeMessagesForSigning,
+  encodeMessageForSigning,
+  encodeMessagesForSigning,
   bbsPlusGetBasesForCommitmentG1,
   generatePoKPSSignatureStatement,
   bbsPlusSignG1,
@@ -77,6 +77,7 @@ import {
   generatePoKBBSSignatureStatement,
   bbsSign,
   generatePoKBBSSignatureWitness,
+  generateSetupParamForPSSignatureParameters,
 } from "../../lib";
 import { BbsSigParams, PSSigParams } from "../../lib/types";
 
@@ -89,7 +90,7 @@ function setupMessages(
   for (let i = 0; i < messageCount; i++) {
     let m = stringToBytes(`${prefix}-${i + 1}`);
     if (encode) {
-      m = bbsPlusEncodeMessageForSigning(m);
+      m = encodeMessageForSigning(m);
     }
     messages.push(m);
   }
@@ -649,7 +650,7 @@ describe("Proving knowledge of a BBS+ signature while requesting a partially bli
       true
     );
 
-    const pcWits = bbsPlusEncodeMessagesForSigning(messages2, indicesToCommit);
+    const pcWits = encodeMessagesForSigning(messages2, indicesToCommit);
     pcWits.splice(0, 0, blinding);
     const witness2 = generatePedersenCommitmentWitness(pcWits);
 

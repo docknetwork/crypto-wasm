@@ -228,37 +228,6 @@ pub fn bbs_plus_get_bases_for_commitment_g2(
     Ok(bases)
 }
 
-#[wasm_bindgen(js_name = bbsPlusEncodeMessageForSigning)]
-pub fn bbs_plus_encode_message_for_signing(
-    message: Vec<u8>,
-) -> Result<js_sys::Uint8Array, JsValue> {
-    set_panic_hook();
-    let fr = encode_message_for_signing(&message);
-    fr_to_uint8_array(&fr)
-}
-
-#[wasm_bindgen(js_name = bbsPlusEncodeMessagesForSigning)]
-pub fn bbs_plus_encode_messages_for_signing(
-    messages: js_sys::Array,
-    indices_to_encode: js_sys::Array,
-) -> Result<js_sys::Array, JsValue> {
-    set_panic_hook();
-    let encoded = js_sys::Array::new();
-    for i in indices_to_encode.values() {
-        let index: u32 = serde_wasm_bindgen::from_value(i.unwrap())?;
-        if index >= messages.length() {
-            return Err(JsValue::from(&format!(
-                "Invalid index {:?} to get message",
-                index
-            )));
-        }
-        let msg: Vec<u8> = serde_wasm_bindgen::from_value(messages.get(index))?;
-        let fr = encode_message_for_signing(&msg);
-        encoded.push(&fr_to_jsvalue(&fr)?);
-    }
-    Ok(encoded)
-}
-
 #[wasm_bindgen(js_name = bbsPlusCommitMsgsInG1)]
 pub fn bbs_plus_commit_to_message_in_g1(
     messages_to_commit: js_sys::Map,

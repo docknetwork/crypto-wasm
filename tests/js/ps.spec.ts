@@ -4,7 +4,7 @@ import {
   psAdaptSecretKeyForMoreMessages,
   psChallengeMessagesPoKContributionFromProof,
   psChallengeMessagesPoKContributionFromProtocol,
-  psEncodeMessageForSigning,
+  encodeMessageForSigning,
   psGenMessagesPoK,
   psInitializeMessagesPoK,
   psPublicKeyMaxSupportedMsgs,
@@ -57,7 +57,7 @@ describe("For PS signatures", () => {
       stringToBytes("Message4"),
       stringToBytes("Message4"),
       stringToBytes("Message6"),
-    ].map(psEncodeMessageForSigning);
+    ].map(encodeMessageForSigning);
     sigParams = psGenerateSignatureParams(
       messageCount,
       stringToBytes("test label")

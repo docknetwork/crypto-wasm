@@ -4,7 +4,7 @@
     bbsPlusIsSignatureParamsG1Valid, bbsPlusSignatureParamsG1MaxSupportedMsgs, bbsPlusIsSignatureParamsG2Valid, bbsPlusSignatureParamsG2MaxSupportedMsgs,
     bbsPlusGenerateSignatureParamsG1, bbsPlusGenerateSignatureParamsG2, bbsPlusGenerateKeyPairG1, bbsPlusGenerateKeyPairG2,
     bbsPlusGenerateSigningKey, bbsPlusGeneratePublicKeyG1, bbsPlusGeneratePublicKeyG2, bbsPlusIsPublicKeyG1Valid, bbsPlusIsPublicKeyG2Valid,
-    bbsPlusEncodeMessageForSigning, bbsPlusEncodeMessagesForSigning, bbsPlusGetBasesForCommitmentG1, bbsPlusGetBasesForCommitmentG2,
+    encodeMessageForSigning, encodeMessagesForSigning, bbsPlusGetBasesForCommitmentG1, bbsPlusGetBasesForCommitmentG2,
     bbsPlusSignG1, bbsPlusVerifyG1, bbsPlusCommitMsgsInG1, bbsPlusBlindSignG1, bbsPlusUnblindSigG1,
     bbsPlusSignG2, bbsPlusVerifyG2, bbsPlusCommitMsgsInG2, bbsPlusBlindSignG2, bbsPlusUnblindSigG2,
     bbsPlusInitializeProofOfKnowledgeOfSignature, bbsPlusVerifyProofOfKnowledgeOfSignature, bbsPlusGenProofOfKnowledgeOfSignature,
@@ -114,16 +114,6 @@ module.exports.bbsPlusGenerateKeyPairG1 = (params, seed) => {
 module.exports.bbsPlusGenerateKeyPairG2 = (params, seed) => {
     requireWasmInitialized();
     return wasm.bbsPlusGenerateKeyPairG2(params, seed);
-};
-
-module.exports.bbsPlusEncodeMessageForSigning = (message) => {
-    requireWasmInitialized();
-    return wasm.bbsPlusEncodeMessageForSigning(message);
-};
-
-module.exports.bbsPlusEncodeMessagesForSigning = (messages, indicesToEncode) => {
-    requireWasmInitialized();
-    return wasm.bbsPlusEncodeMessagesForSigning(messages, indicesToEncode);
 };
 
 module.exports.bbsPlusGetBasesForCommitmentG1 = (params, indicesToCommit) => {

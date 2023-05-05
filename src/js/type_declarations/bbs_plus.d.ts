@@ -78,15 +78,6 @@ export function bbsPlusGenerateKeyPairG2(
     seed?: Uint8Array
 ): Required<IKeypair>;
 
-export function bbsPlusEncodeMessageForSigning(
-    message: Uint8Array
-): Uint8Array;
-
-export function bbsPlusEncodeMessagesForSigning(
-    messages: Uint8Array[],
-    indicesToEncode: number[]
-): Uint8Array[];
-
 export function bbsPlusGetBasesForCommitmentG1(
     params: BbsPlusSigParams,
     indicesToCommit: number[]

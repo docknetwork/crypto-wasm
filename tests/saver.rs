@@ -6,7 +6,7 @@ use wasm_bindgen_test::*;
 use web_sys::console;
 
 use dock_crypto_wasm::{
-    bbs_plus::{bbs_plus_encode_message_for_signing, bbs_plus_sign_g1},
+    bbs_plus::{bbs_plus_sign_g1, encode_message_for_signing},
     common::VerifyResponse,
     composite_proof_system::{
         generate_composite_proof_g1_with_deconstructed_proof_spec,
@@ -34,7 +34,7 @@ pub fn bbs_sig_and_verifiable_encryption() {
 
     for _ in 0..msg_count {
         let m = random_bytes();
-        let bytes = bbs_plus_encode_message_for_signing(m).unwrap();
+        let bytes = encode_message_for_signing(m).unwrap();
         encoded_msgs.push(bytes.to_vec());
     }
 

@@ -12,7 +12,7 @@ import {
   initializeWasm,
   psGenerateSigningKey,
   psGeneratePublicKey,
-  psEncodeMessagesForSigning,
+  encodeMessagesForSigning,
 } from "../lib";
 import { benchmark, report } from "@stablelib/benchmark";
 import { generateMessages } from "./helper";
@@ -46,11 +46,11 @@ export const benchmarkPS = async (
   report(
     `PS encode ${numberOfMessages}, ${messageSizeInBytes} byte message(s)`,
     benchmark(() => {
-      psEncodeMessagesForSigning(messages, Object.keys(messages).map(idx => +idx));
+      encodeMessagesForSigning(messages, Object.keys(messages).map(idx => +idx));
     })
   );
 
-  const encodedMessages = psEncodeMessagesForSigning(messages, Object.keys(messages).map(idx => +idx));
+  const encodedMessages = encodeMessagesForSigning(messages, Object.keys(messages).map(idx => +idx));
 
   report(
     `PS Sign ${numberOfMessages}, ${messageSizeInBytes} byte message(s)`,

@@ -113,11 +113,11 @@ pub fn ps_sign_verify() {
         } else {
             // Messages are encoded from text
             let m = format!("Message{}", i).as_bytes().to_vec();
-            let bytes = ps_encode_message_for_signing(m).unwrap();
+            let bytes = encode_message_for_signing(m).unwrap();
             msgs.push(bytes.to_vec());
         }
     }
-    let messages_as_array = ps_encode_messages_for_signing(
+    let messages_as_array = encode_messages_for_signing(
         js_array_of_bytearrays_from_vector_of_bytevectors(&msgs).unwrap(),
         None,
     )
@@ -138,7 +138,7 @@ pub fn ps_blind_sign_test() {
         b"Message5".to_vec(),
     ];
     let message_count = messages.len();
-    let messages_as_array = ps_encode_messages_for_signing(
+    let messages_as_array = encode_messages_for_signing(
         js_array_of_bytearrays_from_vector_of_bytevectors(&messages).unwrap(),
         None,
     )
@@ -209,12 +209,12 @@ pub fn ps_proof_of_knowledge() {
         } else {
             // Messages are encoded from text
             let m = format!("Message{}", i).as_bytes().to_vec();
-            let bytes = ps_encode_message_for_signing(m).unwrap();
+            let bytes = encode_message_for_signing(m).unwrap();
             messages.push(bytes.to_vec());
         }
     }
     // Prover reveals message indices 0 and 2 and supplies blindings for message indices 1, 4 and 5
-    let messages_as_array = ps_encode_messages_for_signing(
+    let messages_as_array = encode_messages_for_signing(
         js_array_of_bytearrays_from_vector_of_bytevectors(&messages).unwrap(),
         None,
     )
@@ -400,7 +400,7 @@ pub fn ps_extend_params() {
         b"Message4".to_vec(),
         b"Message5".to_vec(),
     ];
-    let messages_as_array = ps_encode_messages_for_signing(
+    let messages_as_array = encode_messages_for_signing(
         js_array_of_bytearrays_from_vector_of_bytevectors(&messages).unwrap(),
         None,
     )

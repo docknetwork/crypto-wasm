@@ -1,8 +1,9 @@
 use crate::{
     utils::{
-        field_element_from_u64, fr_from_uint8_array, fr_to_uint8_array, g1_affine_to_uint8_array,
-        g2_affine_to_uint8_array, is_positive_safe_integer, js_array_to_fr_vec,
-        js_array_to_g1_affine_vec, js_array_to_g2_affine_vec, random_bytes, set_panic_hook,
+        self, field_element_from_u64, fr_from_uint8_array, fr_to_jsvalue, fr_to_uint8_array,
+        g1_affine_to_uint8_array, g2_affine_to_uint8_array, is_positive_safe_integer,
+        js_array_to_fr_vec, js_array_to_g1_affine_vec, js_array_to_g2_affine_vec, random_bytes,
+        set_panic_hook,
     },
     Fr, G1Affine, G1Projective, G2Affine, G2Projective,
 };
@@ -10,7 +11,50 @@ use ark_ec::{CurveGroup, VariableBaseMSM};
 use ark_serialize::CanonicalSerialize;
 use blake2::Blake2b512;
 use serde::{Deserialize, Serialize};
+use serde_json::from_value;
 use wasm_bindgen::prelude::*;
+
+#[wasm_bindgen(js_name = encodeMessageForSigning)]
+pub fn encode_message_for_signing(message: Vec<u8>) -> Result<js_sys::Uint8Array, JsValue> {
+    set_panic_hook();
+    let fr = utils::encode_message_for_signing(&message);
+    fr_to_uint8_array(&fr)
+}
+
+#[wasm_bindgen(js_name = encodeMessagesForSigning)]
+pub fn encode_messages_for_signing(
+    messages: js_sys::Array,
+    indices_to_encode: Option<js_sys::Array>,
+) -> Result<js_sys::Array, JsValue> {
+    use serde_wasm_bindgen::from_value;
+
+    set_panic_hook();
+    let encoded = js_sys::Array::new();
+
+    if let Some(indices_to_encode) = indices_to_encode {
+        for i in indices_to_encode.values() {
+            let index: u32 = from_value(i.unwrap())?;
+            if index >= messages.length() {
+                return Err(JsValue::from(&format!(
+                    "Invalid index {:?} to get message",
+                    index
+                )));
+            }
+            let msg: Vec<u8> = from_value(messages.get(index))?;
+            let fr = utils::encode_message_for_signing(&msg);
+            encoded.push(&fr_to_jsvalue(&fr)?);
+        }
+    } else {
+        for value in messages.values() {
+            let msg: Vec<u8> = from_value(value?)?;
+            let fr = utils::encode_message_for_signing(&msg);
+
+            encoded.push(&fr_to_jsvalue(&fr)?);
+        }
+    }
+
+    Ok(encoded)
+}
 
 #[wasm_bindgen(js_name = generateRandomG1Element)]
 pub fn generate_random_g1_element(seed: Option<Vec<u8>>) -> Result<js_sys::Uint8Array, JsValue> {

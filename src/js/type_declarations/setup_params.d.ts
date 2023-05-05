@@ -8,6 +8,10 @@ export function generateSetupParamForBBSPlusPublicKeyG2(
     publicKey: Uint8Array
 ): Uint8Array;
 
+export function generateSetupParamForPSPublicKey(
+    publicKey: Uint8Array
+): Uint8Array;
+
 export function generateSetupParamForBBSSignatureParameters(
     params: BbsSigParams
 ): Uint8Array;

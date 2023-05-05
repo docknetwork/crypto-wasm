@@ -131,7 +131,7 @@ pub fn bbs_sign_verify() {
         } else {
             // Messages are encoded from text
             let m = format!("Message{}", i).as_bytes().to_vec();
-            let bytes = bbs_encode_message_for_signing(m).unwrap();
+            let bytes = encode_message_for_signing(m).unwrap();
             msgs.push(bytes.to_vec());
         }
     }
@@ -308,7 +308,7 @@ pub fn bbs_proof_of_knowledge() {
         } else {
             // Messages are encoded from text
             let m = format!("Message{}", i).as_bytes().to_vec();
-            let bytes = bbs_encode_message_for_signing(m).unwrap();
+            let bytes = encode_message_for_signing(m).unwrap();
             messages.push(bytes.to_vec());
         }
     }
