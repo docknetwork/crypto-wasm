@@ -8,8 +8,8 @@ use wasm_bindgen_test::*;
 use dock_crypto_wasm::{
     bbs::*,
     common::{
-        field_element_as_bytes, field_element_from_number, generate_challenge_from_bytes,
-        generate_random_field_element, VerifyResponse,
+        encode_message_for_signing, field_element_as_bytes, field_element_from_number,
+        generate_challenge_from_bytes, generate_random_field_element, VerifyResponse,
     },
     utils::js_array_of_bytearrays_from_vector_of_bytevectors,
 };
@@ -186,9 +186,7 @@ pub fn bbs_blind_sign_test() {
         message_count - committed_indices.len()
     );
 
-    let blinding = generate_random_field_element(None).unwrap();
-
-    let commitment = bbs_commit_to_message(msgs_to_commit, blinding, params.clone(), true).unwrap();
+    let commitment = bbs_commit_to_message(msgs_to_commit, params.clone(), true).unwrap();
     let sig = bbs_blind_sign(commitment, msgs_to_not_commit, sk, params.clone(), true).unwrap();
     let result = bbs_verify(messages_as_array, sig, pk, params, true).unwrap();
     let r: VerifyResponse = serde_wasm_bindgen::from_value(result).unwrap();

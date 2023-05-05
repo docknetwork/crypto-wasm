@@ -11,7 +11,7 @@ use ark_ec::{CurveGroup, VariableBaseMSM};
 use ark_serialize::CanonicalSerialize;
 use blake2::Blake2b512;
 use serde::{Deserialize, Serialize};
-use serde_json::from_value;
+
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(js_name = encodeMessageForSigning)]

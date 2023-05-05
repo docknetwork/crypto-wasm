@@ -1,7 +1,4 @@
-use crate::utils::{
-    encode_message_for_signing, fr_from_uint8_array, fr_to_jsvalue, fr_to_uint8_array,
-    get_seeded_rng, random_bytes, set_panic_hook,
-};
+use crate::utils::{fr_from_uint8_array, get_seeded_rng, random_bytes, set_panic_hook};
 
 use crate::{common::VerifyResponse, Fr, G1Affine};
 use ark_bls12_381::Bls12_381;

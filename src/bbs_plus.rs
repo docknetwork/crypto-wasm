@@ -1,7 +1,7 @@
 use crate::utils::{
-    fr_from_uint8_array, fr_to_jsvalue, fr_to_uint8_array, g1_affine_from_uint8_array,
-    g1_affine_to_jsvalue, g1_affine_to_uint8_array, g2_affine_from_uint8_array,
-    g2_affine_to_jsvalue, g2_affine_to_uint8_array, get_seeded_rng, random_bytes, set_panic_hook,
+    fr_from_uint8_array, g1_affine_from_uint8_array, g1_affine_to_jsvalue,
+    g1_affine_to_uint8_array, g2_affine_from_uint8_array, g2_affine_to_jsvalue,
+    g2_affine_to_uint8_array, get_seeded_rng, random_bytes, set_panic_hook,
 };
 
 use bbs_plus::{proof::MessageOrBlinding, setup::MultiMessageSignatureParams};
@@ -9,10 +9,7 @@ use wasm_bindgen::prelude::*;
 
 use crate::{
     common::VerifyResponse,
-    utils::{
-        encode_message_for_signing, encode_messages_as_js_array_to_fr_vec,
-        encode_messages_as_js_map_to_fr_btreemap,
-    },
+    utils::{encode_messages_as_js_array_to_fr_vec, encode_messages_as_js_map_to_fr_btreemap},
     Fr, G1Affine, G2Affine,
 };
 use ark_bls12_381::Bls12_381;

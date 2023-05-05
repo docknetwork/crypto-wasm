@@ -1054,10 +1054,8 @@ pub fn request_blind_bbs_sig() {
             );
         }
     }
-    let blinding = generate_random_field_element(None).unwrap();
 
-    let commitment =
-        bbs_commit_to_message(msgs_to_commit, blinding, params_2.clone(), true).unwrap();
+    let commitment = bbs_commit_to_message(msgs_to_commit, params_2.clone(), true).unwrap();
 
     let statements = js_sys::Array::new();
     let stmt_1 = generate_pok_bbs_sig_statement(params_1, pk_1, revealed_msgs_1, true).unwrap();
@@ -1079,7 +1077,8 @@ pub fn request_blind_bbs_sig() {
 
     let witness_1 = generate_pok_bbs_sig_witness(sig_1, unrevealed_msgs_1, true).unwrap();
 
-    let wits = bbs_encode_messages_for_signing(msgs_2_as_array.clone(), indices_to_commit).unwrap();
+    let wits =
+        encode_messages_for_signing(msgs_2_as_array.clone(), Some(indices_to_commit)).unwrap();
     let witness_2 = generate_pedersen_commitment_witness(wits).unwrap();
 
     let witnesses = js_sys::Array::new();
@@ -1168,7 +1167,8 @@ pub fn request_blind_bbs_plus_sig() {
 
     let witness_1 = generate_pok_bbs_plus_sig_witness(sig_1, unrevealed_msgs_1, true).unwrap();
 
-    let wits = encode_messages_for_signing(msgs_2_as_array.clone(), indices_to_commit).unwrap();
+    let wits =
+        encode_messages_for_signing(msgs_2_as_array.clone(), Some(indices_to_commit)).unwrap();
     wits.unshift(&blinding);
     let witness_2 = generate_pedersen_commitment_witness(wits).unwrap();
 

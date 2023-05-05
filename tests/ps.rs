@@ -10,8 +10,9 @@ use wasm_bindgen_test::*;
 
 use dock_crypto_wasm::{
     common::{
-        field_element_as_bytes, field_element_from_number, generate_challenge_from_bytes,
-        generate_random_field_element, VerifyResponse,
+        encode_message_for_signing, encode_messages_for_signing, field_element_as_bytes,
+        field_element_from_number, generate_challenge_from_bytes, generate_random_field_element,
+        VerifyResponse,
     },
     ps::*,
     utils::js_array_of_bytearrays_from_vector_of_bytevectors,

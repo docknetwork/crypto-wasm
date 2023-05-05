@@ -6,9 +6,9 @@ use wasm_bindgen_test::*;
 use web_sys::console;
 
 use dock_crypto_wasm::{
-    bbs_plus::{bbs_plus_sign_g1, encode_message_for_signing},
+    bbs_plus::bbs_plus_sign_g1,
     bound_check::*,
-    common::VerifyResponse,
+    common::{encode_message_for_signing, VerifyResponse},
     composite_proof_system::{
         generate_bound_check_witness, generate_composite_proof_g1_with_deconstructed_proof_spec,
         generate_pok_bbs_plus_sig_witness, verify_composite_proof_g1_with_deconstructed_proof_spec,
