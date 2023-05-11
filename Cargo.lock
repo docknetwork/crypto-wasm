@@ -18,6 +18,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f26201604c87b1e01bd3d98f8d5d9a8fcbb815e8cedb41ffccbeb4bf593a35fe"
 
 [[package]]
+name = "aes"
+version = "0.8.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "433cfd6710c9986c576a25ca913c39d66a6474107b406f34f91d4a8923395241"
+dependencies = [
+ "cfg-if",
+ "cipher",
+ "cpufeatures",
+]
+
+[[package]]
 name = "ahash"
 version = "0.7.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -253,8 +264,9 @@ dependencies = [
 
 [[package]]
 name = "bbs_plus"
-version = "0.13.0"
-source = "git+https://github.com/docknetwork/crypto.git?branch=improvements#1c485cf97b2dbfeb6ca0de10ad994a035b731e0d"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "44963bdf0fc1df79c670b15b98e616514659389eb7fbba0c0584528fd25c4cd2"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -263,9 +275,12 @@ dependencies = [
  "digest",
  "dock_crypto_utils",
  "itertools",
+ "oblivious_transfer_protocols",
  "schnorr_pok",
+ "secret_sharing_and_dkg",
  "serde",
  "serde_with",
+ "sha3",
  "zeroize",
 ]
 
@@ -340,9 +355,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
+name = "cipher"
+version = "0.4.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "773f3b9af64447d2ce9850330c473515014aa235e6a783b02db81ff39e4a3dad"
+dependencies = [
+ "crypto-common",
+ "inout",
+]
+
+[[package]]
 name = "coconut-crypto"
-version = "0.2.0"
-source = "git+https://github.com/docknetwork/crypto.git?branch=improvements#1c485cf97b2dbfeb6ca0de10ad994a035b731e0d"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d508e19948b4571ea46c2c03a562894591a964837d4751f7b5caf99b7a1e0eff"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -503,8 +529,9 @@ dependencies = [
 
 [[package]]
 name = "dock_crypto_utils"
-version = "0.11.0"
-source = "git+https://github.com/docknetwork/crypto.git?branch=improvements#1c485cf97b2dbfeb6ca0de10ad994a035b731e0d"
+version = "0.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "89886aa571225f44d572e61e192e9bf5c1047bacf1e65a004d23826f3109d73c"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -684,6 +711,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "inout"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a0c10553d664a4d0bcff9f4215d0aac67a639cc68ef660840afe309b807bc9f5"
+dependencies = [
+ "generic-array",
+]
+
+[[package]]
 name = "itertools"
 version = "0.10.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -709,9 +745,9 @@ dependencies = [
 
 [[package]]
 name = "keccak"
-version = "0.1.3"
+version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3afef3b6eff9ce9d8ff9b3601125eec7f0c8cbac7abd14f355d053fa56c98768"
+checksum = "8f6d5ed8676d904364de097082f4e7d240b571b67989ced0240f08b7f966f940"
 dependencies = [
  "cpufeatures",
 ]
@@ -724,8 +760,9 @@ checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
 name = "legogroth16"
-version = "0.7.0"
-source = "git+https://github.com/docknetwork/crypto.git?branch=improvements#1c485cf97b2dbfeb6ca0de10ad994a035b731e0d"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e67caf5ea0e92f48a15aac86f21d6cc6d3fb0c5b5841003ddbb49bac7254d078"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -878,6 +915,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "oblivious_transfer_protocols"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c4a2feec294813e5e9e340f3ef37fccb51da51259d3eb3bdc7685e81478ee7ae"
+dependencies = [
+ "aes",
+ "ark-ec",
+ "ark-ff",
+ "ark-serialize",
+ "ark-std",
+ "byteorder",
+ "cipher",
+ "digest",
+ "dock_crypto_utils",
+ "itertools",
+ "schnorr_pok",
+ "serde",
+ "serde_with",
+ "sha3",
+ "zeroize",
+]
+
+[[package]]
 name = "once_cell"
 version = "1.17.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -936,8 +996,9 @@ dependencies = [
 
 [[package]]
 name = "proof_system"
-version = "0.19.0"
-source = "git+https://github.com/docknetwork/crypto.git?branch=improvements#1c485cf97b2dbfeb6ca0de10ad994a035b731e0d"
+version = "0.20.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f9df40f8a0c9218500bbd98188c6d89d12ec74774ca6778893ae8b83ca3a2da3"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -1133,8 +1194,9 @@ checksum = "f91339c0467de62360649f8d3e185ca8de4224ff281f66000de5eb2a77a79041"
 
 [[package]]
 name = "saver"
-version = "0.10.0"
-source = "git+https://github.com/docknetwork/crypto.git?branch=improvements#1c485cf97b2dbfeb6ca0de10ad994a035b731e0d"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3aceeb5f185c22efd19e58bfe96801566f2c09986d7925fa1ad1738918c40702"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -1154,8 +1216,9 @@ dependencies = [
 
 [[package]]
 name = "schnorr_pok"
-version = "0.10.0"
-source = "git+https://github.com/docknetwork/crypto.git?branch=improvements#1c485cf97b2dbfeb6ca0de10ad994a035b731e0d"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "86c409717f68a84b324d363a877635586684864c19e6edb4ca22f40a2c6ef85a"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -1188,8 +1251,9 @@ checksum = "1c107b6f4780854c8b126e228ea8869f4d7b71260f962fefb57b996b8959ba6b"
 
 [[package]]
 name = "secret_sharing_and_dkg"
-version = "0.3.0"
-source = "git+https://github.com/docknetwork/crypto.git?branch=improvements#1c485cf97b2dbfeb6ca0de10ad994a035b731e0d"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "67c40e252fde5d1d18b995bf1588c6ae420295ce7909259eda61b955513d905f"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -1292,6 +1356,16 @@ dependencies = [
  "cfg-if",
  "cpufeatures",
  "digest",
+]
+
+[[package]]
+name = "sha3"
+version = "0.10.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "75872d278a8f37ef87fa0ddbda7802605cb18344497949862c0d4dcb291eba60"
+dependencies = [
+ "digest",
+ "keccak",
 ]
 
 [[package]]
@@ -1409,8 +1483,9 @@ checksum = "e5464a87b239f13a63a501f2701565754bae92d243d4bb7eb12f6d57d2269bf4"
 
 [[package]]
 name = "vb_accumulator"
-version = "0.13.0"
-source = "git+https://github.com/docknetwork/crypto.git?branch=improvements#1c485cf97b2dbfeb6ca0de10ad994a035b731e0d"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "eff59621d169ac77ac4578b2f1ec9070183e0ff6d9d7d73ddc4c33be11094ee9"
 dependencies = [
  "ark-ec",
  "ark-ff",
