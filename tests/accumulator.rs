@@ -2,11 +2,13 @@
 extern crate wasm_bindgen_test;
 
 use ark_bls12_381::Bls12_381;
-use dock_crypto_wasm::accumulator::*;
-use dock_crypto_wasm::common::{
-    generate_challenge_from_bytes, generate_random_field_element, random_ff, VerifyResponse,
+use dock_crypto_wasm::{
+    accumulator::*,
+    common::{
+        generate_challenge_from_bytes, generate_random_field_element, random_ff, VerifyResponse,
+    },
+    utils::{fr_from_uint8_array, js_array_from_frs},
 };
-use dock_crypto_wasm::utils::{fr_from_uint8_array, js_array_from_frs};
 use vb_accumulator::prelude::{PositiveAccumulator, UniversalAccumulator};
 use wasm_bindgen::JsValue;
 use wasm_bindgen_test::*;
@@ -521,7 +523,7 @@ pub fn positive_accumulator_batch() {
 
     for a in add_batch.values() {
         accumulator_1 = positive_accumulator_add(
-            accumulator_1,
+            accumulator_1.into(),
             js_sys::Uint8Array::new(&a.unwrap()),
             sk.clone(),
         )
@@ -544,7 +546,8 @@ pub fn positive_accumulator_batch() {
     );
 
     accumulator_2 =
-        positive_accumulator_add_batch(accumulator_2, add_batch.clone(), sk.clone()).unwrap();
+        positive_accumulator_add_batch(accumulator_2.into(), add_batch.clone(), sk.clone())
+            .unwrap();
 
     positive_accumulator_create_verify_membership_for_batch(
         accumulator_2.clone(),
@@ -570,7 +573,7 @@ pub fn positive_accumulator_batch() {
 
     for r in remove_batch.values() {
         accumulator_1 = positive_accumulator_remove(
-            accumulator_1,
+            accumulator_1.into(),
             js_sys::Uint8Array::new(&r.unwrap()),
             sk.clone(),
         )
@@ -578,7 +581,8 @@ pub fn positive_accumulator_batch() {
     }
 
     accumulator_2 =
-        positive_accumulator_remove_batch(accumulator_2, remove_batch.clone(), sk.clone()).unwrap();
+        positive_accumulator_remove_batch(accumulator_2.into(), remove_batch.clone(), sk.clone())
+            .unwrap();
 
     assert_eq!(
         serde_wasm_bindgen::from_value::<PositiveAccumulator<Bls12_381>>(accumulator_1.clone())
@@ -589,7 +593,8 @@ pub fn positive_accumulator_batch() {
 
     let mut accumulator_3 = accumulator_0.clone();
 
-    accumulator_0 = positive_accumulator_add(accumulator_0, element_5.clone(), sk.clone()).unwrap();
+    accumulator_0 =
+        positive_accumulator_add(accumulator_0.into(), element_5.clone(), sk.clone()).unwrap();
 
     accumulator_3 = positive_accumulator_batch_updates(
         accumulator_3,
@@ -601,8 +606,10 @@ pub fn positive_accumulator_batch() {
 
     assert_eq!(
         serde_wasm_bindgen::from_value::<PositiveAccumulator<Bls12_381>>(accumulator_0).unwrap(),
-        serde_wasm_bindgen::from_value::<PositiveAccumulator<Bls12_381>>(accumulator_3.clone())
-            .unwrap(),
+        serde_wasm_bindgen::from_value::<PositiveAccumulator<Bls12_381>>(
+            accumulator_3.clone().into()
+        )
+        .unwrap(),
     );
 
     positive_accumulator_create_verify_membership_for_batch(
@@ -724,7 +731,7 @@ pub fn universal_accumulator_batch() {
 
     for a in add_batch.values() {
         accumulator_1 = universal_accumulator_add(
-            accumulator_1,
+            accumulator_1.into(),
             js_sys::Uint8Array::new(&a.unwrap()),
             sk.clone(),
         )
@@ -756,7 +763,8 @@ pub fn universal_accumulator_batch() {
     );
 
     accumulator_2 =
-        universal_accumulator_add_batch(accumulator_2, add_batch.clone(), sk.clone()).unwrap();
+        universal_accumulator_add_batch(accumulator_2.into(), add_batch.clone(), sk.clone())
+            .unwrap();
 
     assert_eq!(
         serde_wasm_bindgen::from_value::<UniversalAccumulator<Bls12_381>>(accumulator_1.clone())
@@ -767,7 +775,7 @@ pub fn universal_accumulator_batch() {
 
     for r in remove_batch.values() {
         accumulator_1 = universal_accumulator_remove(
-            accumulator_1,
+            accumulator_1.into(),
             js_sys::Uint8Array::new(&r.unwrap()),
             sk.clone(),
         )
@@ -794,7 +802,7 @@ pub fn universal_accumulator_batch() {
     );
 
     accumulator_2 =
-        universal_accumulator_remove_batch(accumulator_2, remove_batch.clone(), sk.clone())
+        universal_accumulator_remove_batch(accumulator_2.into(), remove_batch.clone(), sk.clone())
             .unwrap();
 
     assert_eq!(
@@ -884,11 +892,11 @@ pub fn witness_update_single() {
         new_witness_1,
         element_1.clone(),
         element_2.clone(),
-        positive_accumulator_get_accumulated(pos_accum_2.clone()).unwrap(),
+        positive_accumulator_get_accumulated(pos_accum_2.clone().into()).unwrap(),
     )
     .unwrap();
     assert!(positive_accumulator_verify_membership(
-        positive_accumulator_get_accumulated(pos_accum_2.clone()).unwrap(),
+        positive_accumulator_get_accumulated(pos_accum_2.clone().into()).unwrap(),
         element_1.clone(),
         new_witness_1,
         pk.clone(),

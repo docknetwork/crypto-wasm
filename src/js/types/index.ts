@@ -11,12 +11,21 @@
  * limitations under the License.
  */
 
+export { BbsPlusSigParams } from "./BbsPlusSigParams";
+export { BbsPlusSig } from "./BbsPlusSig";
+export { BbsPlusPoKSigProtocol } from "./BbsPlusPoKSigProtocol";
+export { BbsPlusPoKSigProof } from "./BbsPlusPoKSigProof";
 export { BbsSigParams } from "./BbsSigParams";
 export { BbsSig } from "./BbsSig";
 export { BbsPoKSigProtocol } from "./BbsPoKSigProtocol";
 export { BbsPoKSigProof } from "./BbsPoKSigProof";
-export {IKeypair} from "./IKeypair";
+export { PSCommitmentOrMessage } from "./PSCommitmentOrMessage";
+export { PSSigParams } from "./PSSigParams";
+export { PSSig } from "./PSSig";
+export { PSPoKSigProtocol } from "./PSPoKSigProtocol";
+export { PSPoKSigProof } from "./PSPoKSigProof";
+export { IKeypair } from "./IKeypair";
 export { VerifyResult } from "./VerifyResult";
 export { IUniversalAccumulator } from "./IUniversalAccumulator";
 export { INonMembershipWitness } from "./INonMembershipWitness";
-export { LCTerm, LC, Constraint, R1CS} from "./R1CS";
+export { LCTerm, LC, Constraint, R1CS } from "./R1CS";

@@ -14,7 +14,7 @@ pub fn legosnark_decompress_pk(
     snark_pk: js_sys::Uint8Array,
 ) -> Result<js_sys::Uint8Array, JsValue> {
     let snark_pk = obj_from_uint8array!(LegoProvingKey, snark_pk, false, "LegoProvingKey");
-    Ok(obj_to_uint8array_unchecked!(&snark_pk, "LegoProvingKey"))
+    Ok(obj_to_uint8array_uncompressed!(&snark_pk, "LegoProvingKey"))
 }
 
 /// Return the compressed or uncompressed SNARK verification key from compressed proving key
@@ -25,7 +25,7 @@ pub fn legosnark_vk_from_pk(
 ) -> Result<js_sys::Uint8Array, JsValue> {
     let snark_pk = obj_from_uint8array!(LegoProvingKey, snark_pk, false, "LegoProvingKey");
     Ok(if return_uncompressed {
-        obj_to_uint8array_unchecked!(&snark_pk.vk, "LegoVerifyingKey")
+        obj_to_uint8array_uncompressed!(&snark_pk.vk, "LegoVerifyingKey")
     } else {
         obj_to_uint8array!(&snark_pk.vk, false, "LegoVerifyingKey")
     })
@@ -37,5 +37,8 @@ pub fn legosnark_decompress_vk(
     snark_vk: js_sys::Uint8Array,
 ) -> Result<js_sys::Uint8Array, JsValue> {
     let snark_vk = obj_from_uint8array!(LegoVerifyingKey, snark_vk, false, "LegoVerifyingKey");
-    Ok(obj_to_uint8array_unchecked!(&snark_vk, "LegoVerifyingKey"))
+    Ok(obj_to_uint8array_uncompressed!(
+        &snark_vk,
+        "LegoVerifyingKey"
+    ))
 }

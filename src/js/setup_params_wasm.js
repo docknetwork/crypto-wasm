@@ -2,14 +2,29 @@ const {
     wasm, requireWasmInitialized
 } = require('./init_wasm');
 
-module.exports.generateSetupParamForBBSSignatureParametersG1 = (params) => {
+module.exports.generateSetupParamForBBSPlusSignatureParametersG1 = (params) => {
     requireWasmInitialized();
-    return wasm.generateSetupParamForBBSSignatureParametersG1(params);
+    return wasm.generateSetupParamForBBSPlusSignatureParametersG1(params);
 };
 
-module.exports.generateSetupParamForBBSPublicKeyG2 = (publicKey) => {
+module.exports.generateSetupParamForBBSPlusPublicKeyG2 = (publicKey) => {
     requireWasmInitialized();
-    return wasm.generateSetupParamForBBSPublicKeyG2(publicKey);
+    return wasm.generateSetupParamForBBSPlusPublicKeyG2(publicKey);
+};
+
+module.exports.generateSetupParamForPSPublicKey = (publicKey) => {
+    requireWasmInitialized();
+    return wasm.generateSetupParamForPSPublicKey(publicKey);
+};
+
+module.exports.generateSetupParamForPSSignatureParameters = (params) => {
+    requireWasmInitialized();
+    return wasm.generateSetupParamForPSSignatureParameters(params);
+};
+
+module.exports.generateSetupParamForBBSSignatureParameters = (params) => {
+    requireWasmInitialized();
+    return wasm.generateSetupParamForBBSSignatureParameters(params);
 };
 
 module.exports.generateSetupParamForVbAccumulatorParams = (params) => {

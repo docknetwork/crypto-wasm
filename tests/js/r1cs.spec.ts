@@ -3,14 +3,14 @@ import * as fs from "fs";
 import * as path from "path";
 
 import {
-  bbsSignG1,
-  bbsVerifyG1,
-  generateBBSPublicKeyG2,
-  generateBBSSigningKey,
+  bbsPlusSignG1,
+  bbsPlusVerifyG1,
+  bbsPlusGeneratePublicKeyG2,
+  bbsPlusGenerateSigningKey,
   generateCompositeProofG1WithDeconstructedProofSpec,
   generateFieldElementFromNumber,
-  generatePoKBBSSignatureStatement,
-  generatePoKBBSSignatureWitness,
+  generatePoKBBSPlusSignatureStatement,
+  generatePoKBBSPlusSignatureWitness,
   generateR1CSCircomProverStatement,
   generateR1CSCircomProverStatementFromParamRefs,
   generateR1CSCircomVerifierStatement,
@@ -21,7 +21,7 @@ import {
   generateSetupParamForLegoProvingKey,
   generateSetupParamForLegoVerifyingKey,
   generateSetupParamForR1CS,
-  generateSignatureParamsG1,
+  bbsPlusGenerateSignatureParamsG1,
   generateWitnessEqualityMetaStatement,
   initializeWasm,
   legosnarkDecompressPk,
@@ -448,9 +448,9 @@ describe("Proof generation and verification from R1CS and WASM file", () => {
     const wasmBytes = getWasmBytes("multiply2.wasm");
 
     const messageCount = 5;
-    const sigParams = generateSignatureParamsG1(messageCount);
-    const sigSk = generateBBSSigningKey();
-    const sigPk = generateBBSPublicKeyG2(sigSk, sigParams);
+    const sigParams = bbsPlusGenerateSignatureParamsG1(messageCount);
+    const sigSk = bbsPlusGenerateSigningKey();
+    const sigPk = bbsPlusGeneratePublicKeyG2(sigSk, sigParams);
 
     const messages: Uint8Array[] = [];
     const messagesAsIntegers: number[] = [];
@@ -463,8 +463,8 @@ describe("Proof generation and verification from R1CS and WASM file", () => {
     const publicOutput = generateFieldElementFromNumber(
       messagesAsIntegers[in1Index] * messagesAsIntegers[in2Index]
     );
-    const sig = bbsSignG1(messages, sigSk, sigParams, false);
-    const res = bbsVerifyG1(messages, sig, sigPk, sigParams, false);
+    const sig = bbsPlusSignG1(messages, sigSk, sigParams, false);
+    const res = bbsPlusVerifyG1(messages, sig, sigPk, sigParams, false);
     expect(res.verified).toBe(true);
 
     const revealedIndices = new Set<number>();
@@ -474,7 +474,7 @@ describe("Proof generation and verification from R1CS and WASM file", () => {
       messages,
       revealedIndices
     );
-    const statement1 = generatePoKBBSSignatureStatement(
+    const statement1 = generatePoKBBSPlusSignatureStatement(
       sigParams,
       sigPk,
       revealedMsgs,
@@ -507,7 +507,7 @@ describe("Proof generation and verification from R1CS and WASM file", () => {
     set2.add([1, 1]);
     metaStatements.push(generateWitnessEqualityMetaStatement(set2));
 
-    const witness1 = generatePoKBBSSignatureWitness(sig, unrevealedMsgs, false);
+    const witness1 = generatePoKBBSPlusSignatureWitness(sig, unrevealedMsgs, false);
     const inputWires = new Map<string, Uint8Array[]>();
     inputWires.set("a", [messages[in1Index]]);
     inputWires.set("b", [messages[in2Index]]);
@@ -558,9 +558,9 @@ describe("Proof generation and verification from R1CS and WASM file", () => {
     const wasmBytes = getWasmBytes("less_than_32.wasm");
 
     const messageCount = 5;
-    const sigParams = generateSignatureParamsG1(messageCount);
-    const sigSk = generateBBSSigningKey();
-    const sigPk = generateBBSPublicKeyG2(sigSk, sigParams);
+    const sigParams = bbsPlusGenerateSignatureParamsG1(messageCount);
+    const sigSk = bbsPlusGenerateSigningKey();
+    const sigPk = bbsPlusGeneratePublicKeyG2(sigSk, sigParams);
 
     const messages: Uint8Array[] = [];
     const messagesAsIntegers: number[] = [];
@@ -571,8 +571,8 @@ describe("Proof generation and verification from R1CS and WASM file", () => {
     const in1Index = 1;
     const in2Index = 3;
     const publicOutput = generateFieldElementFromNumber(1);
-    const sig = bbsSignG1(messages, sigSk, sigParams, false);
-    const res = bbsVerifyG1(messages, sig, sigPk, sigParams, false);
+    const sig = bbsPlusSignG1(messages, sigSk, sigParams, false);
+    const res = bbsPlusVerifyG1(messages, sig, sigPk, sigParams, false);
     expect(res.verified).toBe(true);
 
     const revealedIndices = new Set<number>();
@@ -582,7 +582,7 @@ describe("Proof generation and verification from R1CS and WASM file", () => {
       messages,
       revealedIndices
     );
-    const statement1 = generatePoKBBSSignatureStatement(
+    const statement1 = generatePoKBBSPlusSignatureStatement(
       sigParams,
       sigPk,
       revealedMsgs,
@@ -615,7 +615,7 @@ describe("Proof generation and verification from R1CS and WASM file", () => {
     set2.add([1, 1]);
     metaStatements.push(generateWitnessEqualityMetaStatement(set2));
 
-    const witness1 = generatePoKBBSSignatureWitness(sig, unrevealedMsgs, false);
+    const witness1 = generatePoKBBSPlusSignatureWitness(sig, unrevealedMsgs, false);
     const inputWires = new Map<string, Uint8Array[]>();
     inputWires.set("a", [messages[in1Index]]);
     inputWires.set("b", [messages[in2Index]]);
@@ -666,9 +666,9 @@ describe("Proof generation and verification from R1CS and WASM file", () => {
     const wasmBytes = getWasmBytes("less_than_public_64.wasm");
 
     const messageCount = 5;
-    const sigParams = generateSignatureParamsG1(messageCount);
-    const sigSk = generateBBSSigningKey();
-    const sigPk = generateBBSPublicKeyG2(sigSk, sigParams);
+    const sigParams = bbsPlusGenerateSignatureParamsG1(messageCount);
+    const sigSk = bbsPlusGenerateSigningKey();
+    const sigPk = bbsPlusGeneratePublicKeyG2(sigSk, sigParams);
 
     const messages: Uint8Array[] = [];
     const messagesAsIntegers: number[] = [];
@@ -678,8 +678,8 @@ describe("Proof generation and verification from R1CS and WASM file", () => {
     }
     const in1Index = 1;
     const publicGt = generateFieldElementFromNumber(500000);
-    const sig = bbsSignG1(messages, sigSk, sigParams, false);
-    const res = bbsVerifyG1(messages, sig, sigPk, sigParams, false);
+    const sig = bbsPlusSignG1(messages, sigSk, sigParams, false);
+    const res = bbsPlusVerifyG1(messages, sig, sigPk, sigParams, false);
     expect(res.verified).toBe(true);
 
     const revealedIndices = new Set<number>();
@@ -689,7 +689,7 @@ describe("Proof generation and verification from R1CS and WASM file", () => {
       messages,
       revealedIndices
     );
-    const statement1 = generatePoKBBSSignatureStatement(
+    const statement1 = generatePoKBBSPlusSignatureStatement(
       sigParams,
       sigPk,
       revealedMsgs,
@@ -717,7 +717,7 @@ describe("Proof generation and verification from R1CS and WASM file", () => {
     set1.add([1, 0]);
     metaStatements.push(generateWitnessEqualityMetaStatement(set1));
 
-    const witness1 = generatePoKBBSSignatureWitness(sig, unrevealedMsgs, false);
+    const witness1 = generatePoKBBSPlusSignatureWitness(sig, unrevealedMsgs, false);
     const inputWires = new Map<string, Uint8Array[]>();
     inputWires.set("a", [messages[in1Index]]);
     inputWires.set("b", [publicGt]);
@@ -768,9 +768,9 @@ describe("Proof generation and verification from R1CS and WASM file", () => {
     const wasmBytes = getWasmBytes("less_than_public_64.wasm");
 
     const messageCount = 5;
-    const sigParams = generateSignatureParamsG1(messageCount);
-    const sigSk = generateBBSSigningKey();
-    const sigPk = generateBBSPublicKeyG2(sigSk, sigParams);
+    const sigParams = bbsPlusGenerateSignatureParamsG1(messageCount);
+    const sigSk = bbsPlusGenerateSigningKey();
+    const sigPk = bbsPlusGeneratePublicKeyG2(sigSk, sigParams);
 
     const messages: Uint8Array[] = [];
     const messagesAsIntegers: number[] = [];
@@ -780,8 +780,8 @@ describe("Proof generation and verification from R1CS and WASM file", () => {
     }
 
     const publicGt = generateFieldElementFromNumber(500000);
-    const sig = bbsSignG1(messages, sigSk, sigParams, false);
-    const res = bbsVerifyG1(messages, sig, sigPk, sigParams, false);
+    const sig = bbsPlusSignG1(messages, sigSk, sigParams, false);
+    const res = bbsPlusVerifyG1(messages, sig, sigPk, sigParams, false);
     expect(res.verified).toBe(true);
 
     const revealedIndices = new Set<number>();
@@ -808,7 +808,7 @@ describe("Proof generation and verification from R1CS and WASM file", () => {
     const metaStatements: Uint8Array[] = [];
 
     proverStatements.push(
-      generatePoKBBSSignatureStatement(sigParams, sigPk, revealedMsgs, false)
+      generatePoKBBSPlusSignatureStatement(sigParams, sigPk, revealedMsgs, false)
     );
 
     for (let i = 0; i < messageCount; i++) {
@@ -822,7 +822,7 @@ describe("Proof generation and verification from R1CS and WASM file", () => {
     }
 
     const witnesses: Uint8Array[] = [];
-    witnesses.push(generatePoKBBSSignatureWitness(sig, unrevealedMsgs, false));
+    witnesses.push(generatePoKBBSPlusSignatureWitness(sig, unrevealedMsgs, false));
     for (let i = 0; i < messageCount; i++) {
       const inputWires = new Map<string, Uint8Array[]>();
       inputWires.set("a", [messages[i]]);
@@ -852,7 +852,7 @@ describe("Proof generation and verification from R1CS and WASM file", () => {
 
     const verifierStatements: Uint8Array[] = [];
     verifierStatements.push(
-      generatePoKBBSSignatureStatement(sigParams, sigPk, revealedMsgs, false)
+      generatePoKBBSPlusSignatureStatement(sigParams, sigPk, revealedMsgs, false)
     );
 
     for (let i = 0; i < messageCount; i++) {
@@ -881,9 +881,9 @@ describe("Proof generation and verification from R1CS and WASM file", () => {
     const wasmBytes = getWasmBytes("test1.wasm");
 
     const messageCount = 5;
-    const sigParams = generateSignatureParamsG1(messageCount);
-    const sigSk = generateBBSSigningKey();
-    const sigPk = generateBBSPublicKeyG2(sigSk, sigParams);
+    const sigParams = bbsPlusGenerateSignatureParamsG1(messageCount);
+    const sigSk = bbsPlusGenerateSigningKey();
+    const sigPk = bbsPlusGeneratePublicKeyG2(sigSk, sigParams);
 
     const messages: Uint8Array[] = [];
     const messagesAsIntegers: number[] = [];
@@ -897,8 +897,8 @@ describe("Proof generation and verification from R1CS and WASM file", () => {
         messagesAsIntegers[idx] +
         5
     );
-    const sig = bbsSignG1(messages, sigSk, sigParams, false);
-    const res = bbsVerifyG1(messages, sig, sigPk, sigParams, false);
+    const sig = bbsPlusSignG1(messages, sigSk, sigParams, false);
+    const res = bbsPlusVerifyG1(messages, sig, sigPk, sigParams, false);
     expect(res.verified).toBe(true);
 
     const revealedIndices = new Set<number>();
@@ -908,7 +908,7 @@ describe("Proof generation and verification from R1CS and WASM file", () => {
       messages,
       revealedIndices
     );
-    const statement1 = generatePoKBBSSignatureStatement(
+    const statement1 = generatePoKBBSPlusSignatureStatement(
       sigParams,
       sigPk,
       revealedMsgs,
@@ -936,7 +936,7 @@ describe("Proof generation and verification from R1CS and WASM file", () => {
     set1.add([1, 0]);
     metaStatements.push(generateWitnessEqualityMetaStatement(set1));
 
-    const witness1 = generatePoKBBSSignatureWitness(sig, unrevealedMsgs, false);
+    const witness1 = generatePoKBBSPlusSignatureWitness(sig, unrevealedMsgs, false);
     const inputWires = new Map<string, Uint8Array[]>();
     inputWires.set("x", [messages[idx]]);
     const witness2 = generateR1CSCircomWitness(inputWires, ["x"]);

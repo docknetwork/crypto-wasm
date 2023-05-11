@@ -4,18 +4,19 @@ import {
     bbsChallengeContributionFromProtocol,
     bbsGenProofOfKnowledgeOfSignature,
     bbsInitializeProofOfKnowledgeOfSignature,
-    bbsSignG1,
-    bbsVerifyG1,
+    bbsSign,
+    bbsVerify,
     bbsVerifyProofOfKnowledgeOfSignature,
-    generateBBSKeyPairG2,
+    bbsGenerateKeyPair,
     generateChallengeFromBytes,
-    generateSignatureParamsG1,
-    initializeWasm
+    bbsGenerateSignatureParams,
+    initializeWasm,
+    encodeMessagesForSigning
 } from "../lib";
 import {benchmark, report} from "@stablelib/benchmark";
 import {generateMessages} from "./helper";
 
-export const benchmarkBbs = async (
+export const benchmarkBBS = async (
     numberOfMessages: number,
     messageSizeInBytes: number,
     numberRevealed: number
@@ -24,31 +25,37 @@ export const benchmarkBbs = async (
 
     // Generate params
     report(
-        `BBB+ Params generation for ${numberOfMessages} messages`,
-        benchmark(() => generateSignatureParamsG1(numberOfMessages))
+        `BBB Params generation for ${numberOfMessages} messages`,
+        benchmark(() => bbsGenerateSignatureParams(numberOfMessages))
     );
-    const sigParams = generateSignatureParamsG1(numberOfMessages);
+    const sigParams = bbsGenerateSignatureParams(numberOfMessages);
 
     // Generate a new key pair
     report(
-        "BBB+ Key Generation",
-        benchmark(() => generateBBSKeyPairG2(sigParams))
+        "BBB Key Generation",
+        benchmark(() => bbsGenerateKeyPair(sigParams))
     );
-    const keypair = generateBBSKeyPairG2(sigParams);
+    const keypair = bbsGenerateKeyPair(sigParams);
     const sk = keypair.secret_key;
     const pk = keypair.public_key;
 
     const messages = generateMessages(numberOfMessages, messageSizeInBytes);
+    report(
+        `BBS encode ${numberOfMessages}, ${messageSizeInBytes} byte message(s)`,
+        benchmark(() => {
+            encodeMessagesForSigning(messages, Object.keys(messages).map(idx => +idx))
+        })
+      );
 
     report(
         `BBS Sign ${numberOfMessages}, ${messageSizeInBytes} byte message(s)`,
-        benchmark(() => bbsSignG1(messages, sk, sigParams, true))
+        benchmark(() => bbsSign(messages, sk, sigParams, true))
     );
-    const signature = bbsSignG1(messages, sk, sigParams, true);
+    const signature = bbsSign(messages, sk, sigParams, true);
 
     report(
         `BBS Verify ${numberOfMessages}, ${messageSizeInBytes} byte message(s)`,
-        benchmark(() => bbsVerifyG1(messages, signature, pk, sigParams, true))
+        benchmark(() => bbsVerify(messages, signature, pk, sigParams, true))
     );
 
     const revealed: Set<number> = new Set([...Array(numberRevealed).keys()]);

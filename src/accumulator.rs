@@ -5,12 +5,13 @@ use crate::utils::{
 };
 
 use ark_bls12_381::Bls12_381;
-use ark_ec::PairingEngine;
+use ark_ec::pairing::Pairing;
+use dock_crypto_utils::concat_slices;
 use wasm_bindgen::prelude::*;
 
-use ark_ff::{field_new, One};
+use ark_ff::One;
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
-use blake2::Blake2b;
+use blake2::Blake2b512;
 use vb_accumulator::prelude::{
     Accumulator, Keypair, MembershipProof, MembershipProofProtocol, MembershipProvingKey,
     MembershipWitness, NonMembershipProof, NonMembershipProofProtocol, NonMembershipProvingKey,
@@ -23,16 +24,16 @@ use crate::Fr;
 
 // Trying to keep types at one place so changing the curve is easier
 pub(crate) type AccumSk = SecretKey<Fr>;
-pub type AccumPk = PublicKey<<Bls12_381 as PairingEngine>::G2Affine>;
+pub type AccumPk = PublicKey<Bls12_381>;
 pub type AccumSetupParams = SetupParams<Bls12_381>;
 pub(crate) type AccumKeypair = Keypair<Bls12_381>;
 pub(crate) type PositiveAccum = PositiveAccumulator<Bls12_381>;
 pub(crate) type UniversalAccum = UniversalAccumulator<Bls12_381>;
-pub(crate) type MembershipWit = MembershipWitness<<Bls12_381 as PairingEngine>::G1Affine>;
-pub(crate) type NonMembershipWit = NonMembershipWitness<<Bls12_381 as PairingEngine>::G1Affine>;
-pub(crate) type Omega = Omega_<<Bls12_381 as PairingEngine>::G1Affine>;
-pub type MembershipPrk = MembershipProvingKey<<Bls12_381 as PairingEngine>::G1Affine>;
-pub type NonMembershipPrk = NonMembershipProvingKey<<Bls12_381 as PairingEngine>::G1Affine>;
+pub(crate) type MembershipWit = MembershipWitness<<Bls12_381 as Pairing>::G1Affine>;
+pub(crate) type NonMembershipWit = NonMembershipWitness<<Bls12_381 as Pairing>::G1Affine>;
+pub(crate) type Omega = Omega_<<Bls12_381 as Pairing>::G1Affine>;
+pub type MembershipPrk = MembershipProvingKey<<Bls12_381 as Pairing>::G1Affine>;
+pub type NonMembershipPrk = NonMembershipProvingKey<<Bls12_381 as Pairing>::G1Affine>;
 pub(crate) type MemProtocol = MembershipProofProtocol<Bls12_381>;
 pub(crate) type MemProof = MembershipProof<Bls12_381>;
 pub(crate) type NonMemProtocol = NonMembershipProofProtocol<Bls12_381>;
@@ -45,8 +46,8 @@ use crate::common::VerifyResponse;
 #[wasm_bindgen(js_name = generateAccumulatorParams)]
 pub fn generate_accumulator_params(label: Option<Vec<u8>>) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
-    let label = label.unwrap_or_else(|| random_bytes());
-    let params = AccumSetupParams::new::<Blake2b>(&label);
+    let label = label.unwrap_or_else(random_bytes);
+    let params = AccumSetupParams::new::<Blake2b512>(&label);
     Ok(obj_to_uint8array!(&params, false, "SetupParams"))
 }
 
@@ -64,10 +65,11 @@ pub fn accumulator_is_params_valid(params: js_sys::Uint8Array) -> Result<bool, J
 #[wasm_bindgen(js_name = generateAccumulatorSecretKey)]
 pub fn accumulator_generate_secret_key(seed: Option<Vec<u8>>) -> Result<JsValue, JsValue> {
     set_panic_hook();
-    let mut seed = seed.unwrap_or_else(|| random_bytes());
-    let sk = AccumSk::generate_using_seed::<Blake2b>(&seed);
+    let mut seed = seed.unwrap_or_else(random_bytes);
+    let sk = AccumSk::generate_using_seed::<Blake2b512>(&seed);
     seed.zeroize();
-    serde_wasm_bindgen::to_value(&sk).map_err(|e| JsValue::from(e))
+
+    serde_wasm_bindgen::to_value(&sk).map_err(JsValue::from)
 }
 
 /// Generate public key from given params and secret key.
@@ -102,8 +104,8 @@ pub fn accumulator_generate_keypair(
     set_panic_hook();
     let params = deserialize_params(params)?;
     let seed = seed.unwrap_or(random_bytes());
-    let keypair = AccumKeypair::generate_using_seed::<Blake2b>(&seed, &params);
-    serde_wasm_bindgen::to_value(&keypair).map_err(|e| JsValue::from(e))
+    let keypair = AccumKeypair::generate_using_seed::<Blake2b512>(&seed, &params);
+    serde_wasm_bindgen::to_value(&keypair).map_err(JsValue::from)
 }
 
 /// To add arbitrary bytes as an accumulator member, they should be first converted to
@@ -122,7 +124,7 @@ pub fn positive_accumulator_initialize(params: js_sys::Uint8Array) -> Result<JsV
     set_panic_hook();
     let params = deserialize_params(params)?;
     let accum = PositiveAccum::initialize(&params);
-    serde_wasm_bindgen::to_value(&accum).map_err(|e| JsValue::from(e))
+    serde_wasm_bindgen::to_value(&accum).map_err(JsValue::from)
 }
 
 /// Get the accumulated value from given positive accumulator
@@ -147,8 +149,7 @@ pub fn positive_accumulator_add(
 
     let new_value = accum.compute_new_post_add(&element, &sk);
 
-    serde_wasm_bindgen::to_value(&PositiveAccum::from_value(new_value))
-        .map_err(|e| JsValue::from(e))
+    serde_wasm_bindgen::to_value(&PositiveAccum::from_value(new_value)).map_err(JsValue::from)
 }
 
 #[wasm_bindgen(js_name = positiveAccumulatorRemove)]
@@ -162,8 +163,8 @@ pub fn positive_accumulator_remove(
     let element = fr_from_uint8_array(element, true)?;
     let sk: AccumSk = serde_wasm_bindgen::from_value(secret_key)?;
     let new_value = accum.compute_new_post_remove(&element, &sk);
-    serde_wasm_bindgen::to_value(&PositiveAccum::from_value(new_value))
-        .map_err(|e| JsValue::from(e))
+
+    serde_wasm_bindgen::to_value(&PositiveAccum::from_value(new_value)).map_err(JsValue::from)
 }
 
 #[wasm_bindgen(js_name = positiveAccumulatorMembershipWitness)]
@@ -195,6 +196,7 @@ pub fn positive_accumulator_verify_membership(
 /// This function generates them for the BLS12-381 curve *only*.
 #[wasm_bindgen(js_name = universalAccumulatorFixedInitialElements)]
 pub fn universal_accumulator_fixed_initial_elements() -> Result<js_sys::Array, JsValue> {
+    use ark_ff::MontFp;
     let initial = vb_accumulator::initial_elements_for_bls12_381!(Fr);
     js_array_from_frs(&initial)
 }
@@ -208,7 +210,7 @@ pub fn universal_accumulator_compute_initial_fv(
     let sk: AccumSk = serde_wasm_bindgen::from_value(secret_key)?;
     let initial_elements = js_array_to_fr_vec(&initial_elements)?;
     let f_v = UniversalAccum::compute_initial_f_V(&initial_elements, &sk);
-    Ok(fr_to_uint8_array(&f_v)?)
+    fr_to_uint8_array(&f_v)
 }
 
 #[wasm_bindgen(js_name = universalAccumulatorCombineMultipleInitialFv)]
@@ -221,7 +223,7 @@ pub fn universal_accumulator_combine_multiple_initial_fv(
         let f_v = f_v.unwrap();
         product *= fr_from_jsvalue(f_v)?;
     }
-    Ok(fr_to_uint8_array(&product)?)
+    fr_to_uint8_array(&product)
 }
 
 #[wasm_bindgen(js_name = universalAccumulatorInitialiseGivenFv)]
@@ -234,7 +236,7 @@ pub fn universal_accumulator_initialize_given_f_v(
     let f_v = fr_from_uint8_array(f_v, true)?;
     let params = deserialize_params(params)?;
     let accum = UniversalAccum::initialize_given_f_V(f_v, &params, max_size as u64);
-    serde_wasm_bindgen::to_value(&accum).map_err(|e| JsValue::from(e))
+    serde_wasm_bindgen::to_value(&accum).map_err(JsValue::from)
 }
 
 #[wasm_bindgen(js_name = universalAccumulatorGetAccumulated)]
@@ -258,7 +260,7 @@ pub fn universal_accumulator_add(
     let element = fr_from_uint8_array(element, true)?;
     let sk: AccumSk = serde_wasm_bindgen::from_value(secret_key)?;
     let (f_v, v) = accum.compute_new_post_add(&element, &sk);
-    serde_wasm_bindgen::to_value(&accum.get_updated(f_v, v)).map_err(|e| JsValue::from(e))
+    serde_wasm_bindgen::to_value(&accum.get_updated(f_v, v)).map_err(JsValue::from)
 }
 
 #[wasm_bindgen(js_name = universalAccumulatorRemove)]
@@ -272,7 +274,7 @@ pub fn universal_accumulator_remove(
     let element = fr_from_uint8_array(element, true)?;
     let sk: AccumSk = serde_wasm_bindgen::from_value(secret_key)?;
     let (f_v, v) = accum.compute_new_post_remove(&element, &sk);
-    serde_wasm_bindgen::to_value(&accum.get_updated(f_v, v)).map_err(|e| JsValue::from(e))
+    serde_wasm_bindgen::to_value(&accum.get_updated(f_v, v)).map_err(JsValue::from)
 }
 
 #[wasm_bindgen(js_name = universalAccumulatorMembershipWitness)]
@@ -352,7 +354,7 @@ pub fn universal_accumulator_non_membership_witness(
                 ))
             })?,
     )
-    .map_err(|e| JsValue::from(e))
+    .map_err(JsValue::from)
 }
 
 #[wasm_bindgen(js_name = universalAccumulatorVerifyNonMembership)]
@@ -385,8 +387,7 @@ pub fn positive_accumulator_add_batch(
     let elems = js_array_to_fr_vec(&elements)?;
     let sk: AccumSk = serde_wasm_bindgen::from_value(secret_key)?;
     let new_value = accum.compute_new_post_add_batch(&elems, &sk);
-    serde_wasm_bindgen::to_value(&PositiveAccum::from_value(new_value))
-        .map_err(|e| JsValue::from(e))
+    serde_wasm_bindgen::to_value(&PositiveAccum::from_value(new_value)).map_err(JsValue::from)
 }
 
 #[wasm_bindgen(js_name = positiveAccumulatorRemoveBatch)]
@@ -400,8 +401,7 @@ pub fn positive_accumulator_remove_batch(
     let elems = js_array_to_fr_vec(&elements)?;
     let sk: AccumSk = serde_wasm_bindgen::from_value(secret_key)?;
     let new_value = accum.compute_new_post_remove_batch(&elems, &sk);
-    serde_wasm_bindgen::to_value(&PositiveAccum::from_value(new_value))
-        .map_err(|e| JsValue::from(e))
+    serde_wasm_bindgen::to_value(&PositiveAccum::from_value(new_value)).map_err(JsValue::from)
 }
 
 #[wasm_bindgen(js_name = positiveAccumulatorBatchUpdates)]
@@ -417,8 +417,7 @@ pub fn positive_accumulator_batch_updates(
     let removes = js_array_to_fr_vec(&removals)?;
     let sk: AccumSk = serde_wasm_bindgen::from_value(secret_key)?;
     let new_value = accum.compute_new_post_batch_updates(&adds, &removes, &sk);
-    serde_wasm_bindgen::to_value(&PositiveAccum::from_value(new_value))
-        .map_err(|e| JsValue::from(e))
+    serde_wasm_bindgen::to_value(&PositiveAccum::from_value(new_value)).map_err(JsValue::from)
 }
 
 #[wasm_bindgen(js_name = positiveAccumulatorMembershipWitnessesForBatch)]
@@ -444,7 +443,7 @@ pub fn universal_accumulator_add_batch(
     let sk: AccumSk = serde_wasm_bindgen::from_value(secret_key)?;
     let (f_v, v) = accum.compute_new_post_add_batch(&elems, &sk);
     serde_wasm_bindgen::to_value(&UniversalAccum::from_value(f_v, v, accum.max_size()))
-        .map_err(|e| JsValue::from(e))
+        .map_err(JsValue::from)
 }
 
 #[wasm_bindgen(js_name = universalAccumulatorRemoveBatch)]
@@ -459,7 +458,7 @@ pub fn universal_accumulator_remove_batch(
     let sk: AccumSk = serde_wasm_bindgen::from_value(secret_key)?;
     let (f_v, v) = accum.compute_new_post_remove_batch(&elems, &sk);
     serde_wasm_bindgen::to_value(&UniversalAccum::from_value(f_v, v, accum.max_size()))
-        .map_err(|e| JsValue::from(e))
+        .map_err(JsValue::from)
 }
 
 #[wasm_bindgen(js_name = universalAccumulatorBatchUpdates)]
@@ -476,7 +475,7 @@ pub fn universal_accumulator_batch_updates(
     let sk: AccumSk = serde_wasm_bindgen::from_value(secret_key)?;
     let (f_v, v) = accum.compute_new_post_batch_updates(&adds, &removes, &sk);
     serde_wasm_bindgen::to_value(&UniversalAccum::from_value(f_v, v, accum.max_size()))
-        .map_err(|e| JsValue::from(e))
+        .map_err(JsValue::from)
 }
 
 #[wasm_bindgen(js_name = universalAccumulatorMembershipWitnessesForBatch)]
@@ -556,7 +555,7 @@ pub fn universal_accumulator_non_membership_witnesses_for_batch(
         })?;
     let result = js_sys::Array::new();
     for witness in witnesses {
-        result.push(&serde_wasm_bindgen::to_value(&witness).map_err(|e| JsValue::from(e))?);
+        result.push(&serde_wasm_bindgen::to_value(&witness).map_err(JsValue::from)?);
     }
     Ok(result)
 }
@@ -724,8 +723,8 @@ pub fn generate_membership_proving_key(
     label: Option<Vec<u8>>,
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
-    let label = label.unwrap_or_else(|| random_bytes());
-    let prk = MembershipPrk::new::<Blake2b>(&label);
+    let label = label.unwrap_or_else(random_bytes);
+    let prk = MembershipPrk::new::<Blake2b512>(&label);
     Ok(obj_to_uint8array!(&prk, false, "MembershipProvingKey"))
 }
 
@@ -734,8 +733,8 @@ pub fn generate_non_membership_proving_key(
     label: Option<Vec<u8>>,
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
-    let label = label.unwrap_or_else(|| random_bytes());
-    let prk = NonMembershipPrk::new::<Blake2b>(&label);
+    let label = label.unwrap_or_else(random_bytes);
+    let prk = NonMembershipPrk::new::<Blake2b512>(&label);
     Ok(obj_to_uint8array!(&prk, false, "NonMembershipProvingKey"))
 }
 
@@ -785,7 +784,7 @@ pub fn accumulator_gen_membership_proof(
     set_panic_hook();
     let protocol: MemProtocol = serde_wasm_bindgen::from_value(protocol)?;
     let challenge = fr_from_uint8_array(challenge, false)?;
-    serde_wasm_bindgen::to_value(&protocol.gen_proof(&challenge)).map_err(|e| JsValue::from(e))
+    serde_wasm_bindgen::to_value(&protocol.gen_proof(&challenge)).map_err(JsValue::from)
 }
 
 #[wasm_bindgen(js_name = accumulatorVerifyMembershipProof)]
@@ -887,7 +886,7 @@ pub fn accumulator_gen_non_membership_proof(
     set_panic_hook();
     let protocol: NonMemProtocol = serde_wasm_bindgen::from_value(protocol)?;
     let challenge = fr_from_uint8_array(challenge, false)?;
-    serde_wasm_bindgen::to_value(&protocol.gen_proof(&challenge)).map_err(|e| JsValue::from(e))
+    serde_wasm_bindgen::to_value(&protocol.gen_proof(&challenge)).map_err(JsValue::from)
 }
 
 #[wasm_bindgen(js_name = accumulatorVerifyNonMembershipProof)]
@@ -958,7 +957,7 @@ pub fn accumulator_challenge_contribution_from_non_membership_proof(
 }
 
 pub(crate) fn deserialize_params(bytes: js_sys::Uint8Array) -> Result<AccumSetupParams, JsValue> {
-    CanonicalDeserialize::deserialize(&bytes.to_vec()[..]).map_err(|e| {
+    CanonicalDeserialize::deserialize_compressed(&bytes.to_vec()[..]).map_err(|e| {
         JsValue::from(&format!(
             "Failed to deserialize accumulator params from bytes due to error: {:?}",
             e
@@ -967,7 +966,7 @@ pub(crate) fn deserialize_params(bytes: js_sys::Uint8Array) -> Result<AccumSetup
 }
 
 pub(crate) fn deserialize_public_key(bytes: js_sys::Uint8Array) -> Result<AccumPk, JsValue> {
-    CanonicalDeserialize::deserialize(&bytes.to_vec()[..]).map_err(|e| {
+    CanonicalDeserialize::deserialize_compressed(&bytes.to_vec()[..]).map_err(|e| {
         JsValue::from(&format!(
             "Failed to deserialize accumulator public key from bytes due to error: {:?}",
             e
@@ -983,7 +982,7 @@ mod macros {
             let element = fr_from_uint8_array($element, true)?;
             let sk: AccumSk = serde_wasm_bindgen::from_value($sk)?;
             let new_value = $accum.compute_membership_witness(&element, &sk);
-            serde_wasm_bindgen::to_value(&new_value).map_err(|e| JsValue::from(e))
+            serde_wasm_bindgen::to_value(&new_value).map_err(JsValue::from)
         }};
     }
 
@@ -996,7 +995,7 @@ mod macros {
 
             let result = js_sys::Array::new();
             for witness in witnesses {
-                result.push(&serde_wasm_bindgen::to_value(&witness).map_err(|e| JsValue::from(e))?);
+                result.push(&serde_wasm_bindgen::to_value(&witness).map_err(JsValue::from)?);
             }
             Ok(result)
         }};
@@ -1024,7 +1023,7 @@ mod macros {
                 &addition,
                 &old_accumulated,
             ))
-            .map_err(|e| JsValue::from(e))
+            .map_err(JsValue::from)
         }};
     }
 
@@ -1042,7 +1041,7 @@ mod macros {
                         e
                     ))
                 })?;
-            serde_wasm_bindgen::to_value(&new_wit).map_err(|e| JsValue::from(e))
+            serde_wasm_bindgen::to_value(&new_wit).map_err(JsValue::from)
         }};
     }
 
@@ -1052,7 +1051,7 @@ mod macros {
             let element = fr_from_uint8_array($element, true)?;
             let additions = js_array_to_fr_vec(&$additions)?;
             let removals = js_array_to_fr_vec(&$removals)?;
-            let public_info: Omega = CanonicalDeserialize::deserialize(&$public_info.to_vec()[..]).map_err(|e| {
+            let public_info: Omega = CanonicalDeserialize::deserialize_compressed(&$public_info.to_vec()[..]).map_err(|e| {
                 JsValue::from(&format!(
                     "Failed to deserialize public info from bytes due to error: {:?}",
                     e
@@ -1066,7 +1065,7 @@ mod macros {
                         e
                     ))
                 })?;
-            serde_wasm_bindgen::to_value(&new_witness).map_err(|e| JsValue::from(e))
+            serde_wasm_bindgen::to_value(&new_witness).map_err(JsValue::from)
         }}
     }
 
@@ -1081,7 +1080,7 @@ mod macros {
                     let adds = js_array_to_fr_vec(&js_sys::Array::from(&$additions.get(i)))?;
                     let rems = js_array_to_fr_vec(&js_sys::Array::from(&$removals.get(i)))?;
                     let bytes: Vec<u8> = serde_wasm_bindgen::from_value($public_info.get(i))?;
-                    let p: Omega = CanonicalDeserialize::deserialize(&bytes[..]).map_err(|e| JsValue::from(&format!(
+                    let p: Omega = CanonicalDeserialize::deserialize_compressed(&bytes[..]).map_err(|e| JsValue::from(&format!(
                             "Failed to deserialize public info from bytes due to error: {:?}",
                             e
                         )))?;
@@ -1094,7 +1093,7 @@ mod macros {
                         e
                     ))
                 })?;
-                let w = serde_wasm_bindgen::to_value(&new_witness).map_err(|e| JsValue::from(e))?;
+                let w = serde_wasm_bindgen::to_value(&new_witness).map_err(JsValue::from)?;
                 Ok(w)
             } else {
                 Err(JsValue::from(&format!(
@@ -1123,7 +1122,7 @@ mod macros {
                 &params,
                 &$prk,
             );
-            serde_wasm_bindgen::to_value(&protocol).map_err(|e| JsValue::from(e))
+            serde_wasm_bindgen::to_value(&protocol).map_err(JsValue::from)
         }};
     }
 
@@ -1135,7 +1134,7 @@ mod macros {
             let pk = deserialize_public_key($public_key)?;
             let params = deserialize_params($params)?;
 
-            match $proof.verify(&accumulated, &challenge, &pk, &params, &$prk) {
+            match $proof.verify(&accumulated, &challenge, pk.clone(), params.clone(), &$prk) {
                 Ok(_) => Ok(serde_wasm_bindgen::to_value(&VerifyResponse {
                     verified: true,
                     error: None,
@@ -1178,7 +1177,7 @@ mod macros {
             })?;
             let result = js_sys::Array::new();
             for w in new_wits {
-                result.push(&serde_wasm_bindgen::to_value(&w).map_err(|e| JsValue::from(e))?);
+                result.push(&serde_wasm_bindgen::to_value(&w).map_err(JsValue::from)?);
             }
             Ok(result)
         }}
@@ -1186,8 +1185,7 @@ mod macros {
 }
 
 pub fn encode_bytes_as_accumulator_member(bytes: &[u8]) -> Fr {
-    dock_crypto_utils::hashing_utils::field_elem_from_seed::<Fr, Blake2b>(
-        bytes,
-        "Accumulator element".as_bytes(),
+    dock_crypto_utils::hashing_utils::field_elem_from_try_and_incr::<Fr, Blake2b512>(
+        &concat_slices!(bytes, b"Accumulator element"),
     )
 }

@@ -153,7 +153,7 @@ pub fn r1cs_snark_setup(
         .generate_proving_key(commit_witness_count, &mut rng)
         .map_err(|e| JsValue::from(&format!("SNARK setup for R1CS returned error: {:?}", e)))?;
     Ok(if return_uncompressed {
-        obj_to_uint8array_unchecked!(&pk, "LegoProvingKey")
+        obj_to_uint8array_uncompressed!(&pk, "LegoProvingKey")
     } else {
         obj_to_uint8array!(&pk, false, "LegoProvingKey")
     })

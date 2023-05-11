@@ -10,6 +10,15 @@ export function generateFieldElementFromBytes(
     bytes: Uint8Array
 ): Uint8Array;
 
+export function encodeMessageForSigning(
+    message: Uint8Array
+): Uint8Array;
+
+export function encodeMessagesForSigning(
+    messages: Uint8Array[],
+    indicesToEncode?: number[]
+): Uint8Array[];
+
 export function fieldElementAsBytes(
     element: Uint8Array,
     elementIsSecure: boolean

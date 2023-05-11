@@ -97,13 +97,13 @@ describe("For Positive accumulator", () => {
 
   it("generate secret key", () => {
     const sk_ = generateAccumulatorSecretKey();
-    expect(sk_).toBeInstanceOf(Uint8Array);
+    expect(sk_).toBeInstanceOf(Array);
 
     const sk1 = generateAccumulatorSecretKey(seed);
-    expect(sk1).toBeInstanceOf(Uint8Array);
+    expect(sk1).toBeInstanceOf(Array);
 
     const sk2 = generateAccumulatorSecretKey(seed);
-    expect(sk2).toBeInstanceOf(Uint8Array);
+    expect(sk2).toBeInstanceOf(Array);
 
     expect(sk1).toEqual(sk2);
 
@@ -118,24 +118,24 @@ describe("For Positive accumulator", () => {
 
   it("initialize", () => {
     accumulator = positiveAccumulatorInitialize(params);
-    expect(accumulator).toBeInstanceOf(Uint8Array);
+    expect(accumulator).toBeInstanceOf(Array);
   });
 
   it("add an element", () => {
     const e1 = generateFieldElementFromNumber(1);
     accumulator = positiveAccumulatorAdd(accumulator, e1, sk);
-    expect(accumulator).toBeInstanceOf(Uint8Array);
+    expect(accumulator).toBeInstanceOf(Array);
     const e2 = generateFieldElementFromNumber(2);
     accumulator = positiveAccumulatorAdd(accumulator, e2, sk);
-    expect(accumulator).toBeInstanceOf(Uint8Array);
+    expect(accumulator).toBeInstanceOf(Array);
 
     const e3 = accumulatorGetElementFromBytes(stringToBytes("user-id:1"));
     accumulator = positiveAccumulatorAdd(accumulator, e3, sk);
-    expect(accumulator).toBeInstanceOf(Uint8Array);
+    expect(accumulator).toBeInstanceOf(Array);
 
     const e4 = generateRandomFieldElement();
     accumulator = positiveAccumulatorAdd(accumulator, e4, sk);
-    expect(accumulator).toBeInstanceOf(Uint8Array);
+    expect(accumulator).toBeInstanceOf(Array);
   });
 
   it("membership after single element updates", () => {
