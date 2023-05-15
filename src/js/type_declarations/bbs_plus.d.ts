@@ -2,9 +2,9 @@ import {BbsPlusPoKSigProtocol, BbsPlusSigParams, IKeypair, VerifyResult} from ".
 
 export const DEFAULT_BLS12381_PRIVATE_KEY_LENGTH = 32;
 
-export const DEFAULT_BLS12381_G1_PUBLIC_KEY_LENGTH = 48;
+export const DEFAULT_BLS12381_BBS_PLUS_G1_PUBLIC_KEY_LENGTH = 48;
 
-export const DEFAULT_BLS12381_G2_PUBLIC_KEY_LENGTH = 96;
+export const DEFAULT_BLS12381_BBS_PLUS_G2_PUBLIC_KEY_LENGTH = 96;
 
 export function bbsPlusGenerateSigningKey(seed?: Uint8Array): Uint8Array;
 

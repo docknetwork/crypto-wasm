@@ -1,7 +1,5 @@
-import {PSPoKSigProtocol, PSSigParams, IKeypair, VerifyResult, PSCommitmentOrMessage, PSSig} from "../types";
+import { PSPoKSigProtocol, PSSigParams, VerifyResult, PSCommitmentOrMessage } from "../types";
 import { PSCommitMessage } from "../types/PSCommitMessage";
-
-export const PS_SIGNATURE_LENGTH = 112;
 
 export function psGenerateSigningKey(message_count: number, seed?: Uint8Array): Uint8Array;
 
