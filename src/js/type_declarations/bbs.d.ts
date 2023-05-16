@@ -1,10 +1,10 @@
 import {BbsPoKSigProtocol, BbsSigParams, IKeypair, VerifyResult} from "../types";
 
-export const DEFAULT_BLS12381_PRIVATE_KEY_LENGTH = 32;
+export const DEFAULT_BLS12381_BBS_PRIVATE_KEY_LENGTH = 32;
 
-export const DEFAULT_BLS12381_G1_PUBLIC_KEY_LENGTH = 48;
+export const DEFAULT_BLS12381_BBS_PUBLIC_KEY_LENGTH = 96;
 
-export const DEFAULT_BLS12381_G2_PUBLIC_KEY_LENGTH = 96;
+export const DEFAULT_BLS12381_BBS_SIGNATURE_LENGTH = 80;
 
 export function bbsGenerateSigningKey(seed?: Uint8Array): Uint8Array;
 
@@ -30,10 +30,6 @@ export function bbsIsSignatureParamsG2Valid(
     params: BbsSigParams
 ): boolean;
 
-export function bbsSignatureParamsG2MaxSupportedMsgs(
-    params: BbsSigParams
-): number;
-
 export function bbsSignatureParamsToBytes(
     params: BbsSigParams
 ): Uint8Array;
@@ -41,23 +37,6 @@ export function bbsSignatureParamsToBytes(
 export function bbsSignatureParamsFromBytes(
     bytes: Uint8Array
 ): BbsSigParams;
-
-export function bbsSignatureParamsG2ToBytes(
-    params: BbsSigParams
-): Uint8Array;
-
-export function bbsSignatureParamsG2FromBytes(
-    bytes: Uint8Array
-): BbsSigParams;
-
-export function bbsGeneratePublicKeyG1(
-    secretKey: Uint8Array,
-    params: BbsSigParams
-): Uint8Array;
-
-export function bbsIsPublicKeyG1Valid(
-    publicKey: Uint8Array
-): boolean;
 
 export function bbsGeneratePublicKey(
     secretKey: Uint8Array,
@@ -73,24 +52,12 @@ export function bbsGenerateKeyPair(
     seed?: Uint8Array
 ): Required<IKeypair>;
 
-export function bbsGetBasesForCommitmentG1(
-    params: BbsSigParams,
-    indicesToCommit: number[]
-): Uint8Array[];
-
-export function bbsGetBasesForCommitmentG2(
+export function bbsGetBasesForCommitment(
     params: BbsSigParams,
     indicesToCommit: number[]
 ): Uint8Array[];
 
 export function bbsSign(
-    messages: Uint8Array[],
-    secretKey: Uint8Array,
-    params: BbsSigParams,
-    encodeMessages: boolean
-): Uint8Array;
-
-export function bbsSignG2(
     messages: Uint8Array[],
     secretKey: Uint8Array,
     params: BbsSigParams,
@@ -117,16 +84,6 @@ export function bbsBlindSign(
     secretKey: Uint8Array,
     params: BbsSigParams,
     encodeMessages: boolean
-): Uint8Array;
-
-export function bbsUnblindSigG1(
-    signature: Uint8Array,
-    blinding: Uint8Array,
-): Uint8Array;
-
-export function bbsUnblindSigG2(
-    signature: Uint8Array,
-    blinding: Uint8Array,
 ): Uint8Array;
 
 export function bbsInitializeProofOfKnowledgeOfSignature(
@@ -167,12 +124,6 @@ export function bbsChallengeContributionFromProof(
 ): Uint8Array;
 
 export function bbsAdaptSigParamsForMsgCount(
-    params: BbsSigParams,
-    generating_label: Uint8Array,
-    new_count: number
-): BbsSigParams;
-
-export function bbsAdaptSigParamsG2ForMsgCount(
     params: BbsSigParams,
     generating_label: Uint8Array,
     new_count: number

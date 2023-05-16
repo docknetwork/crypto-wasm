@@ -21,13 +21,13 @@ function ensurePositiveInteger(num) {
     }
 }
 
-module.exports.DEFAULT_BLS12381_PRIVATE_KEY_LENGTH = 32;
+module.exports.DEFAULT_BLS12381_BBS_PLUS_PRIVATE_KEY_LENGTH = 32;
 
-module.exports.DEFAULT_BLS12381_G1_PUBLIC_KEY_LENGTH = 48;
+module.exports.DEFAULT_BLS12381_BBS_PLUS_G1_PUBLIC_KEY_LENGTH = 48;
 
-module.exports.DEFAULT_BLS12381_G2_PUBLIC_KEY_LENGTH = 96;
+module.exports.DEFAULT_BLS12381_BBS_PLUS_G2_PUBLIC_KEY_LENGTH = 96;
 
-module.exports.BBS_SIGNATURE_LENGTH = 112;
+module.exports.DEFAULT_BLS12381_BBS_PLUS_SIGNATURE_LENGTH = 112;
 
 module.exports.bbsPlusGenerateSigningKey = (seed) => {
     requireWasmInitialized();
