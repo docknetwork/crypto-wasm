@@ -10,9 +10,9 @@ function ensurePositiveInteger(num) {
 
 module.exports.DEFAULT_BLS12381_BBS_PRIVATE_KEY_LENGTH = 32;
 
-module.exports.DEFAULT_BLS12381_BBS_PUBLIC_KEY_LENGTH = 48;
+module.exports.DEFAULT_BLS12381_BBS_PUBLIC_KEY_LENGTH = 96;
 
-module.exports.BBS_SIGNATURE_LENGTH = 80;
+module.exports.DEFAULT_BLS12381_BBS_SIGNATURE_LENGTH = 80;
 
 module.exports.bbsGenerateSigningKey = (seed) => {
     requireWasmInitialized();

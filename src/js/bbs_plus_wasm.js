@@ -27,7 +27,7 @@ module.exports.DEFAULT_BLS12381_BBS_PLUS_G1_PUBLIC_KEY_LENGTH = 48;
 
 module.exports.DEFAULT_BLS12381_BBS_PLUS_G2_PUBLIC_KEY_LENGTH = 96;
 
-module.exports.BBS_PLUS_SIGNATURE_LENGTH = 112;
+module.exports.DEFAULT_BLS12381_BBS_PLUS_SIGNATURE_LENGTH = 112;
 
 module.exports.bbsPlusGenerateSigningKey = (seed) => {
     requireWasmInitialized();

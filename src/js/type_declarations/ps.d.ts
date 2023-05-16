@@ -1,6 +1,10 @@
 import { PSPoKSigProtocol, PSSigParams, VerifyResult, PSCommitmentOrMessage } from "../types";
 import { PSCommitMessage } from "../types/PSCommitMessage";
 
+export const DEFAULT_BLS12381_PS_PRIVATE_KEY_LENGTH = 32;
+
+export const DEFAULT_BLS12381_PS_SIGNATURE_LENGTH = 96;
+
 export function psGenerateSigningKey(message_count: number, seed?: Uint8Array): Uint8Array;
 
 export function psIsSignatureParamsValid(
