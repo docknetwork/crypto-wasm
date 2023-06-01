@@ -56,22 +56,22 @@ export function psAdaptSecretKeyForMoreMessages(
     secretKey: Uint8Array,
     seed: Uint8Array,
     messageCount: number
-): Uint8Array | null;
+): Uint8Array | undefined;
 
 export function psAdaptSecretKeyForLessMessages(
     secretKey: Uint8Array,
     messageCount: number
-): Uint8Array | null;
+): Uint8Array | undefined;
 
 export function psAdaptPublicKeyForLessMessages(
     publicKey: Uint8Array,
     messageCount: number
-): Uint8Array | null;
+): Uint8Array | undefined;
 
 export function psAdaptSecretKeyForMoreMessages(
     secretKey: Uint8Array,
     messageCount: number
-): Uint8Array | null;
+): Uint8Array | undefined;
 
 export function psIsPublicKeyValid(
     publicKey: Uint8Array
