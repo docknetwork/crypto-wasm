@@ -179,7 +179,7 @@ describe("For PS signatures", () => {
     expect(psSigningKeyMaxSupportedMsgs(sk5)).toBe(5);
 
     const sk2 = psAdaptSecretKeyForLessMessages(sk5, 2)!;
-    expect(psAdaptSecretKeyForLessMessages(sk5, 6)).toBe(null);
+    expect(psAdaptSecretKeyForLessMessages(sk5, 6)).toBe(undefined);
     expect(psSigningKeyMaxSupportedMsgs(sk2)).toBe(2);
 
     const sk7 = psAdaptSecretKeyForMoreMessages(sk5, seed, 7)!;
