@@ -8,7 +8,7 @@ module.exports = [
     entry: "./index.web-sample.js",
     output: {
       path: path.resolve(__dirname, "dist"),
-      filename: "crypto.min.js",
+      filename: "index.web-sample.min.js",
     },
     plugins: [
       new HtmlWebpackPlugin({

@@ -18,7 +18,6 @@ import {
   bbsPlusSignG1,
   bbsPlusVerifyG1,
   initializeWasm,
-  generateRandomFieldElement,
   bbsPlusInitializeProofOfKnowledgeOfSignature,
   bbsPlusChallengeContributionFromProtocol,
   generateChallengeFromBytes,
