@@ -32,4 +32,6 @@ module.exports = {
   ...require('./bound_check_wasm'),
   ...require('./setup_params_wasm'),
   ...require('./r1cs_wasm'),
+  ...require('./frost_dkg_wasm'),
+  ...require('./threshold_sig_wasm'),
 };

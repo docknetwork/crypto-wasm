@@ -19,6 +19,8 @@ use ark_std::{
 };
 use blake2::Blake2b512;
 use dock_crypto_utils::concat_slices;
+use serde_wasm_bindgen::from_value;
+use std::collections::BTreeSet;
 use wasm_bindgen::prelude::*;
 use zeroize::Zeroize;
 
@@ -355,6 +357,17 @@ pub fn is_positive_safe_integer(num: &js_sys::Number) -> bool {
     js_sys::Number::is_safe_integer(num) && num >= &js_sys::Number::from(0)
 }
 
+pub fn js_set_to_btree_set<T: Ord + serde::de::DeserializeOwned>(
+    js_set: &js_sys::Set,
+) -> BTreeSet<T> {
+    let set: BTreeSet<T> = js_set
+        .values()
+        .into_iter()
+        .map(|i| serde_wasm_bindgen::from_value(i.unwrap()).unwrap())
+        .collect();
+    set
+}
+
 #[macro_export]
 macro_rules! obj_to_uint8array {
     ($obj:expr, $value_is_secret: expr) => {{
@@ -545,4 +558,36 @@ mod tests {
         assert_eq!(f2, *fr_map.get(&2).unwrap());
         assert_eq!(f3, *fr_map.get(&3).unwrap());
     }
+}
+
+pub fn js_array_to_iter<Item: CanonicalDeserialize>(
+    messages: &js_sys::Array,
+) -> impl Iterator<Item = Result<Item, JsValue>> {
+    messages.values().into_iter().map(|raw| {
+        Item::deserialize_compressed(js_sys::Uint8Array::new(&raw.unwrap()).to_vec().as_slice())
+            .map_err(debug_to_js_value)
+    })
+}
+
+pub fn js_map_to_iter<Item: CanonicalDeserialize>(
+    messages: &js_sys::Map,
+) -> impl Iterator<Item = Result<(usize, Item), JsValue>> {
+    messages.entries().into_iter().map(|raw_msg_arr| {
+        let arr = js_sys::Array::from(&raw_msg_arr?);
+        let idx: usize = from_value(arr.get(0))?;
+        let msg_bytes: Vec<u8> = from_value(arr.get(1))?;
+
+        let msg = Item::deserialize_compressed(&msg_bytes[..]).map_err(|e| {
+            JsValue::from(&format!(
+                "Cannot deserialize to `ScalarField` due to error: {:?}",
+                e
+            ))
+        })?;
+
+        Ok((idx, msg))
+    })
+}
+
+pub fn debug_to_js_value<V: core::fmt::Debug>(value: V) -> JsValue {
+    JsValue::from(&format!("{:?}", value))
 }

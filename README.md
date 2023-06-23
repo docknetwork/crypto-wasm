@@ -84,6 +84,10 @@ The above primitives can be combined using the composite proof system. An exampl
 different signatures and the message lists. Another example is proving knowledge of the signature and messages and certain message's presence (absence) 
 in an accumulator. Or the knowledge of 5 signatures and proving certain message is the same in the 5 message lists. 
 
+### DKG from FROST
+
+### Threshold BBS+ and BBS
+
 ## Getting started
 
 To use this package within your project simply run

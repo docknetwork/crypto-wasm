@@ -26,10 +26,12 @@ pub mod bbs_plus;
 pub mod bound_check;
 pub mod common;
 pub mod composite_proof_system;
+pub mod frost_dkg;
 pub mod legosnark;
 pub mod ps;
 pub mod r1cs;
 pub mod saver;
+pub mod threshold_sig;
 
 // Trying to keep types at one place so changing the curve is easier
 pub(crate) type Fr = <Bls12_381 as Pairing>::ScalarField;

@@ -1,6 +1,9 @@
-use crate::utils::{fr_from_uint8_array, get_seeded_rng, random_bytes, set_panic_hook};
+use crate::utils::{
+    debug_to_js_value, fr_from_uint8_array, get_seeded_rng, js_set_to_btree_set, random_bytes,
+    set_panic_hook,
+};
 
-use crate::{common::VerifyResponse, Fr, G1Affine};
+use crate::{common::VerifyResponse, utils, Fr, G1Affine};
 use ark_bls12_381::Bls12_381;
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use ark_std::collections::{BTreeMap, BTreeSet};
@@ -245,8 +248,8 @@ pub fn ps_multi_message_commitment(
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
 
-    let m: Vec<Fr> = js_array_to_iter(&messages).collect::<Result<_, _>>()?;
-    let h: Vec<G1Affine> = js_array_to_iter(&h).collect::<Result<_, _>>()?;
+    let m: Vec<Fr> = utils::js_array_to_iter(&messages).collect::<Result<_, _>>()?;
+    let h: Vec<G1Affine> = utils::js_array_to_iter(&h).collect::<Result<_, _>>()?;
     let g = obj_from_uint8array!(G1Affine, g, false);
     let blinding = fr_from_uint8_array(blinding, true)?;
 
@@ -268,11 +271,11 @@ pub fn ps_sign(
 
     let sk = obj_from_uint8array!(PSSecretKey, secret_key, true, "PSSecretKey");
     let params: PSSignatureParams = from_value(params)?;
-    let messages: Vec<_> = js_array_to_iter(&messages).collect::<Result<_, _>>()?;
+    let messages: Vec<_> = utils::js_array_to_iter(&messages).collect::<Result<_, _>>()?;
 
     let mut rng = get_seeded_rng();
     PSSignature::new(&mut rng, &messages, &sk, &params)
-        .map_err(debug_to_js_value)
+        .map_err(utils::debug_to_js_value)
         .and_then(|sig| Ok(obj_to_uint8array!(&sig, true, "PSSignature")))
 }
 
@@ -293,7 +296,7 @@ pub fn ps_blind_sign(
     let h = obj_from_uint8array!(G1Affine, h, false);
 
     PSBlindSignature::new(messages, &sk, &h)
-        .map_err(debug_to_js_value)
+        .map_err(utils::debug_to_js_value)
         .and_then(|sig| Ok(obj_to_uint8array!(&sig, true, "PSBlindSignature")))
 }
 
@@ -307,7 +310,7 @@ pub fn ps_unblind_sig(
 
     let signature = obj_from_uint8array!(PSBlindSignature, blind_signature, false);
     let indexed_blindings: BTreeMap<_, _> =
-        js_map_to_iter(&indexed_blindings).collect::<Result<_, _>>()?;
+        utils::js_map_to_iter(&indexed_blindings).collect::<Result<_, _>>()?;
     let sorted_indexed_blindigns = indexed_blindings
         .iter()
         .map(|(&idx, message)| (idx, message));
@@ -333,7 +336,7 @@ pub fn ps_verify(
     let signature = obj_from_uint8array!(PSSignature, signature, true);
     let pk = obj_from_uint8array!(PSPublicKey, public_key, false, "PSPublicKey");
     let params: PSSignatureParams = from_value(params)?;
-    let messages: Vec<_> = js_array_to_iter(&messages).collect::<Result<_, _>>()?;
+    let messages: Vec<_> = utils::js_array_to_iter(&messages).collect::<Result<_, _>>()?;
 
     signature
         .verify(&messages, &pk, &params)
@@ -373,7 +376,7 @@ pub fn ps_initialize_signature_pok(
     let mut rng = get_seeded_rng();
 
     PSPoKOfSigProtocol::init(&mut rng, messages, &signature, &pk, &params)
-        .map_err(debug_to_js_value)
+        .map_err(utils::debug_to_js_value)
         .and_then(|protocol| to_value(&protocol).map_err(Into::into))
 }
 
@@ -395,7 +398,7 @@ pub fn ps_initialize_messages_pok(
     let mut rng = get_seeded_rng();
 
     PSPoKOfMessagesProtocol::init(&mut rng, messages, &params, &h)
-        .map_err(debug_to_js_value)
+        .map_err(utils::debug_to_js_value)
         .and_then(|protocol| to_value(&protocol).map_err(Into::into))
 }
 
@@ -410,7 +413,7 @@ pub fn ps_gen_sig_proof(
 
     protocol
         .gen_proof(&challenge)
-        .map_err(debug_to_js_value)
+        .map_err(utils::debug_to_js_value)
         .and_then(|proof| Ok(obj_to_uint8array!(&proof, false, "PSPoKOfSignatureProof")))
 }
 
@@ -425,7 +428,7 @@ pub fn ps_gen_messages_proof(
 
     protocol
         .gen_proof(&challenge)
-        .map_err(debug_to_js_value)
+        .map_err(utils::debug_to_js_value)
         .and_then(|proof| Ok(obj_to_uint8array!(&proof, false, "PSPoKOfMessagesProof")))
 }
 
@@ -444,7 +447,7 @@ pub fn ps_verify_signature_proof(
     let public_key = obj_from_uint8array!(PSPublicKey, public_key, false, "PSPublicKey");
     let challenge = fr_from_uint8_array(challenge, false)?;
 
-    let msgs: BTreeMap<_, _> = js_map_to_iter(&revealed_msgs).collect::<Result<_, _>>()?;
+    let msgs: BTreeMap<_, _> = utils::js_map_to_iter(&revealed_msgs).collect::<Result<_, _>>()?;
     let msgs_iter = msgs.iter().map(|(&idx, msg)| (idx, msg));
 
     proof
@@ -477,11 +480,7 @@ pub fn ps_verify_messages_proof(
 
     let proof: PSPoKOfMessagesProof = obj_from_uint8array!(PSPoKOfMessagesProof, proof, false);
     let challenge = fr_from_uint8_array(challenge, false)?;
-    let revealed_indices: BTreeSet<usize> = revealed_indices
-        .values()
-        .into_iter()
-        .map(|i| serde_wasm_bindgen::from_value(i.unwrap()).unwrap())
-        .collect();
+    let revealed_indices = js_set_to_btree_set::<usize>(&revealed_indices);
     let params: PSSignatureParams = from_value(params)?;
     let h = obj_from_uint8array!(G1Affine, h, false);
 
@@ -617,22 +616,23 @@ pub fn ps_aggregate_signatures(
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
 
-    let sorted_participant_signatures: BTreeMap<_, _> = js_map_to_iter(&participant_signatures)
-        .map(|part_sig| {
-            part_sig.and_then(|(participant, signature)| {
-                participant
-                    .try_into()
-                    .map_err(|_| "Invalid participant id".into())
-                    .map(|participant| (participant, signature))
+    let sorted_participant_signatures: BTreeMap<_, _> =
+        utils::js_map_to_iter(&participant_signatures)
+            .map(|part_sig| {
+                part_sig.and_then(|(participant, signature)| {
+                    participant
+                        .try_into()
+                        .map_err(|_| "Invalid participant id".into())
+                        .map(|participant| (participant, signature))
+                })
             })
-        })
-        .collect::<Result<_, _>>()?;
+            .collect::<Result<_, _>>()?;
     let sorted_participant_signatures_iter = sorted_participant_signatures
         .iter()
         .map(|(&participant, signature)| (participant, signature));
     let h = obj_from_uint8array!(G1Affine, h, false);
     let aggregated = PSAggregatedSignature::new(sorted_participant_signatures_iter, &h)
-        .map_err(debug_to_js_value)?;
+        .map_err(utils::debug_to_js_value)?;
 
     Ok(obj_to_uint8array!(
         &aggregated,
@@ -651,8 +651,8 @@ pub fn ps_shamir_deal(
 
     let threshold = Threshold::new(threshold, total).ok_or("Invalid threshold")?;
     let mut rng = get_seeded_rng();
-    let (threshold_sk, sks) =
-        shamir_ss::deal::<_, Fr>(&mut rng, message_count, threshold).map_err(debug_to_js_value)?;
+    let (threshold_sk, sks) = shamir_ss::deal::<_, Fr>(&mut rng, message_count, threshold)
+        .map_err(utils::debug_to_js_value)?;
     let threshold_sk: JsValue = obj_to_uint8array!(&threshold_sk, true, "PSSecretKey").into();
     let sks: js_sys::Array = sks
         .into_iter()
@@ -679,36 +679,4 @@ pub fn ps_adapt_sig_params_for_msg_count(
         PSSignatureParams,
         G1Affine
     )
-}
-
-pub fn js_array_to_iter<Item: CanonicalDeserialize>(
-    messages: &js_sys::Array,
-) -> impl Iterator<Item = Result<Item, JsValue>> {
-    messages.values().into_iter().map(|raw| {
-        Item::deserialize_compressed(js_sys::Uint8Array::new(&raw.unwrap()).to_vec().as_slice())
-            .map_err(debug_to_js_value)
-    })
-}
-
-pub fn js_map_to_iter<Item: CanonicalDeserialize>(
-    messages: &js_sys::Map,
-) -> impl Iterator<Item = Result<(usize, Item), JsValue>> {
-    messages.entries().into_iter().map(|raw_msg_arr| {
-        let arr = js_sys::Array::from(&raw_msg_arr?);
-        let idx: usize = from_value(arr.get(0))?;
-        let msg_bytes: Vec<u8> = from_value(arr.get(1))?;
-
-        let msg = Item::deserialize_compressed(&msg_bytes[..]).map_err(|e| {
-            JsValue::from(&format!(
-                "Cannot deserialize to `ScalarField` due to error: {:?}",
-                e
-            ))
-        })?;
-
-        Ok((idx, msg))
-    })
-}
-
-fn debug_to_js_value<V: core::fmt::Debug>(value: V) -> JsValue {
-    JsValue::from(&format!("{:?}", value))
 }

@@ -1,7 +1,7 @@
 use crate::utils::{
     fr_from_uint8_array, g1_affine_from_uint8_array, g1_affine_to_jsvalue,
     g1_affine_to_uint8_array, g2_affine_from_uint8_array, g2_affine_to_jsvalue,
-    g2_affine_to_uint8_array, get_seeded_rng, random_bytes, set_panic_hook,
+    g2_affine_to_uint8_array, get_seeded_rng, js_set_to_btree_set, random_bytes, set_panic_hook,
 };
 
 use bbs_plus::{proof::MessageOrBlinding, setup::MultiMessageSignatureParams};
@@ -338,7 +338,6 @@ pub fn bbs_plus_verify_g1(
     encode_messages: bool,
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
-    // let signature: SigG1 = serde_wasm_bindgen::from_value(signature)?;
     let signature = obj_from_uint8array!(BBSPlusSigG1, signature, true);
     let pk = obj_from_uint8array!(BBSPlusPublicKeyG2, public_key, false, "BBSPlusPublicKeyG2");
     let params: BBSPlusSigParamsG1 = serde_wasm_bindgen::from_value(params)?;
@@ -410,10 +409,8 @@ pub fn bbs_plus_unblind_sig_g2(
     blinding: js_sys::Uint8Array,
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
-    // let signature: SigG2 = serde_wasm_bindgen::from_value(blind_signature)?;
     let signature = obj_from_uint8array!(BBSPlusSigG2, blind_signature, true);
     let blinding = fr_from_uint8_array(blinding, true)?;
-    // serde_wasm_bindgen::to_value(&signature.unblind(&blinding).map_err(|e| JsValue::from(e)))
     Ok(obj_to_uint8array!(
         &signature.unblind(&blinding),
         true,
@@ -431,7 +428,6 @@ pub fn bbs_plus_verify_g2(
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
 
-    // let signature: SigG2 = serde_wasm_bindgen::from_value(signature)?;
     let signature = obj_from_uint8array!(BBSPlusSigG2, signature, true);
     let pk = obj_from_uint8array!(BBSPlusPublicKeyG1, public_key, false, "BBSPlusPublicKeyG1");
     let params: BBSPlusSigParamsG2 = serde_wasm_bindgen::from_value(params)?;
@@ -467,11 +463,7 @@ pub fn bbs_plus_initialize_proof_of_knowledge_of_signature(
     // TODO: Avoid this hack of passing false, create separate method to parse
     let mut blindings = encode_messages_as_js_map_to_fr_btreemap(&blindings, false)?;
     let messages = encode_messages_as_js_array_to_fr_vec(&messages, encode_messages)?;
-    let revealed_indices: BTreeSet<usize> = revealed_indices
-        .values()
-        .into_iter()
-        .map(|i| serde_wasm_bindgen::from_value(i.unwrap()).unwrap())
-        .collect();
+    let revealed_indices = js_set_to_btree_set::<usize>(&revealed_indices);
     let msg_iter = messages.iter().enumerate().map(|(idx, message)| {
         if revealed_indices.contains(&idx) {
             MessageOrBlinding::RevealMessage(message)
@@ -500,7 +492,6 @@ pub fn bbs_plus_gen_proof(
     let protocol: BBSPlusPoKOfSigProtocol = serde_wasm_bindgen::from_value(protocol)?;
     let challenge = fr_from_uint8_array(challenge, false)?;
     match protocol.gen_proof(&challenge) {
-        // Ok(proof) => Ok(serde_wasm_bindgen::to_value(&proof).map_err(|e| JsValue::from(e)).unwrap()),
         Ok(proof) => Ok(obj_to_uint8array!(&proof, false, "BBS+ProofG1")),
         Err(e) => Err(JsValue::from(&format!("{:?}", e))),
     }

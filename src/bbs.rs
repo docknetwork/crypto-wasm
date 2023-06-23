@@ -1,6 +1,6 @@
 use crate::utils::{
     fr_from_uint8_array, g1_affine_from_uint8_array, g1_affine_to_jsvalue,
-    g1_affine_to_uint8_array, get_seeded_rng, random_bytes, set_panic_hook,
+    g1_affine_to_uint8_array, get_seeded_rng, js_set_to_btree_set, random_bytes, set_panic_hook,
 };
 
 use bbs_plus::{proof::MessageOrBlinding, setup::MultiMessageSignatureParams};
@@ -235,11 +235,7 @@ pub fn bbs_initialize_proof_of_knowledge_of_signature(
     // TODO: Avoid this hack of passing false, create separate method to parse
     let mut blindings = encode_messages_as_js_map_to_fr_btreemap(&blindings, false)?;
     let messages = encode_messages_as_js_array_to_fr_vec(&messages, encode_messages)?;
-    let revealed_indices: BTreeSet<usize> = revealed_indices
-        .values()
-        .into_iter()
-        .map(|i| serde_wasm_bindgen::from_value(i.unwrap()).unwrap())
-        .collect();
+    let revealed_indices = js_set_to_btree_set::<usize>(&revealed_indices);
     let msg_iter = messages.iter().enumerate().map(|(idx, message)| {
         if revealed_indices.contains(&idx) {
             MessageOrBlinding::RevealMessage(message)
