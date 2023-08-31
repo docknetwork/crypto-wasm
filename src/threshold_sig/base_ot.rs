@@ -3,14 +3,11 @@ use crate::{
     utils::{get_seeded_rng, js_array_to_iter, js_set_to_btree_set, set_panic_hook},
     G1Affine,
 };
-use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use bbs_plus::threshold::base_ot_phase::{BaseOTPhase, BaseOTPhaseOutput, SenderPubKeyAndProof};
 use blake2::Blake2b512;
 use js_sys::{Array, Map, Set, Uint8Array};
 use oblivious_transfer_protocols::{
-    base_ot::simplest_ot::{
-        Challenges, HashedKey, ReceiverPubKeys, Responses,
-    },
+    base_ot::simplest_ot::{Challenges, HashedKey, ReceiverPubKeys, Responses},
     ot_based_multiplication::dkls18_mul_2p::MultiplicationOTEParams,
     ParticipantId,
 };

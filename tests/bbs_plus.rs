@@ -20,7 +20,7 @@ fn js_value_to_bytes(js_value: JsValue) -> Vec<u8> {
     serde_wasm_bindgen::from_value::<Vec<u8>>(js_value).unwrap()
 }
 
-fn bbs_setup(message_count: usize) -> (JsValue, JsValue, Uint8Array, Uint8Array, Uint8Array) {
+fn bbs_setup(message_count: u32) -> (JsValue, JsValue, Uint8Array, Uint8Array, Uint8Array) {
     let label_g1 = b"test-g1".to_vec();
     let label_g2 = b"test-g2".to_vec();
     let params_g1 = bbs_plus_generate_g1_params(message_count, Some(label_g1)).unwrap();
@@ -135,7 +135,7 @@ pub fn bbs_sign_verify() {
         b"Message3".to_vec(),
         b"Message4".to_vec(),
     ];
-    let message_count = messages.len();
+    let message_count = messages.len() as u32;
     let messages_as_array = js_array_of_bytearrays_from_vector_of_bytevectors(&messages).unwrap();
 
     let (params_g1, params_g2, sk, pk_g1, pk_g2) = bbs_setup(message_count);
@@ -209,7 +209,7 @@ pub fn bbs_blind_sign() {
         b"Message4".to_vec(),
         b"Message5".to_vec(),
     ];
-    let message_count = messages.len();
+    let message_count = messages.len() as u32;
     let messages_as_array = js_array_of_bytearrays_from_vector_of_bytevectors(&messages).unwrap();
     let (params_g1, params_g2, sk, pk_g1, pk_g2) = bbs_setup(message_count);
 
@@ -217,7 +217,7 @@ pub fn bbs_blind_sign() {
     let committed_indices = [1, 4];
     let msgs_to_commit = js_sys::Map::new();
     let msgs_to_not_commit = js_sys::Map::new();
-    for i in 0..message_count {
+    for i in 0..message_count as usize {
         if committed_indices.contains(&i) {
             msgs_to_commit.set(
                 &JsValue::from(i as u32),
@@ -234,7 +234,7 @@ pub fn bbs_blind_sign() {
     assert_eq!(msgs_to_commit.size() as usize, committed_indices.len());
     assert_eq!(
         msgs_to_not_commit.size() as usize,
-        message_count - committed_indices.len()
+        message_count as usize - committed_indices.len()
     );
 
     let blinding = generate_random_field_element(None).unwrap();
@@ -284,7 +284,7 @@ pub fn bbs_blind_sign() {
 pub fn bbs_proof_of_knowledge() {
     macro_rules! check {
         ($messages: ident, $messages_as_jsvalue: ident, $encode: ident) => {
-            let (params, _, sk, _, pk) = bbs_setup($messages.len());
+            let (params, _, sk, _, pk) = bbs_setup($messages.len() as u32);
 
             let sig = bbs_plus_sign_g1(
                 $messages_as_jsvalue.clone(),
@@ -413,11 +413,11 @@ pub fn bbs_extend_params() {
 
     assert_eq!(
         bbs_plus_params_g1_max_supported_msgs(params_g1.clone()).unwrap(),
-        message_count
+        message_count as usize
     );
     assert_eq!(
         bbs_plus_params_g2_max_supported_msgs(params_g2.clone()).unwrap(),
-        message_count
+        message_count as usize
     );
 
     let new_message_count = 5;

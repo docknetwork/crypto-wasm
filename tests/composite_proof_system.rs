@@ -139,15 +139,15 @@ fn test_bbs_plus_witness(wit_j: JsValue, unrevealed_msgs: js_sys::Map) {
 #[wasm_bindgen_test]
 pub fn three_bbs_plus_sigs_and_msg_equality() {
     let msg_count_1 = 5;
-    let (params_1, sk_1, pk_1) = bbs_params_and_keys(msg_count_1);
+    let (params_1, sk_1, pk_1) = bbs_params_and_keys(msg_count_1 as u32);
     let msgs_1 = gen_msgs(msg_count_1);
 
     let msg_count_2 = 6;
-    let (params_2, sk_2, pk_2) = bbs_params_and_keys(msg_count_2);
+    let (params_2, sk_2, pk_2) = bbs_params_and_keys(msg_count_2 as u32);
     let mut msgs_2 = gen_msgs(msg_count_2);
 
     let msg_count_3 = 7;
-    let (params_3, sk_3, pk_3) = bbs_params_and_keys(msg_count_3);
+    let (params_3, sk_3, pk_3) = bbs_params_and_keys(msg_count_3 as u32);
     let mut msgs_3 = gen_msgs(msg_count_3);
 
     // Message at index 2 in msgs_1 is equal to index 3 in msgs_2
@@ -259,7 +259,7 @@ pub fn bbs_plus_sig_and_accumulator() {
         let msg_count_2 = 6;
         let (params_2, sk_2, pk_2) = bbs_params_and_keys(msg_count_2);
         let mut msgs_2 = vec![];
-        for _ in 0..msg_count_2 - 2 {
+        for _ in 0..msg_count_2 as usize - 2 {
             let m = random_bytes();
             let bytes = encode_message_for_signing(m).unwrap();
             msgs_2.push(bytes.to_vec());
@@ -663,7 +663,7 @@ pub fn bbs_sig_and_accumulator() {
         let msg_count_2 = 6;
         let (params_2, sk_2, pk_2) = bbs_params_and_keys(msg_count_2);
         let mut msgs_2 = vec![];
-        for _ in 0..msg_count_2 - 2 {
+        for _ in 0..msg_count_2 as usize - 2 {
             let m = random_bytes();
             let bytes = encode_message_for_signing(m).unwrap();
             msgs_2.push(bytes.to_vec());
@@ -1040,7 +1040,7 @@ pub fn request_blind_bbs_sig() {
     let indices_to_commit = js_sys::Array::new();
     let msgs_to_commit = js_sys::Map::new();
     let msgs_to_not_commit = js_sys::Map::new();
-    for i in 0..msg_count_2 {
+    for i in 0..msg_count_2 as usize {
         if committed_indices.contains(&i) {
             indices_to_commit.push(&JsValue::from(i as u32));
             msgs_to_commit.set(
@@ -1126,7 +1126,7 @@ pub fn request_blind_bbs_plus_sig() {
     let indices_to_commit = js_sys::Array::new();
     let msgs_to_commit = js_sys::Map::new();
     let msgs_to_not_commit = js_sys::Map::new();
-    for i in 0..msg_count_2 {
+    for i in 0..msg_count_2 as usize {
         if committed_indices.contains(&i) {
             indices_to_commit.push(&JsValue::from(i as u32));
             msgs_to_commit.set(

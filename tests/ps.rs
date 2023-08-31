@@ -20,7 +20,7 @@ use dock_crypto_wasm::{
 
 wasm_bindgen_test_configure!(run_in_browser);
 
-fn ps_setup(message_count: usize) -> (JsValue, Uint8Array, Uint8Array) {
+fn ps_setup(message_count: u32) -> (JsValue, Uint8Array, Uint8Array) {
     let label = b"test-g1".to_vec();
     let params = ps_generate_params(message_count, Some(label)).unwrap();
 
@@ -65,12 +65,15 @@ pub fn ps_params_and_keygen() {
     assert_eq!(sk.to_vec(), sk_1.to_vec());
     assert_eq!(
         ps_secret_key_supported_msgs(sk.clone()).unwrap(),
-        message_count
+        message_count as usize
     );
 
     let pk = ps_generate_public_key(sk, params.clone()).unwrap();
     assert!(ps_is_pubkey_valid(pk.clone()).unwrap());
-    assert_eq!(ps_public_key_supported_msgs(pk).unwrap(), message_count);
+    assert_eq!(
+        ps_public_key_supported_msgs(pk).unwrap(),
+        message_count as usize
+    );
 
     let bytes = ps_signature_params_to_bytes(params.clone()).unwrap();
     let desez_params = ps_signature_params_from_bytes(bytes).unwrap();
@@ -96,7 +99,7 @@ pub fn ps_sign_verify() {
         b"Message3".to_vec(),
         b"Message4".to_vec(),
     ];
-    let message_count = messages.len();
+    let message_count = messages.len() as u32;
 
     let (params, sk, pk) = ps_setup(message_count);
 
@@ -138,7 +141,7 @@ pub fn ps_blind_sign_test() {
         b"Message4".to_vec(),
         b"Message5".to_vec(),
     ];
-    let message_count = messages.len();
+    let message_count = messages.len() as u32;
     let messages_as_array = encode_messages_for_signing(
         js_array_of_bytearrays_from_vector_of_bytevectors(&messages).unwrap(),
         None,
@@ -177,7 +180,7 @@ pub fn ps_blind_sign_test() {
         })
         .collect();
 
-    assert_eq!({ committed_indices.len() }, committed_indices.len());
+    assert_eq!(committed_indices.len(), committed_indices.len());
 
     let blind_sig = ps_blind_sign(msgs.into(), sk, h).unwrap();
     let sig = ps_unblind_sig(
@@ -257,7 +260,7 @@ pub fn ps_proof_of_knowledge() {
         })
         .collect();
 
-    let (params, sk, pk) = ps_setup(messages.len());
+    let (params, sk, pk) = ps_setup(messages.len() as u32);
 
     let sig = ps_sign(messages_as_array.clone(), sk, params.clone()).unwrap();
 
@@ -307,11 +310,11 @@ pub fn ps_extend_params() {
 
     assert_eq!(
         ps_params_max_supported_msgs(params.clone()).unwrap(),
-        message_count
+        message_count as usize
     );
     assert_eq!(
         ps_params_max_supported_msgs(params.clone()).unwrap(),
-        message_count
+        message_count as usize
     );
 
     let new_message_count = 5;
@@ -413,7 +416,7 @@ pub fn ps_extend_params() {
     )
     .unwrap();
 
-    let sk = ps_generate_secret_key(messages.len(), None).unwrap();
+    let sk = ps_generate_secret_key(messages.len() as u32, None).unwrap();
 
     let pk = ps_generate_public_key(sk.clone(), params_1.clone()).unwrap();
 

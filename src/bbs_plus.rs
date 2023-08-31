@@ -13,8 +13,7 @@ use crate::{
     Fr, G1Affine, G2Affine,
 };
 use ark_bls12_381::Bls12_381;
-use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
-use ark_std::collections::{BTreeMap, BTreeSet};
+use ark_std::collections::BTreeMap;
 use bbs_plus::prelude::{
     KeypairG1, KeypairG2, PoKOfSignatureG1Proof, PoKOfSignatureG1Protocol, PublicKeyG1,
     PublicKeyG2, SecretKey, SignatureG1, SignatureG2, SignatureParamsG1, SignatureParamsG2,
@@ -35,7 +34,7 @@ pub(crate) type BBSPlusPoKOfSigProof = PoKOfSignatureG1Proof<Bls12_381>;
 
 #[wasm_bindgen(js_name = bbsPlusGenerateSignatureParamsG1)]
 pub fn bbs_plus_generate_g1_params(
-    message_count: usize,
+    message_count: u32,
     label: Option<Vec<u8>>,
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
@@ -60,7 +59,7 @@ pub fn bbs_plus_params_g1_max_supported_msgs(params: JsValue) -> Result<usize, J
 
 #[wasm_bindgen(js_name = bbsPlusGenerateSignatureParamsG2)]
 pub fn bbs_plus_generate_g2_params(
-    message_count: usize,
+    message_count: u32,
     label: Option<Vec<u8>>,
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();

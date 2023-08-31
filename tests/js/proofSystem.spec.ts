@@ -384,7 +384,7 @@ describe("Proving knowledge of many signatures", () => {
   });
 });
 
-describe("Proving knowledge of BBS+ signatures and accumulator membership and non-membership", () => {
+describe("Proving knowledge of signatures and accumulator membership and non-membership", () => {
   beforeAll(async () => {
     await initializeWasm();
   });

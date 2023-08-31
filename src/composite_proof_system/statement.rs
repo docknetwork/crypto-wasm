@@ -1,6 +1,5 @@
 use ark_bls12_381::Bls12_381;
 use ark_ec::pairing::Pairing;
-use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use ark_std::collections::BTreeSet;
 use js_sys::Uint8Array;
 use proof_system::{
@@ -531,8 +530,8 @@ pub fn generate_bound_check_lego_verifier_statement_from_param_refs(
 #[wasm_bindgen(js_name = generateR1CSCircomProverStatement)]
 pub fn generate_r1cs_circom_prover_statement(
     curve_name: &str,
-    num_public: usize,
-    num_private: usize,
+    num_public: u32,
+    num_private: u32,
     constraints: js_sys::Array,
     wasm_bytes: Uint8Array,
     snark_pk: Uint8Array,

@@ -65,7 +65,7 @@ pub fn min_max_values() {
 #[wasm_bindgen_test]
 pub fn bbs_sig_and_bound_check_message() {
     let msg_count = 5;
-    let (params, sk, pk) = bbs_params_and_keys(msg_count);
+    let (params, sk, pk) = bbs_params_and_keys(msg_count as u32);
     let mut encoded_msgs = vec![];
 
     let bounded_msg_idx = 3usize;

@@ -6,10 +6,9 @@ use crate::{
         encode_messages_as_js_array_to_fr_vec, fr_from_uint8_array, get_seeded_rng,
         js_array_to_iter, js_set_to_btree_set, set_panic_hook,
     },
-    Fr, G1Affine,
+    Fr,
 };
 use ark_bls12_381::Bls12_381;
-use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use bbs_plus::threshold::{
     base_ot_phase::BaseOTPhaseOutput,
     cointoss::Commitments,
@@ -38,7 +37,8 @@ macro_rules! start_phase1 {
             $participant_id,
             others,
             $protocol_id.clone(),
-        ).map_err(|e| JsValue::from(&format!("Starting Phase1 returned error: {:?}", e)))?;
+        )
+        .map_err(|e| JsValue::from(&format!("Starting Phase1 returned error: {:?}", e)))?;
         let r = Array::new();
         let phase1 = obj_to_uint8array!(&phase1, true, $sig_name);
         let comm = obj_to_uint8array!(&comm, false, "Commitments");
@@ -124,8 +124,8 @@ macro_rules! create_signature_share {
 macro_rules! aggregate_signature_shares {
     ($shares: ident, $sig_share_type: ident) => {{
         set_panic_hook();
-        let shares = js_array_to_iter(&$shares)
-            .collect::<Result<Vec<$sig_share_type<Bls12_381>>, _>>()?;
+        let shares =
+            js_array_to_iter(&$shares).collect::<Result<Vec<$sig_share_type<Bls12_381>>, _>>()?;
         let sig = $sig_share_type::aggregate(shares).map_err(|e| {
             JsValue::from(&format!(
                 "Creating signature from shares returned error: {:?}",
@@ -139,7 +139,7 @@ macro_rules! aggregate_signature_shares {
 
 #[wasm_bindgen(js_name = thresholdBbsPlusStartPhase1)]
 pub fn threshold_bbs_plus_start_phase_1(
-    sig_batch_size: usize,
+    sig_batch_size: u32,
     participant_id: ParticipantId,
     others: Set,
     protocol_id: Vec<u8>,
@@ -278,7 +278,7 @@ pub fn threshold_bbs_plus_aggregate_signature_shares(shares: Array) -> Result<Ui
 
 #[wasm_bindgen(js_name = thresholdBbsStartPhase1)]
 pub fn threshold_bbs_start_phase_1(
-    sig_batch_size: usize,
+    sig_batch_size: u32,
     participant_id: ParticipantId,
     others: Set,
     protocol_id: Vec<u8>,

@@ -8,7 +8,6 @@ use crate::{
 };
 use ark_bls12_381::Bls12_381;
 use ark_ec::pairing::Pairing;
-use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use blake2::Blake2b512;
 use saver::{
     encryption::Ciphertext,

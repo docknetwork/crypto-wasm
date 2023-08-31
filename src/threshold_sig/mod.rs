@@ -1,4 +1,3 @@
-use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use blake2::Blake2b512;
 use js_sys::Uint8Array;
 use oblivious_transfer_protocols::ot_based_multiplication::{
