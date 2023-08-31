@@ -5,10 +5,7 @@ use crate::{
     },
     Fr, G1Affine, G2Affine,
 };
-use ark_bls12_381::Bls12_381;
 use ark_ec::CurveGroup;
-use ark_ff::PrimeField;
-use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use ark_std::ops::Mul;
 use blake2::Blake2b512;
 use js_sys::{Array, Uint8Array};

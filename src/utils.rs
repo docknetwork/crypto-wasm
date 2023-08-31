@@ -372,7 +372,7 @@ pub fn js_set_to_btree_set<T: Ord + serde::de::DeserializeOwned>(
 macro_rules! obj_to_uint8array {
     ($obj:expr, $value_is_secret: expr) => {{
         let mut serz = vec![];
-        CanonicalSerialize::serialize_compressed($obj, &mut serz).map_err(|e| {
+        ark_serialize::CanonicalSerialize::serialize_compressed($obj, &mut serz).map_err(|e| {
             JsValue::from(format!(
                 "Failed to serialize to bytes due to error: {:?}",
                 e
@@ -387,7 +387,7 @@ macro_rules! obj_to_uint8array {
 
     ($obj:expr, $value_is_secret: expr, $obj_name:expr) => {{
         let mut serz = vec![];
-        CanonicalSerialize::serialize_compressed($obj, &mut serz).map_err(|e| {
+        ark_serialize::CanonicalSerialize::serialize_compressed($obj, &mut serz).map_err(|e| {
             JsValue::from(format!(
                 "Failed to serialize a {} to bytes due to error: {:?}",
                 $obj_name, e
@@ -405,13 +405,15 @@ macro_rules! obj_to_uint8array {
 macro_rules! obj_from_uint8array {
     ($obj_type:ty, $uint8array:expr, $value_is_secret: expr) => {{
         let mut serz = $uint8array.to_vec();
-        let deserz: $obj_type =
-            CanonicalDeserialize::deserialize_compressed(&serz[..]).map_err(|e| {
-                JsValue::from(format!(
-                    "Failed to deserialize from bytes due to error: {:?}",
-                    e
-                ))
-            })?;
+        let deserz: $obj_type = ark_serialize::CanonicalDeserialize::deserialize_compressed(
+            &serz[..],
+        )
+        .map_err(|e| {
+            JsValue::from(format!(
+                "Failed to deserialize from bytes due to error: {:?}",
+                e
+            ))
+        })?;
         if $value_is_secret {
             serz.zeroize();
         }
@@ -420,13 +422,15 @@ macro_rules! obj_from_uint8array {
 
     ($obj_type:ty, $uint8array:expr, $value_is_secret: expr, $obj_name:expr) => {{
         let mut serz = $uint8array.to_vec();
-        let deserz: $obj_type =
-            CanonicalDeserialize::deserialize_compressed(&serz[..]).map_err(|e| {
-                JsValue::from(format!(
-                    "Failed to deserialize a {} from bytes due to error: {:?}",
-                    $obj_name, e
-                ))
-            })?;
+        let deserz: $obj_type = ark_serialize::CanonicalDeserialize::deserialize_compressed(
+            &serz[..],
+        )
+        .map_err(|e| {
+            JsValue::from(format!(
+                "Failed to deserialize a {} from bytes due to error: {:?}",
+                $obj_name, e
+            ))
+        })?;
         if $value_is_secret {
             serz.zeroize();
         }
@@ -438,23 +442,27 @@ macro_rules! obj_from_uint8array {
 macro_rules! obj_to_uint8array_uncompressed {
     ($obj:expr) => {{
         let mut serz = vec![];
-        CanonicalSerialize::serialize_uncompressed($obj, &mut serz).map_err(|e| {
-            JsValue::from(format!(
-                "Failed to serialize to bytes due to error: {:?}",
-                e
-            ))
-        })?;
+        ark_serialize::CanonicalSerialize::serialize_uncompressed($obj, &mut serz).map_err(
+            |e| {
+                JsValue::from(format!(
+                    "Failed to serialize to bytes due to error: {:?}",
+                    e
+                ))
+            },
+        )?;
         js_sys::Uint8Array::from(serz.as_slice())
     }};
 
     ($obj:expr, $obj_name:expr) => {{
         let mut serz = vec![];
-        CanonicalSerialize::serialize_uncompressed($obj, &mut serz).map_err(|e| {
-            JsValue::from(format!(
-                "Failed to serialize a {} to bytes due to error: {:?}",
-                $obj_name, e
-            ))
-        })?;
+        ark_serialize::CanonicalSerialize::serialize_uncompressed($obj, &mut serz).map_err(
+            |e| {
+                JsValue::from(format!(
+                    "Failed to serialize a {} to bytes due to error: {:?}",
+                    $obj_name, e
+                ))
+            },
+        )?;
         js_sys::Uint8Array::from(serz.as_slice())
     }};
 }
@@ -463,25 +471,29 @@ macro_rules! obj_to_uint8array_uncompressed {
 macro_rules! obj_from_uint8array_uncompressed {
     ($obj_type:ty, $uint8array:expr) => {{
         let serz = $uint8array.to_vec();
-        let deserz: $obj_type =
-            CanonicalDeserialize::deserialize_uncompressed(&serz[..]).map_err(|e| {
-                JsValue::from(format!(
-                    "Failed to deserialize from bytes due to error: {:?}",
-                    e
-                ))
-            })?;
+        let deserz: $obj_type = ark_serialize::CanonicalDeserialize::deserialize_uncompressed(
+            &serz[..],
+        )
+        .map_err(|e| {
+            JsValue::from(format!(
+                "Failed to deserialize from bytes due to error: {:?}",
+                e
+            ))
+        })?;
         deserz
     }};
 
     ($obj_type:ty, $uint8array:expr, $obj_name:expr) => {{
         let serz = $uint8array.to_vec();
-        let deserz: $obj_type =
-            CanonicalDeserialize::deserialize_uncompressed(&serz[..]).map_err(|e| {
-                JsValue::from(format!(
-                    "Failed to deserialize a {} from bytes due to error: {:?}",
-                    $obj_name, e
-                ))
-            })?;
+        let deserz: $obj_type = ark_serialize::CanonicalDeserialize::deserialize_uncompressed(
+            &serz[..],
+        )
+        .map_err(|e| {
+            JsValue::from(format!(
+                "Failed to deserialize a {} from bytes due to error: {:?}",
+                $obj_name, e
+            ))
+        })?;
         deserz
     }};
 }

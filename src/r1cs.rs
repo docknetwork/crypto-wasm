@@ -1,7 +1,6 @@
 use ark_bls12_381::{Bls12_381, Fr};
 use ark_ff::PrimeField;
 use ark_relations::r1cs::{ConstraintSynthesizer, ConstraintSystem};
-use ark_serialize::CanonicalSerialize;
 use legogroth16::circom::{
     r1cs::{Constraint, Curve, LC, R1CS},
     CircomCircuit, WitnessCalculator,
@@ -62,8 +61,8 @@ fn parse_constraints(constraints: js_sys::Array) -> Result<Vec<Constraint<Bls12_
 
 pub fn gen_r1cs(
     curve_name: &str,
-    num_public: usize,
-    num_private: usize,
+    num_public: u32,
+    num_private: u32,
     constraints: js_sys::Array,
 ) -> Result<R1CS<Bls12_381>, JsValue> {
     if curve_name != "bls12381" {
@@ -74,8 +73,8 @@ pub fn gen_r1cs(
     }
     Ok(R1CS {
         curve: Curve::Bls12_381,
-        num_public,
-        num_private,
+        num_public: num_public,
+        num_private: num_private,
         constraints: parse_constraints(constraints)?,
         wire_to_label_mapping: vec![],
     })
@@ -112,8 +111,8 @@ pub fn r1cs_generate_wires(
 #[wasm_bindgen(js_name = r1csCircuitSatisfied)]
 pub fn r1cs_circuit_satisfied(
     curve_name: &str,
-    num_public: usize,
-    num_private: usize,
+    num_public: u32,
+    num_private: u32,
     constraints: js_sys::Array,
     wasm_bytes: js_sys::Uint8Array,
     input_wires: js_sys::Map,
@@ -139,10 +138,10 @@ pub fn r1cs_circuit_satisfied(
 #[wasm_bindgen(js_name = r1csSnarkSetup)]
 pub fn r1cs_snark_setup(
     curve_name: &str,
-    num_public: usize,
-    num_private: usize,
+    num_public: u32,
+    num_private: u32,
     constraints: js_sys::Array,
-    commit_witness_count: usize,
+    commit_witness_count: u32,
     return_uncompressed: bool,
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();

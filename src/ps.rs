@@ -5,8 +5,7 @@ use crate::utils::{
 
 use crate::{common::VerifyResponse, utils, Fr, G1Affine};
 use ark_bls12_381::Bls12_381;
-use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
-use ark_std::collections::{BTreeMap, BTreeSet};
+use ark_std::collections::BTreeMap;
 use blake2::Blake2b512;
 use coconut_crypto::{
     keygen::{common::Threshold, shamir_ss},
@@ -33,7 +32,7 @@ pub(crate) type PSPoKOfMessagesProof = proof::MessagesPoK<Bls12_381>;
 macro_rules! adapt_key_for_less_messages {
     ($key: ident: $key_type: ident for $new_count: ident using $pop_element: expr) => {{
         let mut $key = obj_from_uint8array!($key_type, $key, true, stringify!($key_type));
-        let current_count = $key.supported_message_count();
+        let current_count = $key.supported_message_count() as u32;
 
         if current_count >= $new_count {
             for _ in 0..(current_count - $new_count) {
@@ -50,7 +49,7 @@ macro_rules! adapt_key_for_less_messages {
 macro_rules! adapt_key_for_more_messages {
     ($key: ident: $key_type: ident for $new_count: ident using $add_element: expr) => {{
         let mut $key = obj_from_uint8array!($key_type, $key, true, stringify!($key_type));
-        let current_count = $key.supported_message_count();
+        let current_count = $key.supported_message_count() as u32;
 
         if current_count <= $new_count {
             for i in current_count..$new_count {
@@ -95,10 +94,7 @@ pub fn ps_public_key_supported_msgs(public_key: Uint8Array) -> Result<usize, JsV
 }
 
 #[wasm_bindgen(js_name = psGenerateSignatureParams)]
-pub fn ps_generate_params(
-    message_count: usize,
-    label: Option<Vec<u8>>,
-) -> Result<JsValue, JsValue> {
+pub fn ps_generate_params(message_count: u32, label: Option<Vec<u8>>) -> Result<JsValue, JsValue> {
     set_panic_hook();
     let label = label.unwrap_or_else(random_bytes);
     let params = PSSignatureParams::new::<Blake2b512>(&label, message_count);
@@ -115,7 +111,7 @@ pub fn ps_signature_params_to_bytes(params: JsValue) -> Result<js_sys::Uint8Arra
 
 #[wasm_bindgen(js_name = psGenerateSigningKey)]
 pub fn ps_generate_secret_key(
-    message_count: usize,
+    message_count: u32,
     seed: Option<Vec<u8>>,
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
@@ -140,7 +136,7 @@ pub fn ps_generate_public_key(
 #[wasm_bindgen(js_name = psAdaptSecretKeyForLessMessages)]
 pub fn ps_adapt_secret_key_for_less_messages(
     secret_key: js_sys::Uint8Array,
-    message_count: usize,
+    message_count: u32,
 ) -> Result<Option<js_sys::Uint8Array>, JsValue> {
     adapt_key_for_less_messages! { secret_key: PSSecretKey for message_count using secret_key.y.pop() }
 }
@@ -148,7 +144,7 @@ pub fn ps_adapt_secret_key_for_less_messages(
 #[wasm_bindgen(js_name = psAdaptPublicKeyForLessMessages)]
 pub fn ps_adapt_public_key_for_less_messages(
     public_key: js_sys::Uint8Array,
-    message_count: usize,
+    message_count: u32,
 ) -> Result<Option<js_sys::Uint8Array>, JsValue> {
     adapt_key_for_less_messages! { public_key: PSPublicKey for message_count using { public_key.beta.pop(); public_key.beta_tilde.pop(); } }
 }
@@ -157,14 +153,14 @@ pub fn ps_adapt_public_key_for_less_messages(
 pub fn ps_adapt_secret_key_for_more_messages(
     secret_key: js_sys::Uint8Array,
     seed: Vec<u8>,
-    message_count: usize,
+    message_count: u32,
 ) -> Result<Option<js_sys::Uint8Array>, JsValue> {
     use ark_ff::field_hashers::{DefaultFieldHasher, HashToField};
     let hasher = <DefaultFieldHasher<Blake2b512> as HashToField<Fr>>::new(PSSecretKey::Y_SALT);
 
     adapt_key_for_more_messages! {
         secret_key: PSSecretKey for message_count using
-        |i: usize| secret_key.y.push(hasher.hash_to_field(&concat_slices!(seed, i.to_le_bytes()), 1).pop().unwrap())
+        |i: u32| secret_key.y.push(hasher.hash_to_field(&concat_slices!(seed, i.to_le_bytes()), 1).pop().unwrap())
     }
 }
 
@@ -642,11 +638,7 @@ pub fn ps_aggregate_signatures(
 }
 
 #[wasm_bindgen(js_name = psShamirDeal)]
-pub fn ps_shamir_deal(
-    message_count: usize,
-    threshold: u16,
-    total: u16,
-) -> Result<JsValue, JsValue> {
+pub fn ps_shamir_deal(message_count: u32, threshold: u16, total: u16) -> Result<JsValue, JsValue> {
     set_panic_hook();
 
     let threshold = Threshold::new(threshold, total).ok_or("Invalid threshold")?;

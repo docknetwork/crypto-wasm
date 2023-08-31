@@ -15,14 +15,14 @@ use dock_crypto_wasm::{
 use js_sys::Uint8Array;
 use wasm_bindgen::JsValue;
 
-pub fn bbs_params_and_keys(message_count: usize) -> (JsValue, Uint8Array, Uint8Array) {
+pub fn bbs_params_and_keys(message_count: u32) -> (JsValue, Uint8Array, Uint8Array) {
     let params = bbs_plus_generate_g1_params(message_count, None).unwrap();
     let sk = bbs_plus_generate_secret_key(None).unwrap();
     let pk = bbs_plus_generate_public_key_g2(sk.clone(), params.clone()).unwrap();
     (params, sk, pk)
 }
 
-pub fn gen_msgs(count: usize) -> Vec<Vec<u8>> {
+pub fn gen_msgs(count: u32) -> Vec<Vec<u8>> {
     (0..count).map(|_| random_bytes()).collect::<Vec<Vec<u8>>>()
 }
 

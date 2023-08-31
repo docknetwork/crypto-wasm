@@ -12,8 +12,7 @@ use crate::{
     Fr, G1Affine,
 };
 use ark_bls12_381::Bls12_381;
-use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
-use ark_std::collections::{BTreeMap, BTreeSet};
+use ark_std::collections::BTreeMap;
 use bbs_plus::prelude::{
     KeypairG2, PoKOfSignature23G1Proof, PoKOfSignature23G1Protocol, PublicKeyG2, SecretKey,
     Signature23G1, SignatureParams23G1,
@@ -30,10 +29,7 @@ pub(crate) type BBSPoKOfSigProtocol = PoKOfSignature23G1Protocol<Bls12_381>;
 pub(crate) type BBSPoKOfSigProof = PoKOfSignature23G1Proof<Bls12_381>;
 
 #[wasm_bindgen(js_name = bbsGenerateSignatureParams)]
-pub fn bbs_generate_params(
-    message_count: usize,
-    label: Option<Vec<u8>>,
-) -> Result<JsValue, JsValue> {
+pub fn bbs_generate_params(message_count: u32, label: Option<Vec<u8>>) -> Result<JsValue, JsValue> {
     set_panic_hook();
     let label = label.unwrap_or_else(random_bytes);
     let params = BBSSigParams::new::<Blake2b512>(&label, message_count);

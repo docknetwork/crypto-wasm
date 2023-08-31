@@ -1,5 +1,4 @@
 use ark_bls12_381::Bls12_381;
-use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use proof_system::setup_params::SetupParams;
 use wasm_bindgen::prelude::*;
 use zeroize::Zeroize;
@@ -320,8 +319,8 @@ pub fn generate_setup_param_for_lego_verifying_key(
 #[wasm_bindgen(js_name = generateSetupParamForR1CS)]
 pub fn generate_setup_param_for_r1cs(
     curve_name: &str,
-    num_public: usize,
-    num_private: usize,
+    num_public: u32,
+    num_private: u32,
     constraints: js_sys::Array,
 ) -> Result<js_sys::Uint8Array, JsValue> {
     let r = gen_r1cs(curve_name, num_public, num_private, constraints)?;

@@ -10,7 +10,6 @@ use dock_crypto_utils::concat_slices;
 use wasm_bindgen::prelude::*;
 
 use ark_ff::One;
-use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use blake2::Blake2b512;
 use vb_accumulator::prelude::{
     Accumulator, Keypair, MembershipProof, MembershipProofProtocol, MembershipProvingKey,
@@ -957,7 +956,7 @@ pub fn accumulator_challenge_contribution_from_non_membership_proof(
 }
 
 pub(crate) fn deserialize_params(bytes: js_sys::Uint8Array) -> Result<AccumSetupParams, JsValue> {
-    CanonicalDeserialize::deserialize_compressed(&bytes.to_vec()[..]).map_err(|e| {
+    ark_serialize::CanonicalDeserialize::deserialize_compressed(&bytes.to_vec()[..]).map_err(|e| {
         JsValue::from(&format!(
             "Failed to deserialize accumulator params from bytes due to error: {:?}",
             e
@@ -966,7 +965,7 @@ pub(crate) fn deserialize_params(bytes: js_sys::Uint8Array) -> Result<AccumSetup
 }
 
 pub(crate) fn deserialize_public_key(bytes: js_sys::Uint8Array) -> Result<AccumPk, JsValue> {
-    CanonicalDeserialize::deserialize_compressed(&bytes.to_vec()[..]).map_err(|e| {
+    ark_serialize::CanonicalDeserialize::deserialize_compressed(&bytes.to_vec()[..]).map_err(|e| {
         JsValue::from(&format!(
             "Failed to deserialize accumulator public key from bytes due to error: {:?}",
             e
@@ -1051,7 +1050,7 @@ mod macros {
             let element = fr_from_uint8_array($element, true)?;
             let additions = js_array_to_fr_vec(&$additions)?;
             let removals = js_array_to_fr_vec(&$removals)?;
-            let public_info: Omega = CanonicalDeserialize::deserialize_compressed(&$public_info.to_vec()[..]).map_err(|e| {
+            let public_info: Omega = ark_serialize::CanonicalDeserialize::deserialize_compressed(&$public_info.to_vec()[..]).map_err(|e| {
                 JsValue::from(&format!(
                     "Failed to deserialize public info from bytes due to error: {:?}",
                     e
@@ -1080,7 +1079,7 @@ mod macros {
                     let adds = js_array_to_fr_vec(&js_sys::Array::from(&$additions.get(i)))?;
                     let rems = js_array_to_fr_vec(&js_sys::Array::from(&$removals.get(i)))?;
                     let bytes: Vec<u8> = serde_wasm_bindgen::from_value($public_info.get(i))?;
-                    let p: Omega = CanonicalDeserialize::deserialize_compressed(&bytes[..]).map_err(|e| JsValue::from(&format!(
+                    let p: Omega = ark_serialize::CanonicalDeserialize::deserialize_compressed(&bytes[..]).map_err(|e| JsValue::from(&format!(
                             "Failed to deserialize public info from bytes due to error: {:?}",
                             e
                         )))?;
