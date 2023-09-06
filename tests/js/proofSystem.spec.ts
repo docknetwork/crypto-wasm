@@ -78,6 +78,8 @@ import {
   bbsSign,
   generatePoKBBSSignatureWitness,
   generateSetupParamForPSSignatureParameters,
+  generateSetupParamForBBSSignatureParameters,
+  generatePoKBBSSignatureStatementFromParamRefs,
 } from "../../lib";
 import { BbsSigParams, PSSigParams } from "../../lib/types";
 
@@ -792,7 +794,7 @@ describe("Proving equality of openings of Pedersen commitments", () => {
   });
 });
 
-describe("Reusing setup params of BBS+ and accumulator", () => {
+describe("Reusing setup params of BBS, BBS+ and accumulator", () => {
   const messageCount = 5;
   let sigParams1: BbsPlusSigParams,
     sigParams2: BbsPlusSigParams,
@@ -800,6 +802,12 @@ describe("Reusing setup params of BBS+ and accumulator", () => {
     sigSk2: Uint8Array,
     sigPk1: Uint8Array,
     sigPk2: Uint8Array;
+  let sigParams3: BbsSigParams,
+      sigParams4: BbsSigParams,
+      sigSk3: Uint8Array,
+      sigSk4: Uint8Array,
+      sigPk3: Uint8Array,
+      sigPk4: Uint8Array;
   let messages1: Uint8Array[],
     messages2: Uint8Array[],
     messages3: Uint8Array[],
@@ -815,6 +823,10 @@ describe("Reusing setup params of BBS+ and accumulator", () => {
     await initializeWasm();
     [sigParams1, sigSk1, sigPk1] = setupSignerBBSPlus(messageCount);
     [sigParams2, sigSk2, sigPk2] = setupSignerBBSPlus(messageCount);
+
+    [sigParams3, sigSk3, sigPk3] = setupSignerBBS(messageCount);
+    [sigParams4, sigSk4, sigPk4] = setupSignerBBS(messageCount);
+
     messages1 = setupMessages(messageCount, "Message1", true);
     messages2 = setupMessages(messageCount, "Message2", true);
     messages3 = setupMessages(messageCount, "Message3", true);
@@ -829,37 +841,37 @@ describe("Reusing setup params of BBS+ and accumulator", () => {
     accumPk2 = generateAccumulatorPublicKey(accumSk2, accumParams2);
   });
 
-  it("generate and verify a proof of knowledge using setup parameters", () => {
+  function check(signFunc, setupParamsForSigParamsFunc, setupParamsForPkFunc, sigStmtFunc, sigWitFunc) {
     const memberIndex = 0;
     const nonMemberIndex = 1;
 
-    const sig1 = bbsPlusSignG1(messages1, sigSk1, sigParams1, false);
-    const sig2 = bbsPlusSignG1(messages2, sigSk1, sigParams1, false);
-    const sig3 = bbsPlusSignG1(messages3, sigSk2, sigParams2, false);
-    const sig4 = bbsPlusSignG1(messages4, sigSk2, sigParams2, false);
+    const sig1 = signFunc(messages1, sigSk1, sigParams1, false);
+    const sig2 = signFunc(messages2, sigSk1, sigParams1, false);
+    const sig3 = signFunc(messages3, sigSk2, sigParams2, false);
+    const sig4 = signFunc(messages4, sigSk2, sigParams2, false);
 
     let posAccumulator1 = positiveAccumulatorInitialize(accumParams1);
     let posAccumulator2 = positiveAccumulatorInitialize(accumParams2);
 
     posAccumulator1 = positiveAccumulatorAdd(
-      posAccumulator1,
-      messages1[memberIndex],
-      accumSk1
+        posAccumulator1,
+        messages1[memberIndex],
+        accumSk1
     );
     posAccumulator1 = positiveAccumulatorAdd(
-      posAccumulator1,
-      messages2[memberIndex],
-      accumSk1
+        posAccumulator1,
+        messages2[memberIndex],
+        accumSk1
     );
     posAccumulator2 = positiveAccumulatorAdd(
-      posAccumulator2,
-      messages3[memberIndex],
-      accumSk2
+        posAccumulator2,
+        messages3[memberIndex],
+        accumSk2
     );
     posAccumulator2 = positiveAccumulatorAdd(
-      posAccumulator2,
-      messages4[memberIndex],
-      accumSk2
+        posAccumulator2,
+        messages4[memberIndex],
+        accumSk2
     );
 
     const initialElements1 = [
@@ -874,92 +886,92 @@ describe("Reusing setup params of BBS+ and accumulator", () => {
     ];
 
     let uniAccumulator1 = getUniversalAccum(
-      initialElements1,
-      accumSk1,
-      accumParams1,
-      100
+        initialElements1,
+        accumSk1,
+        accumParams1,
+        100
     );
     let uniAccumulator2 = getUniversalAccum(
-      initialElements2,
-      accumSk2,
-      accumParams2,
-      100
+        initialElements2,
+        accumSk2,
+        accumParams2,
+        100
     );
 
     const nonMemPrk = generateNonMembershipProvingKey();
     const memPrk = accumulatorDeriveMembershipProvingKeyFromNonMembershipKey(
-      nonMemPrk
+        nonMemPrk
     );
 
     const [revealedMsgs1, unrevealedMsgs1] = getRevealedUnrevealed(
-      messages1,
-      new Set<number>()
+        messages1,
+        new Set<number>()
     );
     const [revealedMsgs2, unrevealedMsgs2] = getRevealedUnrevealed(
-      messages2,
-      new Set<number>()
+        messages2,
+        new Set<number>()
     );
     const [revealedMsgs3, unrevealedMsgs3] = getRevealedUnrevealed(
-      messages3,
-      new Set<number>()
+        messages3,
+        new Set<number>()
     );
     const [revealedMsgs4, unrevealedMsgs4] = getRevealedUnrevealed(
-      messages4,
-      new Set<number>()
+        messages4,
+        new Set<number>()
     );
 
     const posWitness1 = positiveAccumulatorMembershipWitness(
-      posAccumulator1,
-      messages1[memberIndex],
-      accumSk1
+        posAccumulator1,
+        messages1[memberIndex],
+        accumSk1
     );
     const posWitness2 = positiveAccumulatorMembershipWitness(
-      posAccumulator1,
-      messages2[memberIndex],
-      accumSk1
+        posAccumulator1,
+        messages2[memberIndex],
+        accumSk1
     );
     const posWitness3 = positiveAccumulatorMembershipWitness(
-      posAccumulator2,
-      messages3[memberIndex],
-      accumSk2
+        posAccumulator2,
+        messages3[memberIndex],
+        accumSk2
     );
     const posWitness4 = positiveAccumulatorMembershipWitness(
-      posAccumulator2,
-      messages4[memberIndex],
-      accumSk2
+        posAccumulator2,
+        messages4[memberIndex],
+        accumSk2
     );
 
     let d = universalAccumulatorComputeD(messages1[nonMemberIndex], []);
     const uniWitness1 = universalAccumulatorNonMembershipWitness(
-      uniAccumulator1,
-      d,
-      messages1[nonMemberIndex],
-      accumSk1,
-      accumParams1
+        uniAccumulator1,
+        d,
+        messages1[nonMemberIndex],
+        accumSk1,
+        accumParams1
     );
     d = universalAccumulatorComputeD(messages2[nonMemberIndex], []);
     const uniWitness2 = universalAccumulatorNonMembershipWitness(
-      uniAccumulator1,
-      d,
-      messages2[nonMemberIndex],
-      accumSk1,
-      accumParams1
+        uniAccumulator1,
+        d,
+        messages2[nonMemberIndex],
+        accumSk1,
+        accumParams1
     );
     d = universalAccumulatorComputeD(messages3[nonMemberIndex], []);
     const uniWitness3 = universalAccumulatorNonMembershipWitness(
-      uniAccumulator2,
-      d,
-      messages3[nonMemberIndex],
-      accumSk2,
-      accumParams2
+        uniAccumulator2,
+        d,
+        messages3[nonMemberIndex],
+        accumSk2,
+        accumParams2
     );
     d = universalAccumulatorComputeD(messages4[nonMemberIndex], []);
     const uniWitness4 = universalAccumulatorNonMembershipWitness(
-      uniAccumulator2,
-      d,
-      messages4[nonMemberIndex],
-      accumSk2,
-      accumParams2
+        uniAccumulator2,
+        d,
+        messages4[nonMemberIndex],
+        accumSk2,
+        accumParams2
     );
 
     const posAccumulated1 = positiveAccumulatorGetAccumulated(posAccumulator1);
@@ -969,95 +981,95 @@ describe("Reusing setup params of BBS+ and accumulator", () => {
 
     const allSetupParams: Uint8Array[] = [];
     allSetupParams.push(
-      generateSetupParamForBBSPlusSignatureParametersG1(sigParams1)
+        setupParamsForSigParamsFunc(sigParams1)
     );
-    allSetupParams.push(generateSetupParamForBBSPlusPublicKeyG2(sigPk1));
+    allSetupParams.push(setupParamsForPkFunc(sigPk1));
     allSetupParams.push(
-      generateSetupParamForBBSPlusSignatureParametersG1(sigParams2)
+        setupParamsForSigParamsFunc(sigParams2)
     );
-    allSetupParams.push(generateSetupParamForBBSPlusPublicKeyG2(sigPk2));
+    allSetupParams.push(setupParamsForPkFunc(sigPk2));
     allSetupParams.push(generateSetupParamForVbAccumulatorParams(accumParams1));
     allSetupParams.push(generateSetupParamForVbAccumulatorPublicKey(accumPk1));
     allSetupParams.push(generateSetupParamForVbAccumulatorParams(accumParams2));
     allSetupParams.push(generateSetupParamForVbAccumulatorPublicKey(accumPk2));
     allSetupParams.push(
-      generateSetupParamForVbAccumulatorMemProvingKey(memPrk)
+        generateSetupParamForVbAccumulatorMemProvingKey(memPrk)
     );
     allSetupParams.push(
-      generateSetupParamForVbAccumulatorNonMemProvingKey(nonMemPrk)
+        generateSetupParamForVbAccumulatorNonMemProvingKey(nonMemPrk)
     );
 
-    const statement1 = generatePoKBBSPlusSignatureStatementFromParamRefs(
-      0,
-      1,
-      revealedMsgs1,
-      false
+    const statement1 = sigStmtFunc(
+        0,
+        1,
+        revealedMsgs1,
+        false
     );
-    const statement2 = generatePoKBBSPlusSignatureStatementFromParamRefs(
-      0,
-      1,
-      revealedMsgs2,
-      false
+    const statement2 = sigStmtFunc(
+        0,
+        1,
+        revealedMsgs2,
+        false
     );
-    const statement3 = generatePoKBBSPlusSignatureStatementFromParamRefs(
-      2,
-      3,
-      revealedMsgs3,
-      false
+    const statement3 = sigStmtFunc(
+        2,
+        3,
+        revealedMsgs3,
+        false
     );
-    const statement4 = generatePoKBBSPlusSignatureStatementFromParamRefs(
-      2,
-      3,
-      revealedMsgs4,
-      false
+    const statement4 = sigStmtFunc(
+        2,
+        3,
+        revealedMsgs4,
+        false
     );
     const statement5 = generateAccumulatorMembershipStatementFromParamRefs(
-      4,
-      5,
-      8,
-      posAccumulated1
+        4,
+        5,
+        8,
+        posAccumulated1
     );
     const statement6 = generateAccumulatorMembershipStatementFromParamRefs(
-      4,
-      5,
-      8,
-      posAccumulated1
+        4,
+        5,
+        8,
+        posAccumulated1
     );
     const statement7 = generateAccumulatorMembershipStatementFromParamRefs(
-      6,
-      7,
-      8,
-      posAccumulated2
+        6,
+        7,
+        8,
+        posAccumulated2
     );
     const statement8 = generateAccumulatorMembershipStatementFromParamRefs(
-      6,
-      7,
-      8,
-      posAccumulated2
+        6,
+        7,
+        8,
+        posAccumulated2
     );
     const statement9 = generateAccumulatorNonMembershipStatementFromParamRefs(
-      4,
-      5,
-      9,
-      uniAccumulated1
+        4,
+        5,
+        9,
+        uniAccumulated1
     );
     const statement10 = generateAccumulatorNonMembershipStatementFromParamRefs(
-      4,
-      5,
-      9,
-      uniAccumulated1
+        4,
+        5,
+        9,
+        uniAccumulated1
     );
     const statement11 = generateAccumulatorNonMembershipStatementFromParamRefs(
-      6,
-      7,
-      9,
-      uniAccumulated2
+        6,
+        7,
+        9,
+        uniAccumulated2
     );
     const statement12 = generateAccumulatorNonMembershipStatementFromParamRefs(
-      6,
-      7,
-      9,
-      uniAccumulated2
+        6,
+        7,
+        9,
+        uniAccumulated2
     );
 
     const statements: Uint8Array[] = [];
@@ -1077,57 +1089,57 @@ describe("Reusing setup params of BBS+ and accumulator", () => {
     const proofSpec = generateProofSpecG1(statements, [], allSetupParams);
     expect(isProofSpecG1Valid(proofSpec)).toEqual(true);
 
-    const witness1 = generatePoKBBSPlusSignatureWitness(
-      sig1,
-      unrevealedMsgs1,
-      false
+    const witness1 = sigWitFunc(
+        sig1,
+        unrevealedMsgs1,
+        false
     );
-    const witness2 = generatePoKBBSPlusSignatureWitness(
-      sig2,
-      unrevealedMsgs2,
-      false
+    const witness2 = sigWitFunc(
+        sig2,
+        unrevealedMsgs2,
+        false
     );
-    const witness3 = generatePoKBBSPlusSignatureWitness(
-      sig3,
-      unrevealedMsgs3,
-      false
+    const witness3 = sigWitFunc(
+        sig3,
+        unrevealedMsgs3,
+        false
     );
-    const witness4 = generatePoKBBSPlusSignatureWitness(
-      sig4,
-      unrevealedMsgs4,
-      false
+    const witness4 = sigWitFunc(
+        sig4,
+        unrevealedMsgs4,
+        false
     );
     const witness5 = generateAccumulatorMembershipWitness(
-      messages1[memberIndex],
-      posWitness1
+        messages1[memberIndex],
+        posWitness1
     );
     const witness6 = generateAccumulatorMembershipWitness(
-      messages2[memberIndex],
-      posWitness2
+        messages2[memberIndex],
+        posWitness2
     );
     const witness7 = generateAccumulatorMembershipWitness(
-      messages3[memberIndex],
-      posWitness3
+        messages3[memberIndex],
+        posWitness3
     );
     const witness8 = generateAccumulatorMembershipWitness(
-      messages4[memberIndex],
-      posWitness4
+        messages4[memberIndex],
+        posWitness4
     );
     const witness9 = generateAccumulatorNonMembershipWitness(
-      messages1[nonMemberIndex],
-      uniWitness1
+        messages1[nonMemberIndex],
+        uniWitness1
     );
     const witness10 = generateAccumulatorNonMembershipWitness(
-      messages2[nonMemberIndex],
-      uniWitness2
+        messages2[nonMemberIndex],
+        uniWitness2
     );
     const witness11 = generateAccumulatorNonMembershipWitness(
-      messages3[nonMemberIndex],
-      uniWitness3
+        messages3[nonMemberIndex],
+        uniWitness3
     );
     const witness12 = generateAccumulatorNonMembershipWitness(
-      messages4[nonMemberIndex],
-      uniWitness4
+        messages4[nonMemberIndex],
+        uniWitness4
     );
 
     const witnesses: Uint8Array[] = [];
@@ -1148,5 +1160,13 @@ describe("Reusing setup params of BBS+ and accumulator", () => {
 
     const res = verifyCompositeProofG1(proof, proofSpec);
     expect(res.verified).toBe(true);
+  }
+
+  it("generate and verify a proof of knowledge with BBS+ and accumulator using setup parameters", () => {
+    check(bbsPlusSignG1, generateSetupParamForBBSPlusSignatureParametersG1, generateSetupParamForBBSPlusPublicKeyG2, generatePoKBBSPlusSignatureStatementFromParamRefs, generatePoKBBSPlusSignatureWitness)
+  });
+
+  it("generate and verify a proof of knowledge with BBS and accumulator using setup parameters", () => {
+    check(bbsSign, generateSetupParamForBBSSignatureParameters, generateSetupParamForBBSPlusPublicKeyG2, generatePoKBBSSignatureStatementFromParamRefs, generatePoKBBSSignatureWitness)
   });
 });
