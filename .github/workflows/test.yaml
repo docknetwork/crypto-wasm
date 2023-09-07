@@ -7,12 +7,26 @@ on:
   pull_request: {}
 
 jobs:
-  build_test:
-    name: Build test
+  headless_browser_test:
+    name: Run Rust tests on headless browser
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
-        node-version: [16.x, 18.x]
+        os: [ ubuntu-latest, macos-latest ]
+    steps:
+      - uses: actions/checkout@v1
+      - uses: jetli/wasm-pack-action@v0.3.0
+        with:
+          # Optional version of wasm-pack to install(eg. 'v0.9.1', 'latest')
+          version: 'latest'
+      - run: yarn test:browser
+
+  js_test:
+    name: Run JS tests in NodeJS environment
+    runs-on: ${{matrix.os}}
+    strategy:
+      matrix:
+        node-version: [16.x, 18.x, 20.x]
         os: [ubuntu-latest, macos-latest]
     steps:
       - uses: actions/checkout@v1
@@ -25,4 +39,4 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - run: yarn install --frozen-lockfile
       - run: yarn build:release
-      - run: yarn test
+      - run: yarn test:wasm
