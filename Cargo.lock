@@ -583,7 +583,7 @@ dependencies = [
 
 [[package]]
 name = "dock_crypto_wasm"
-version = "0.15.0"
+version = "0.16.0"
 dependencies = [
  "ark-bls12-381",
  "ark-ec",
