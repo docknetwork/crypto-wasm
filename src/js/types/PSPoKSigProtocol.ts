@@ -1,4 +1,4 @@
-import { PSSig } from "./PSSig";
+import { type PSSig } from "./PSSig";
 
 export interface PSPoKSigProtocol {
     readonly witness: Uint8Array,
