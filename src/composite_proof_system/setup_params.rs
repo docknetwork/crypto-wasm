@@ -7,6 +7,7 @@ use crate::{
     accumulator::{AccumPk, AccumSetupParams, MembershipPrk, NonMembershipPrk},
     bbs::BBSSigParams,
     bbs_plus::{BBSPlusPublicKeyG2, BBSPlusSigParamsG1},
+    bound_check::{BppSetupParams, SmcParams, SmcParamsAndSk},
     legosnark::{LegoProvingKey, LegoVerifyingKey},
     ps::{PSPublicKey, PSSignatureParams},
     r1cs::gen_r1cs,
@@ -351,5 +352,71 @@ pub fn generate_setup_param_for_field_elem_vec(
         G1Affine,
     >::FieldElemVec(
         js_array_to_fr_vec(&arr)?
+    )))
+}
+
+#[wasm_bindgen(js_name = generateSetupParamForBppParams)]
+pub fn generate_setup_param_for_bpp_params(
+    params: js_sys::Uint8Array,
+    uncompressed: bool,
+) -> Result<js_sys::Uint8Array, JsValue> {
+    set_panic_hook();
+    let params = if uncompressed {
+        obj_from_uint8array_uncompressed!(BppSetupParams, params, "Bulletproofs++SetupParams")
+    } else {
+        obj_from_uint8array!(BppSetupParams, params, false, "Bulletproofs++SetupParams")
+    };
+    Ok(obj_to_uint8array_uncompressed!(&SetupParams::<
+        Bls12_381,
+        G1Affine,
+    >::BppSetupParams(
+        params
+    )))
+}
+
+#[wasm_bindgen(js_name = generateSetupParamForSmcParams)]
+pub fn generate_setup_param_for_smc_params(
+    params: js_sys::Uint8Array,
+    uncompressed: bool,
+) -> Result<js_sys::Uint8Array, JsValue> {
+    set_panic_hook();
+    let params = if uncompressed {
+        obj_from_uint8array_uncompressed!(SmcParams, params, "SmcParamsAndCommitmentKey")
+    } else {
+        obj_from_uint8array!(SmcParams, params, false, "SmcParamsAndCommitmentKey")
+    };
+    Ok(obj_to_uint8array_uncompressed!(&SetupParams::<
+        Bls12_381,
+        G1Affine,
+    >::SmcParamsAndCommKey(
+        params
+    )))
+}
+
+#[wasm_bindgen(js_name = generateSetupParamForSmcParamsAndSk)]
+pub fn generate_setup_param_for_smc_params_and_sk(
+    params: js_sys::Uint8Array,
+    uncompressed: bool,
+) -> Result<js_sys::Uint8Array, JsValue> {
+    set_panic_hook();
+    let params = if uncompressed {
+        obj_from_uint8array_uncompressed!(
+            SmcParamsAndSk,
+            params,
+            "SmcParamsAndCommitmentKeyAndSecretKey"
+        )
+    } else {
+        obj_from_uint8array!(
+            SmcParamsAndSk,
+            params,
+            false,
+            "SmcParamsAndCommitmentKeyAndSecretKey"
+        )
+    };
+    Ok(obj_to_uint8array_uncompressed!(&SetupParams::<
+        Bls12_381,
+        G1Affine,
+    >::SmcParamsAndCommKeyAndSk(
+        params
     )))
 }

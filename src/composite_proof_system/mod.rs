@@ -1,5 +1,5 @@
 pub mod setup_params;
-pub mod statement;
+pub mod statements;
 
 use wasm_bindgen::prelude::*;
 
@@ -321,6 +321,30 @@ pub fn generate_r1cs_circom_witness(
         r1cs_wit.set_public(name, js_array_to_fr_vec(&vals)?);
     }
     let witness = Witness::R1CSLegoGroth16(r1cs_wit);
+    serde_wasm_bindgen::to_value(&witness).map_err(JsValue::from)
+}
+
+#[wasm_bindgen(js_name = generateBoundCheckBppWitness)]
+pub fn generate_bound_check_bpp_witness(message: Uint8Array) -> Result<JsValue, JsValue> {
+    set_panic_hook();
+    let message = fr_from_uint8_array(message, true)?;
+    let witness = Witness::BoundCheckBpp(message);
+    serde_wasm_bindgen::to_value(&witness).map_err(JsValue::from)
+}
+
+#[wasm_bindgen(js_name = generateBoundCheckSmcWitness)]
+pub fn generate_bound_check_smc_witness(message: Uint8Array) -> Result<JsValue, JsValue> {
+    set_panic_hook();
+    let message = fr_from_uint8_array(message, true)?;
+    let witness = Witness::BoundCheckSmc(message);
+    serde_wasm_bindgen::to_value(&witness).map_err(JsValue::from)
+}
+
+#[wasm_bindgen(js_name = generateBoundCheckSmcWithKVWitness)]
+pub fn generate_bound_check_smc_with_kv_witness(message: Uint8Array) -> Result<JsValue, JsValue> {
+    set_panic_hook();
+    let message = fr_from_uint8_array(message, true)?;
+    let witness = Witness::BoundCheckSmcWithKV(message);
     serde_wasm_bindgen::to_value(&witness).map_err(JsValue::from)
 }
 

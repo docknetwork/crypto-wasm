@@ -9,7 +9,7 @@ use dock_crypto_wasm::{
         bbs_plus_generate_g1_params, bbs_plus_generate_public_key_g2, bbs_plus_generate_secret_key,
     },
     common::random_ff,
-    composite_proof_system::statement::generate_witness_equality_meta_statement,
+    composite_proof_system::statements::generate_witness_equality_meta_statement,
     utils::{js_array_from_frs, random_bytes},
 };
 use js_sys::Uint8Array;

@@ -22,9 +22,9 @@ use dock_crypto_wasm::{
 mod common;
 use common::{bbs_params_and_keys, get_revealed_unrevealed, get_witness_equality_statement};
 use dock_crypto_wasm::{
-    composite_proof_system::statement::{
-        generate_bound_check_lego_prover_statement, generate_bound_check_lego_verifier_statement,
-        generate_pok_bbs_plus_sig_statement, get_valid_min_max,
+    composite_proof_system::statements::{
+        bound_check::get_valid_min_max, generate_bound_check_lego_prover_statement,
+        generate_bound_check_lego_verifier_statement, generate_pok_bbs_plus_sig_statement,
     },
     legosnark::{legosnark_decompress_pk, legosnark_vk_from_pk},
 };

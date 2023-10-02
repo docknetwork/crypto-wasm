@@ -19,7 +19,7 @@ use dock_crypto_wasm::{
 
 mod common;
 use common::{bbs_params_and_keys, get_revealed_unrevealed, get_witness_equality_statement};
-use dock_crypto_wasm::composite_proof_system::statement::{
+use dock_crypto_wasm::composite_proof_system::statements::{
     generate_pok_bbs_plus_sig_statement, generate_saver_prover_statement,
     generate_saver_verifier_statement,
 };

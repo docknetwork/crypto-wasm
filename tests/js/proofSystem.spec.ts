@@ -77,7 +77,6 @@ import {
   generatePoKBBSSignatureStatement,
   bbsSign,
   generatePoKBBSSignatureWitness,
-  generateSetupParamForPSSignatureParameters,
   generateSetupParamForBBSSignatureParameters,
   generatePoKBBSSignatureStatementFromParamRefs,
 } from "../../lib";

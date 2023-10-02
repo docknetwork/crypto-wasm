@@ -22,6 +22,24 @@ import {
   generateSetupParamForLegoVerifyingKey,
   generateBoundCheckLegoVerifierStatementFromParamRefs,
   generateSetupParamForLegoProvingKey,
+  boundCheckBppSetup,
+  generateBoundCheckBppStatement,
+  generateBoundCheckBppWitness,
+  decompressBppParams,
+  generateSetupParamForBppParams,
+  generateBoundCheckBppStatementFromParamRefs,
+  boundCheckSmcSetup,
+  decompressSmcParams,
+  generateBoundCheckSmcStatement,
+  generateBoundCheckSmcWitness,
+  generateSetupParamForSmcParams,
+  generateBoundCheckSmcStatementFromParamRefs,
+  boundCheckSmcWithKVSetup,
+  decompressSmcParamsAndSk,
+  generateBoundCheckSmcWithKVProverStatement,
+  generateBoundCheckSmcWithKVVerifierStatement,
+  generateBoundCheckSmcWithKVProverStatementFromParamRefs, generateBoundCheckSmcWithKVVerifierStatementFromParamRefs,
+  generateBoundCheckSmcWithKVWitness, generateSetupParamForSmcParamsAndSk
 } from "../../lib";
 import { getRevealedUnrevealed, stringToBytes } from "../utilities";
 
@@ -38,15 +56,235 @@ describe("Prove and verify bounds on signed messages", () => {
     max: number,
     proof: Uint8Array;
   let snarkPk: Uint8Array, snarkPkDecom: Uint8Array, snarkVkDecom: Uint8Array;
+  const base = 2, valueBitSize = 64;
+  let bppSetupParams: Uint8Array, bppSetupParamsDecom: Uint8Array;
+  let smcSetupParams: Uint8Array, smcSetupParamsDecom: Uint8Array;
+  let smcWithKVSetup: Uint8Array[], smcWithKVProverParams: Uint8Array, smcWithKVVerifierParams: Uint8Array;
 
   const messages: Uint8Array[] = [];
+
+  function checkOverSingleMessage(proverStmt, verifierStmt, witnessGen, proverParams, verifierParams) {
+    const revealedIndices = new Set<number>();
+    revealedIndices.add(4);
+
+    const [revealedMsgs, unrevealedMsgs] = getRevealedUnrevealed(
+        messages,
+        revealedIndices
+    );
+    const statement1 = generatePoKBBSPlusSignatureStatement(
+        sigParams,
+        sigPk,
+        revealedMsgs,
+        false
+    );
+
+    console.time("bound check prover stmt");
+    const statement2 = proverStmt(
+        min,
+        max,
+        proverParams,
+        true
+    );
+    console.timeEnd("bound check prover stmt");
+
+    const proverStatements: Uint8Array[] = [];
+    proverStatements.push(statement1);
+    proverStatements.push(statement2);
+
+    const metaStatements: Uint8Array[] = [];
+    const set = new Set<[number, number]>();
+    set.add([0, msgIdx]);
+    set.add([1, 0]);
+    metaStatements.push(generateWitnessEqualityMetaStatement(set));
+
+    const witness1 = generatePoKBBSPlusSignatureWitness(sig, unrevealedMsgs, false);
+    const witness2 = witnessGen(messages[msgIdx]);
+
+    const witnesses: Uint8Array[] = [];
+    witnesses.push(witness1);
+    witnesses.push(witness2);
+
+    const nonce = stringToBytes("test-nonce");
+
+    console.time("proof gen");
+    proof = generateCompositeProofG1WithDeconstructedProofSpec(
+        proverStatements,
+        metaStatements,
+        [],
+        witnesses,
+        undefined,
+        nonce
+    );
+    console.timeEnd("proof gen");
+
+    console.time("bound check verifier stmt");
+    const statement3 = verifierStmt(
+        min,
+        max,
+        verifierParams,
+        true
+    );
+    console.timeEnd("bound check verifier stmt");
+
+    const verifierStatements: Uint8Array[] = [];
+    verifierStatements.push(statement1);
+    verifierStatements.push(statement3);
+
+    console.time("proof ver");
+    const res = verifyCompositeProofG1WithDeconstructedProofSpec(
+        proof,
+        verifierStatements,
+        metaStatements,
+        [],
+        undefined,
+        nonce
+    );
+    console.timeEnd("proof ver");
+    expect(res.verified).toBe(true);
+  }
+
+  function checkOverMultipleMessages(setupParamProver, setupParamVerifier, proverStmt, verifierStmt, witnessGen, proverParams, verifierParams) {
+    const [revealedMsgs, unrevealedMsgs] = getRevealedUnrevealed(
+        messages,
+        new Set<number>()
+    );
+    const statement1 = generatePoKBBSPlusSignatureStatement(
+        sigParams,
+        sigPk,
+        revealedMsgs,
+        false
+    );
+
+    console.time("bound check prover setup param");
+    const provingSetupParams: Uint8Array[] = [];
+    provingSetupParams.push(
+        setupParamProver(proverParams, true)
+    );
+    console.timeEnd("bound check prover setup param");
+
+    const statement2 = proverStmt(
+        min,
+        max,
+        0
+    );
+    const statement3 = proverStmt(
+        min,
+        max,
+        0
+    );
+    const statement4 = proverStmt(
+        min,
+        max,
+        0
+    );
+
+    const proverStatements: Uint8Array[] = [];
+    proverStatements.push(statement1);
+    proverStatements.push(statement2);
+    proverStatements.push(statement3);
+    proverStatements.push(statement4);
+
+    // All messages are within bounds by choice during test setup
+    const metaStatements: Uint8Array[] = [];
+    const set1 = new Set<[number, number]>();
+    set1.add([0, msgIdx]);
+    set1.add([1, 0]);
+    metaStatements.push(generateWitnessEqualityMetaStatement(set1));
+
+    const set2 = new Set<[number, number]>();
+    set2.add([0, msgIdx + 1]);
+    set2.add([2, 0]);
+    metaStatements.push(generateWitnessEqualityMetaStatement(set2));
+
+    const set3 = new Set<[number, number]>();
+    set3.add([0, msgIdx + 2]);
+    set3.add([3, 0]);
+    metaStatements.push(generateWitnessEqualityMetaStatement(set3));
+
+    const witness1 = generatePoKBBSPlusSignatureWitness(sig, unrevealedMsgs, false);
+    const witness2 = witnessGen(messages[msgIdx]);
+    const witness3 = witnessGen(messages[msgIdx + 1]);
+    const witness4 = witnessGen(messages[msgIdx + 2]);
+
+    const witnesses: Uint8Array[] = [];
+    witnesses.push(witness1);
+    witnesses.push(witness2);
+    witnesses.push(witness3);
+    witnesses.push(witness4);
+
+    const nonce = stringToBytes("test-nonce");
+
+    console.time("proof gen");
+    proof = generateCompositeProofG1WithDeconstructedProofSpec(
+        proverStatements,
+        metaStatements,
+        provingSetupParams,
+        witnesses,
+        undefined,
+        nonce
+    );
+    console.timeEnd("proof gen");
+
+    console.time("bound check verifier setup param");
+    const verifierSetupParams: Uint8Array[] = [];
+    verifierSetupParams.push(
+        setupParamVerifier(verifierParams, true)
+    );
+    console.timeEnd("bound check verifier setup param");
+
+    const statement5 = verifierStmt(
+        min,
+        max,
+        0
+    );
+    const statement6 = verifierStmt(
+        min,
+        max,
+        0
+    );
+    const statement7 = verifierStmt(
+        min,
+        max,
+        0
+    );
+
+    const verifierStatements: Uint8Array[] = [];
+    verifierStatements.push(statement1);
+    verifierStatements.push(statement5);
+    verifierStatements.push(statement6);
+    verifierStatements.push(statement7);
+
+    console.time("proof ver");
+    const res = verifyCompositeProofG1WithDeconstructedProofSpec(
+        proof,
+        verifierStatements,
+        metaStatements,
+        verifierSetupParams,
+        undefined,
+        nonce
+    );
+    console.timeEnd("proof ver");
+    expect(res.verified).toBe(true);
+  }
 
   beforeAll(async () => {
     await initializeWasm();
   });
 
-  it("verifier setup", () => {
+  it("verifier setup for Legogroth16 based", () => {
     snarkPk = boundCheckSnarkSetup(false);
+  }, 10000);
+
+  it("public setup for Bulletproofs++ based", () => {
+    bppSetupParams = boundCheckBppSetup(stringToBytes("test"), base, valueBitSize, false);
+  }, 10000);
+
+  it("verifier setup for set-membership check based", () => {
+    smcSetupParams = boundCheckSmcSetup(stringToBytes("test"), base, false);
+  }, 10000);
+
+  it("verifier setup for set-membership check based with keyed-verification", () => {
+    smcWithKVSetup = boundCheckSmcWithKVSetup(stringToBytes("test"), base, false);
   }, 10000);
 
   it("decompress snark proving and verifying key", () => {
@@ -57,6 +295,25 @@ describe("Prove and verify bounds on signed messages", () => {
     console.time("Snark Vk decompressed");
     snarkVkDecom = legosnarkVkFromPk(snarkPk, true);
     console.timeEnd("Snark Vk decompressed");
+  }, 50000);
+
+  it("decompress Bulletproofs++ params", () => {
+    console.time("Bulletproofs++ params decompressed");
+    bppSetupParamsDecom = decompressBppParams(bppSetupParams);
+    console.timeEnd("Bulletproofs++ params decompressed");
+  }, 50000);
+
+  it("decompress set-membership check params", () => {
+    console.time("set-membership check params decompressed");
+    smcSetupParamsDecom = decompressSmcParams(smcSetupParams);
+    console.timeEnd("set-membership check params decompressed");
+  }, 50000);
+
+  it("decompress set-membership check with keyed verification params", () => {
+    console.time("set-membership check params decompressed");
+    smcWithKVProverParams = decompressSmcParams(smcWithKVSetup[0]);
+    smcWithKVVerifierParams = decompressSmcParamsAndSk(smcWithKVSetup[1]);
+    console.timeEnd("set-membership check params decompressed");
   }, 50000);
 
   it("signature setup and sign messages", () => {
@@ -102,207 +359,35 @@ describe("Prove and verify bounds on signed messages", () => {
     ).toThrow();
   });
 
-  it("create and verify a proof over single signed message", () => {
-    const revealedIndices = new Set<number>();
-    revealedIndices.add(4);
-
-    const [revealedMsgs, unrevealedMsgs] = getRevealedUnrevealed(
-      messages,
-      revealedIndices
-    );
-    const statement1 = generatePoKBBSPlusSignatureStatement(
-      sigParams,
-      sigPk,
-      revealedMsgs,
-      false
-    );
-
-    console.time("bound check prover stmt");
-    const statement2 = generateBoundCheckLegoProverStatement(
-      min,
-      max,
-      snarkPkDecom,
-      true
-    );
-    console.timeEnd("bound check prover stmt");
-
-    const proverStatements: Uint8Array[] = [];
-    proverStatements.push(statement1);
-    proverStatements.push(statement2);
-
-    const metaStatements: Uint8Array[] = [];
-    const set = new Set<[number, number]>();
-    set.add([0, msgIdx]);
-    set.add([1, 0]);
-    metaStatements.push(generateWitnessEqualityMetaStatement(set));
-
-    const witness1 = generatePoKBBSPlusSignatureWitness(sig, unrevealedMsgs, false);
-    const witness2 = generateBoundCheckWitness(messages[msgIdx]);
-
-    const witnesses: Uint8Array[] = [];
-    witnesses.push(witness1);
-    witnesses.push(witness2);
-
-    const nonce = stringToBytes("test-nonce");
-
-    console.time("proof gen");
-    proof = generateCompositeProofG1WithDeconstructedProofSpec(
-      proverStatements,
-      metaStatements,
-      [],
-      witnesses,
-      undefined,
-      nonce
-    );
-    console.timeEnd("proof gen");
-
-    console.time("bound check verifier stmt");
-    const statement3 = generateBoundCheckLegoVerifierStatement(
-      min,
-      max,
-      snarkVkDecom,
-      true
-    );
-    console.timeEnd("bound check verifier stmt");
-
-    const verifierStatements: Uint8Array[] = [];
-    verifierStatements.push(statement1);
-    verifierStatements.push(statement3);
-
-    console.time("proof ver");
-    const res = verifyCompositeProofG1WithDeconstructedProofSpec(
-      proof,
-      verifierStatements,
-      metaStatements,
-      [],
-      undefined,
-      nonce
-    );
-    console.timeEnd("proof ver");
-    expect(res.verified).toBe(true);
+  it("create and verify a proof over single signed message using Legogroth16", () => {
+    checkOverSingleMessage(generateBoundCheckLegoProverStatement, generateBoundCheckLegoVerifierStatement, generateBoundCheckWitness, snarkPkDecom, snarkVkDecom)
   }, 10000);
 
-  it("create and verify a proof over multiple signed messages", () => {
-    const [revealedMsgs, unrevealedMsgs] = getRevealedUnrevealed(
-      messages,
-      new Set<number>()
-    );
-    const statement1 = generatePoKBBSPlusSignatureStatement(
-      sigParams,
-      sigPk,
-      revealedMsgs,
-      false
-    );
+  it("create and verify a proof over single signed message using Bulletproofs++", () => {
+    checkOverSingleMessage(generateBoundCheckBppStatement, generateBoundCheckBppStatement, generateBoundCheckBppWitness, bppSetupParamsDecom, bppSetupParamsDecom)
+  }, 10000);
 
-    console.time("bound check prover setup param");
-    const provingSetupParams: Uint8Array[] = [];
-    provingSetupParams.push(
-      generateSetupParamForLegoProvingKey(snarkPkDecom, true)
-    );
-    console.timeEnd("bound check prover setup param");
+  it("create and verify a proof over single signed message using set-membership check", () => {
+    checkOverSingleMessage(generateBoundCheckSmcStatement, generateBoundCheckSmcStatement, generateBoundCheckSmcWitness, smcSetupParamsDecom, smcSetupParamsDecom)
+  }, 10000);
 
-    const statement2 = generateBoundCheckLegoProverStatementFromParamRefs(
-      min,
-      max,
-      0
-    );
-    const statement3 = generateBoundCheckLegoProverStatementFromParamRefs(
-      min,
-      max,
-      0
-    );
-    const statement4 = generateBoundCheckLegoProverStatementFromParamRefs(
-      min,
-      max,
-      0
-    );
+  it("create and verify a proof over single signed message using set-membership check with keyed-verification", () => {
+    checkOverSingleMessage(generateBoundCheckSmcWithKVProverStatement, generateBoundCheckSmcWithKVVerifierStatement, generateBoundCheckSmcWithKVWitness, smcWithKVProverParams, smcWithKVVerifierParams)
+  }, 10000);
 
-    const proverStatements: Uint8Array[] = [];
-    proverStatements.push(statement1);
-    proverStatements.push(statement2);
-    proverStatements.push(statement3);
-    proverStatements.push(statement4);
+  it("create and verify a proof over multiple signed messages using Legogroth16", () => {
+    checkOverMultipleMessages(generateSetupParamForLegoProvingKey, generateSetupParamForLegoVerifyingKey, generateBoundCheckLegoProverStatementFromParamRefs, generateBoundCheckLegoVerifierStatementFromParamRefs, generateBoundCheckWitness, snarkPkDecom, snarkVkDecom)
+  }, 10000);
 
-    // All messages are within bounds by choice during test setup
-    const metaStatements: Uint8Array[] = [];
-    const set1 = new Set<[number, number]>();
-    set1.add([0, msgIdx]);
-    set1.add([1, 0]);
-    metaStatements.push(generateWitnessEqualityMetaStatement(set1));
+  it("create and verify a proof over multiple signed messages using Bulletproofs++", () => {
+    checkOverMultipleMessages(generateSetupParamForBppParams, generateSetupParamForBppParams, generateBoundCheckBppStatementFromParamRefs, generateBoundCheckBppStatementFromParamRefs, generateBoundCheckBppWitness, bppSetupParamsDecom, bppSetupParamsDecom)
+  }, 10000);
 
-    const set2 = new Set<[number, number]>();
-    set2.add([0, msgIdx + 1]);
-    set2.add([2, 0]);
-    metaStatements.push(generateWitnessEqualityMetaStatement(set2));
+  it("create and verify a proof over multiple signed messages using set-membership check", () => {
+    checkOverMultipleMessages(generateSetupParamForSmcParams, generateSetupParamForSmcParams, generateBoundCheckSmcStatementFromParamRefs, generateBoundCheckSmcStatementFromParamRefs, generateBoundCheckSmcWitness, smcSetupParamsDecom, smcSetupParamsDecom)
+  }, 10000);
 
-    const set3 = new Set<[number, number]>();
-    set3.add([0, msgIdx + 2]);
-    set3.add([3, 0]);
-    metaStatements.push(generateWitnessEqualityMetaStatement(set3));
-
-    const witness1 = generatePoKBBSPlusSignatureWitness(sig, unrevealedMsgs, false);
-    const witness2 = generateBoundCheckWitness(messages[msgIdx]);
-    const witness3 = generateBoundCheckWitness(messages[msgIdx + 1]);
-    const witness4 = generateBoundCheckWitness(messages[msgIdx + 2]);
-
-    const witnesses: Uint8Array[] = [];
-    witnesses.push(witness1);
-    witnesses.push(witness2);
-    witnesses.push(witness3);
-    witnesses.push(witness4);
-
-    const nonce = stringToBytes("test-nonce");
-
-    console.time("proof gen");
-    proof = generateCompositeProofG1WithDeconstructedProofSpec(
-      proverStatements,
-      metaStatements,
-      provingSetupParams,
-      witnesses,
-      undefined,
-      nonce
-    );
-    console.timeEnd("proof gen");
-
-    console.time("bound check verifier setup param");
-    const verifierSetupParams: Uint8Array[] = [];
-    verifierSetupParams.push(
-      generateSetupParamForLegoVerifyingKey(snarkVkDecom, true)
-    );
-    console.timeEnd("bound check verifier setup param");
-
-    const statement5 = generateBoundCheckLegoVerifierStatementFromParamRefs(
-      min,
-      max,
-      0
-    );
-    const statement6 = generateBoundCheckLegoVerifierStatementFromParamRefs(
-      min,
-      max,
-      0
-    );
-    const statement7 = generateBoundCheckLegoVerifierStatementFromParamRefs(
-      min,
-      max,
-      0
-    );
-
-    const verifierStatements: Uint8Array[] = [];
-    verifierStatements.push(statement1);
-    verifierStatements.push(statement5);
-    verifierStatements.push(statement6);
-    verifierStatements.push(statement7);
-
-    console.time("proof ver");
-    const res = verifyCompositeProofG1WithDeconstructedProofSpec(
-      proof,
-      verifierStatements,
-      metaStatements,
-      verifierSetupParams,
-      undefined,
-      nonce
-    );
-    console.timeEnd("proof ver");
-    expect(res.verified).toBe(true);
+  it("create and verify a proof over multiple signed messages using set-membership check with keyed-verification", () => {
+    checkOverMultipleMessages(generateSetupParamForSmcParams, generateSetupParamForSmcParamsAndSk, generateBoundCheckSmcWithKVProverStatementFromParamRefs, generateBoundCheckSmcWithKVVerifierStatementFromParamRefs, generateBoundCheckSmcWithKVWitness, smcWithKVProverParams, smcWithKVVerifierParams)
   }, 10000);
 });

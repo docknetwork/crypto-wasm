@@ -106,3 +106,18 @@ module.exports.generateSetupParamForFieldElemVec = (arr) => {
     requireWasmInitialized();
     return wasm.generateSetupParamForFieldElemVec(arr);
 };
+
+module.exports.generateSetupParamForBppParams = (params, uncompressed) => {
+    requireWasmInitialized();
+    return wasm.generateSetupParamForBppParams(params, uncompressed);
+};
+
+module.exports.generateSetupParamForSmcParams = (params, uncompressed) => {
+    requireWasmInitialized();
+    return wasm.generateSetupParamForSmcParams(params, uncompressed);
+};
+
+module.exports.generateSetupParamForSmcParamsAndSk = (params, uncompressed) => {
+    requireWasmInitialized();
+    return wasm.generateSetupParamForSmcParamsAndSk(params, uncompressed);
+};

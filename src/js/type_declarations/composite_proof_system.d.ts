@@ -175,6 +175,58 @@ export function generateR1CSCircomVerifierStatementFromParamRefs(
     snarkVk: number,
 ): Uint8Array;
 
+export function generateBoundCheckBppStatement(
+    min: number,
+    max: number,
+    params: Uint8Array,
+    uncompressedPublicParams: boolean
+): Uint8Array;
+
+export function generateBoundCheckBppStatementFromParamRefs(
+    min: number,
+    max: number,
+    params: number
+): Uint8Array;
+
+export function generateBoundCheckSmcStatement(
+    min: number,
+    max: number,
+    params: Uint8Array,
+    uncompressedParams: boolean
+): Uint8Array;
+
+export function generateBoundCheckSmcStatementFromParamRefs(
+    min: number,
+    max: number,
+    params: number,
+): Uint8Array;
+
+export function generateBoundCheckSmcWithKVProverStatement(
+    min: number,
+    max: number,
+    params: Uint8Array,
+    uncompressedParams: boolean
+): Uint8Array;
+
+export function generateBoundCheckSmcWithKVProverStatementFromParamRefs(
+    min: number,
+    max: number,
+    params: number,
+): Uint8Array;
+
+export function generateBoundCheckSmcWithKVVerifierStatement(
+    min: number,
+    max: number,
+    params: Uint8Array,
+    uncompressedParams: boolean
+): Uint8Array;
+
+export function generateBoundCheckSmcWithKVVerifierStatementFromParamRefs(
+    min: number,
+    max: number,
+    params: number,
+): Uint8Array;
+
 export function generateWitnessEqualityMetaStatement(
     equalities: Set<[number, number]>,
 ): Uint8Array;
@@ -222,6 +274,18 @@ export function generateR1CSCircomWitness(
     inputWires: Map<string, Uint8Array[]>,
     privates: string[],
     publics?: string[],
+): Uint8Array;
+
+export function generateBoundCheckBppWitness(
+    message: Uint8Array
+): Uint8Array;
+
+export function generateBoundCheckSmcWitness(
+    message: Uint8Array
+): Uint8Array;
+
+export function generateBoundCheckSmcWithKVWitness(
+    message: Uint8Array
 ): Uint8Array;
 
 export function generateProofSpecG1(

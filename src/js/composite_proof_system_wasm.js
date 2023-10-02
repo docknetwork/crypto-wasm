@@ -132,6 +132,46 @@ module.exports.generateR1CSCircomVerifierStatementFromParamRefs = (publicInputs,
     return wasm.generateR1CSCircomVerifierStatementFromParamRefs(publicInputs, snarkVk);
 };
 
+module.exports.generateBoundCheckBppStatement = (min, max, params, uncompressedPublicParams) => {
+    requireWasmInitialized();
+    return wasm.generateBoundCheckBppStatement(min, max, params, uncompressedPublicParams);
+};
+
+module.exports.generateBoundCheckBppStatementFromParamRefs = (min, max, params) => {
+    requireWasmInitialized();
+    return wasm.generateBoundCheckBppStatementFromParamRefs(min, max, params);
+};
+
+module.exports.generateBoundCheckSmcStatement = (min, max, params, uncompressedParams) => {
+    requireWasmInitialized();
+    return wasm.generateBoundCheckSmcStatement(min, max, params, uncompressedParams);
+};
+
+module.exports.generateBoundCheckSmcStatementFromParamRefs = (min, max, params) => {
+    requireWasmInitialized();
+    return wasm.generateBoundCheckSmcStatementFromParamRefs(min, max, params);
+};
+
+module.exports.generateBoundCheckSmcWithKVProverStatement = (min, max, params, uncompressedParams) => {
+    requireWasmInitialized();
+    return wasm.generateBoundCheckSmcWithKVProverStatement(min, max, params, uncompressedParams);
+};
+
+module.exports.generateBoundCheckSmcWithKVProverStatementFromParamRefs = (min, max, params) => {
+    requireWasmInitialized();
+    return wasm.generateBoundCheckSmcWithKVProverStatementFromParamRefs(min, max, params);
+};
+
+module.exports.generateBoundCheckSmcWithKVVerifierStatement = (min, max, params, uncompressedParams) => {
+    requireWasmInitialized();
+    return wasm.generateBoundCheckSmcWithKVVerifierStatement(min, max, params, uncompressedParams);
+};
+
+module.exports.generateBoundCheckSmcWithKVVerifierStatementFromParamRefs = (min, max, params) => {
+    requireWasmInitialized();
+    return wasm.generateBoundCheckSmcWithKVVerifierStatementFromParamRefs(min, max, params);
+};
+
 module.exports.generateWitnessEqualityMetaStatement = (equalities) => {
     requireWasmInitialized();
     return wasm.generateWitnessEqualityMetaStatement(equalities);
@@ -180,6 +220,21 @@ module.exports.generateBoundCheckWitness = (message) => {
 module.exports.generateR1CSCircomWitness = (inputWires, privates, publics = []) => {
     requireWasmInitialized();
     return wasm.generateR1CSCircomWitness(inputWires, privates, publics);
+};
+
+module.exports.generateBoundCheckBppWitness = (message) => {
+    requireWasmInitialized();
+    return wasm.generateBoundCheckBppWitness(message);
+};
+
+module.exports.generateBoundCheckSmcWitness = (message) => {
+    requireWasmInitialized();
+    return wasm.generateBoundCheckSmcWitness(message);
+};
+
+module.exports.generateBoundCheckSmcWithKVWitness = (message) => {
+    requireWasmInitialized();
+    return wasm.generateBoundCheckSmcWithKVWitness(message);
 };
 
 module.exports.generateProofSpecG1 = (statements, metaStatements, setupParams, context) => {

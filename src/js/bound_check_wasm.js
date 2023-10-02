@@ -9,3 +9,33 @@ module.exports.boundCheckSnarkSetup = (returnUncompressed) => {
     requireWasmInitialized();
     return wasm.boundCheckSnarkSetup(returnUncompressed);
 };
+
+module.exports.boundCheckBppSetup = (label, base, valueBitSize, returnUncompressed) => {
+    requireWasmInitialized();
+    return wasm.boundCheckBppSetup(label, base, valueBitSize, returnUncompressed);
+};
+
+module.exports.boundCheckSmcSetup = (label, base, returnUncompressed) => {
+    requireWasmInitialized();
+    return wasm.boundCheckSmcSetup(label, base, returnUncompressed);
+};
+
+module.exports.boundCheckSmcWithKVSetup = (label, base, returnUncompressed) => {
+    requireWasmInitialized();
+    return wasm.boundCheckSmcWithKVSetup(label, base, returnUncompressed);
+};
+
+module.exports.decompressBppParams = (params) => {
+    requireWasmInitialized();
+    return wasm.decompressBppParams(params);
+};
+
+module.exports.decompressSmcParams = (params) => {
+    requireWasmInitialized();
+    return wasm.decompressSmcParams(params);
+};
+
+module.exports.decompressSmcParamsAndSk = (params) => {
+    requireWasmInitialized();
+    return wasm.decompressSmcParamsAndSk(params);
+};

@@ -90,3 +90,18 @@ export function generateSetupParamForBytes(
 export function generateSetupParamForFieldElemVec(
     arr: Uint8Array[]
 ): Uint8Array;
+
+export function generateSetupParamForBppParams(
+    params: Uint8Array,
+    uncompressed: boolean
+): Uint8Array;
+
+export function generateSetupParamForSmcParams(
+    params: Uint8Array,
+    uncompressed: boolean
+): Uint8Array;
+
+export function generateSetupParamForSmcParamsAndSk(
+    params: Uint8Array,
+    uncompressed: boolean
+): Uint8Array;

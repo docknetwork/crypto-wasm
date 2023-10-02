@@ -52,7 +52,7 @@ use common::{
     accum_params_and_keys, bbs_params_and_keys, gen_msgs, get_revealed_unrevealed,
     get_universal_accum, get_witness_equality_statement,
 };
-use dock_crypto_wasm::composite_proof_system::statement::{
+use dock_crypto_wasm::composite_proof_system::statements::{
     generate_accumulator_membership_statement,
     generate_accumulator_membership_statement_from_param_refs,
     generate_accumulator_non_membership_statement,
