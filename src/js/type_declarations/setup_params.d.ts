@@ -105,3 +105,8 @@ export function generateSetupParamForSmcParamsAndSk(
     params: Uint8Array,
     uncompressed: boolean
 ): Uint8Array;
+
+export function generateSetupParamForCommitmentKey(
+    commKey: Uint8Array,
+    uncompressed: boolean
+): Uint8Array;

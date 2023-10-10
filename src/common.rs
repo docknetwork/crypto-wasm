@@ -11,6 +11,7 @@ use ark_ec::{CurveGroup, VariableBaseMSM};
 use ark_serialize::CanonicalSerialize;
 use blake2::Blake2b512;
 use serde::{Deserialize, Serialize};
+use zeroize::Zeroize;
 
 use wasm_bindgen::prelude::*;
 
@@ -143,6 +144,36 @@ pub fn pedersen_commitment_g2(
     let messages = js_array_to_fr_vec(&messages)?;
     let comm = G2Projective::msm_unchecked(&bases, &messages).into_affine();
     g2_affine_to_uint8_array(&comm)
+}
+
+#[wasm_bindgen(js_name = generatePedersenCommKeyG1)]
+pub fn generate_pedersen_comm_key_g1(
+    label: Vec<u8>,
+    return_uncompressed: bool
+) -> Result<js_sys::Uint8Array, JsValue> {
+    set_panic_hook();
+    let comm_key = schnorr_pok::inequality::CommitmentKey::<G1Affine>::new::<Blake2b512>(&label);
+    Ok(if return_uncompressed {
+        obj_to_uint8array_uncompressed!(&comm_key, "CommitmentKey")
+    } else {
+        obj_to_uint8array!(&comm_key, false, "CommitmentKey")
+    })
+}
+
+#[wasm_bindgen(js_name = decompressPedersenCommKeyG1)]
+pub fn decompress_pedersen_comm_key_g1(
+    comm_key: js_sys::Uint8Array
+) -> Result<js_sys::Uint8Array, JsValue> {
+    let comm_key = obj_from_uint8array!(
+        schnorr_pok::inequality::CommitmentKey::<G1Affine>,
+        comm_key,
+        false,
+        "CommitmentKey"
+    );
+    Ok(obj_to_uint8array_uncompressed!(
+        &comm_key,
+        "SmcParamsAndCommitmentKeyAndSecretKey"
+    ))
 }
 
 fn fr_uin8_array_from_bytes_hash(bytes: &[u8]) -> js_sys::Uint8Array {

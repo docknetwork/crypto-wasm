@@ -420,3 +420,22 @@ pub fn generate_setup_param_for_smc_params_and_sk(
         params
     )))
 }
+
+#[wasm_bindgen(js_name = generateSetupParamForCommitmentKey)]
+pub fn generate_setup_param_for_commitment_key(
+    comm_key: js_sys::Uint8Array,
+    uncompressed: bool,
+) -> Result<js_sys::Uint8Array, JsValue> {
+    set_panic_hook();
+    let comm_key = if uncompressed {
+        obj_from_uint8array_uncompressed!(schnorr_pok::inequality::CommitmentKey<G1Affine>, comm_key, "CommitmentKey")
+    } else {
+        obj_from_uint8array!(schnorr_pok::inequality::CommitmentKey<G1Affine>, comm_key, false, "CommitmentKey")
+    };
+    Ok(obj_to_uint8array_uncompressed!(&SetupParams::<
+        Bls12_381,
+        G1Affine,
+    >::CommitmentKey(
+        comm_key
+    )))
+}

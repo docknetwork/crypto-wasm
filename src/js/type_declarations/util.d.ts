@@ -41,3 +41,12 @@ export function pedersenCommitmentG2(
     bases: Uint8Array[],
     messages: Uint8Array[],
 ): Uint8Array;
+
+export function generatePedersenCommKeyG1(
+    label: Uint8Array,
+    returnUncompressed: boolean,
+): Uint8Array;
+
+export function decompressPedersenCommKeyG1(
+    commKey: Uint8Array
+): Uint8Array;

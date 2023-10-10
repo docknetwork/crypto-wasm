@@ -227,6 +227,17 @@ export function generateBoundCheckSmcWithKVVerifierStatementFromParamRefs(
     params: number,
 ): Uint8Array;
 
+export function generatePublicInequalityG1Statement(
+    inequalTo: Uint8Array,
+    commKey: Uint8Array,
+    uncompressedKey: boolean
+): Uint8Array;
+
+export function generatePublicInequalityG1StatementFromParamRefs(
+    inequalTo: Uint8Array,
+    commKey: number,
+): Uint8Array;
+
 export function generateWitnessEqualityMetaStatement(
     equalities: Set<[number, number]>,
 ): Uint8Array;
@@ -285,6 +296,10 @@ export function generateBoundCheckSmcWitness(
 ): Uint8Array;
 
 export function generateBoundCheckSmcWithKVWitness(
+    message: Uint8Array
+): Uint8Array;
+
+export function generatePublicInequalityWitness(
     message: Uint8Array
 ): Uint8Array;
 

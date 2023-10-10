@@ -172,6 +172,16 @@ module.exports.generateBoundCheckSmcWithKVVerifierStatementFromParamRefs = (min,
     return wasm.generateBoundCheckSmcWithKVVerifierStatementFromParamRefs(min, max, params);
 };
 
+module.exports.generatePublicInequalityG1Statement = (inequalTo, commKey, uncompressedKey) => {
+    requireWasmInitialized();
+    return wasm.generatePublicInequalityG1Statement(inequalTo, commKey, uncompressedKey);
+};
+
+module.exports.generatePublicInequalityG1StatementFromParamRefs = (inequalTo, commKey) => {
+    requireWasmInitialized();
+    return wasm.generatePublicInequalityG1StatementFromParamRefs(inequalTo, commKey);
+};
+
 module.exports.generateWitnessEqualityMetaStatement = (equalities) => {
     requireWasmInitialized();
     return wasm.generateWitnessEqualityMetaStatement(equalities);
@@ -235,6 +245,11 @@ module.exports.generateBoundCheckSmcWitness = (message) => {
 module.exports.generateBoundCheckSmcWithKVWitness = (message) => {
     requireWasmInitialized();
     return wasm.generateBoundCheckSmcWithKVWitness(message);
+};
+
+module.exports.generatePublicInequalityWitness = (message) => {
+    requireWasmInitialized();
+    return wasm.generatePublicInequalityWitness(message);
 };
 
 module.exports.generateProofSpecG1 = (statements, metaStatements, setupParams, context) => {

@@ -348,6 +348,14 @@ pub fn generate_bound_check_smc_with_kv_witness(message: Uint8Array) -> Result<J
     serde_wasm_bindgen::to_value(&witness).map_err(JsValue::from)
 }
 
+#[wasm_bindgen(js_name = generatePublicInequalityWitness)]
+pub fn generate_public_inequality_witness(message: Uint8Array) -> Result<JsValue, JsValue> {
+    set_panic_hook();
+    let message = fr_from_uint8_array(message, true)?;
+    let witness = Witness::PublicInequality(message);
+    serde_wasm_bindgen::to_value(&witness).map_err(JsValue::from)
+}
+
 pub fn parse_statements_meta_statements_and_setup_params<G: AffineRepr>(
     statements: js_sys::Array,
     meta_statements: js_sys::Array,

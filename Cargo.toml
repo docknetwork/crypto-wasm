@@ -25,19 +25,18 @@ wasm-bindgen = "= 0.2.86"
 dlmalloc = { version = "0.2.4", features = ["global"], optional = true }
 serde_with = { version = "1.10.0", default-features = false, features = ["macros"] }
 
-bbs_plus = { version = "0.17.0", default-features = false }
-vb_accumulator = { version = "0.18.0", default-features = false }
-schnorr_pok = { version = "0.15.0", default-features = false }
-proof_system = { version = "0.23.0", default-features = false }
-coconut-crypto = { version = "0.6.0", default-features = false }
+bbs_plus = { version = "0.18.0", default-features = false }
+vb_accumulator = { version = "0.19.0", default-features = false }
+schnorr_pok = { version = "0.16.0", default-features = false }
+proof_system = { version = "0.24.0", default-features = false }
+coconut-crypto = { version = "0.7.0", default-features = false }
 dock_crypto_utils = { version = "0.16.0", default-features = false }
 saver = { version = "0.14.0", default-features = false }
 legogroth16 = { version = "0.11.0", default-features = false, features = ["circom", "wasmer-js"] }
-secret_sharing_and_dkg = { version = "0.8.0", default-features = false }
-oblivious_transfer_protocols = { version = "0.4.0", default-features = false}
-bulletproofs_plus_plus = { version = "0.1.0", default-features = false}
-smc_range_proof = { version = "0.1.0", default-features = false}
-
+secret_sharing_and_dkg = { version = "0.9.0", default-features = false }
+oblivious_transfer_protocols = { version = "0.5.0", default-features = false}
+bulletproofs_plus_plus = { version = "0.2.0", default-features = false}
+smc_range_proof = { version = "0.2.0", default-features = false}
 
 ark-ec = { version = "^0.4.0", default-features = false }
 ark-ff = { version = "^0.4.0", default-features = false }

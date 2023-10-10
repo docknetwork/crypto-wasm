@@ -78,7 +78,8 @@ import {
   bbsSign,
   generatePoKBBSSignatureWitness,
   generateSetupParamForBBSSignatureParameters,
-  generatePoKBBSSignatureStatementFromParamRefs,
+  generatePoKBBSSignatureStatementFromParamRefs, generatePublicInequalityG1Statement,
+  generatePedersenCommKeyG1, generatePublicInequalityWitness
 } from "../../lib";
 import { BbsSigParams, PSSigParams } from "../../lib/types";
 
@@ -442,6 +443,7 @@ describe("Proving knowledge of signatures and accumulator membership and non-mem
 
     let uniAccumulator = getUniversalAccum(initialElements, sk, params, 100);
     const nonMemPrk = generateNonMembershipProvingKey();
+
     const memPrk = accumulatorDeriveMembershipProvingKeyFromNonMembershipKey(
       nonMemPrk
     );
@@ -1161,11 +1163,130 @@ describe("Reusing setup params of BBS, BBS+ and accumulator", () => {
     expect(res.verified).toBe(true);
   }
 
-  it("generate and verify a proof of knowledge with BBS+ and accumulator using setup parameters", () => {
+  it("generate and verify a proof of knowledge with BBS+ signature and accumulator using setup parameters", () => {
     check(bbsPlusSignG1, generateSetupParamForBBSPlusSignatureParametersG1, generateSetupParamForBBSPlusPublicKeyG2, generatePoKBBSPlusSignatureStatementFromParamRefs, generatePoKBBSPlusSignatureWitness)
   });
 
-  it("generate and verify a proof of knowledge with BBS and accumulator using setup parameters", () => {
+  it("generate and verify a proof of knowledge with BBS signature and accumulator using setup parameters", () => {
     check(bbsSign, generateSetupParamForBBSSignatureParameters, generateSetupParamForBBSPlusPublicKeyG2, generatePoKBBSSignatureStatementFromParamRefs, generatePoKBBSSignatureWitness)
+  });
+});
+
+describe("Proving knowledge of signature and inequality of a signed message with a public value", () => {
+  const check = (
+      setup,
+      sign,
+      buildStatement,
+      buildWitness,
+  ) => {
+    let [sigParams, sk, pk, messages] = setup(
+        5,
+        "Message",
+        true
+    );
+
+    let comm_key = generatePedersenCommKeyG1(stringToBytes('test'), true);
+    const sig = sign(messages, sk, sigParams, false);
+
+    const revealedIndices = new Set<number>();
+    revealedIndices.add(0);
+
+    const [revealedMsgs, unrevealedMsgs] = getRevealedUnrevealed(
+        messages,
+        revealedIndices
+    );
+
+    const inequalMsgIdx = 1;
+    const inequalTo = generateRandomFieldElement();
+    expect(messages[inequalMsgIdx]).not.toEqual(inequalTo);
+
+    const statement1 = buildStatement(
+        sigParams,
+        pk,
+        revealedMsgs,
+        false
+    );
+    const statement2 = generatePublicInequalityG1Statement(inequalTo, comm_key, true);
+
+    const metaStatements: Uint8Array[] = [];
+
+    const set = new Set<[number, number]>();
+    set.add([0, inequalMsgIdx]);
+    set.add([1, 0]);
+    metaStatements.push(generateWitnessEqualityMetaStatement(set));
+
+    const statements: Uint8Array[] = [];
+    statements.push(statement1);
+    statements.push(statement2);
+
+    const context = stringToBytes("test-context");
+    const proofSpec = generateProofSpecG1(
+        statements,
+        metaStatements,
+        [],
+        context
+    );
+
+    expect(isProofSpecG1Valid(proofSpec)).toEqual(true);
+
+    const witness1 = buildWitness(
+        sig,
+        unrevealedMsgs,
+        false
+    );
+    const witness2 = generatePublicInequalityWitness(messages[inequalMsgIdx]);
+
+    const witnesses: Uint8Array[] = [];
+    witnesses.push(witness1);
+    witnesses.push(witness2);
+
+    const nonce = stringToBytes("test-nonce");
+
+    const proof = generateCompositeProofG1(proofSpec, witnesses, nonce);
+    const res = verifyCompositeProofG1(proof, proofSpec, nonce);
+    expect(res.verified).toBe(true);
+  };
+
+  beforeAll(async () => {
+    await initializeWasm();
+  });
+
+  it("when BBS signatures", () => {
+    check(
+        setupBBS,
+        bbsSign,
+        generatePoKBBSSignatureStatement,
+        generatePoKBBSSignatureWitness,
+    );
+    check(
+        setupBBS,
+        bbsSign,
+        generatePoKBBSSignatureStatement,
+        generatePoKBBSSignatureWitness,
+    );
+  });
+
+  it("when BBS+ signatures", () => {
+    check(
+        setupBBSPlus,
+        bbsPlusSignG1,
+        generatePoKBBSPlusSignatureStatement,
+        generatePoKBBSPlusSignatureWitness,
+    );
+    check(
+        setupBBSPlus,
+        bbsPlusSignG1,
+        generatePoKBBSPlusSignatureStatement,
+        generatePoKBBSPlusSignatureWitness,
+    );
+  });
+
+  it("when PS signatures", () => {
+    check(
+        setupPS,
+        psSign,
+        generatePoKPSSignatureStatement,
+        generatePoKPSSignatureWitness,
+    );
   });
 });

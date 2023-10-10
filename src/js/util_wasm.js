@@ -59,3 +59,13 @@ module.exports.pedersenCommitmentG2 = (bases, messages) => {
     requireWasmInitialized();
     return wasm.pedersenCommitmentG2(bases, messages);
 };
+
+module.exports.generatePedersenCommKeyG1 = (label, returnUncompressed) => {
+    requireWasmInitialized();
+    return wasm.generatePedersenCommKeyG1(label, returnUncompressed);
+};
+
+module.exports.decompressPedersenCommKeyG1 = (commKey) => {
+    requireWasmInitialized();
+    return wasm.decompressPedersenCommKeyG1(commKey);
+};
