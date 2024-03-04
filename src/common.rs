@@ -10,6 +10,7 @@ use crate::{
 use ark_ec::{CurveGroup, VariableBaseMSM};
 use ark_serialize::CanonicalSerialize;
 use blake2::Blake2b512;
+use dock_crypto_utils::commitment::PedersenCommitmentKey;
 use serde::{Deserialize, Serialize};
 use zeroize::Zeroize;
 
@@ -149,10 +150,10 @@ pub fn pedersen_commitment_g2(
 #[wasm_bindgen(js_name = generatePedersenCommKeyG1)]
 pub fn generate_pedersen_comm_key_g1(
     label: Vec<u8>,
-    return_uncompressed: bool
+    return_uncompressed: bool,
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
-    let comm_key = schnorr_pok::inequality::CommitmentKey::<G1Affine>::new::<Blake2b512>(&label);
+    let comm_key = PedersenCommitmentKey::<G1Affine>::new::<Blake2b512>(&label);
     Ok(if return_uncompressed {
         obj_to_uint8array_uncompressed!(&comm_key, "CommitmentKey")
     } else {
@@ -162,10 +163,10 @@ pub fn generate_pedersen_comm_key_g1(
 
 #[wasm_bindgen(js_name = decompressPedersenCommKeyG1)]
 pub fn decompress_pedersen_comm_key_g1(
-    comm_key: js_sys::Uint8Array
+    comm_key: js_sys::Uint8Array,
 ) -> Result<js_sys::Uint8Array, JsValue> {
     let comm_key = obj_from_uint8array!(
-        schnorr_pok::inequality::CommitmentKey::<G1Affine>,
+        PedersenCommitmentKey::<G1Affine>,
         comm_key,
         false,
         "CommitmentKey"
@@ -215,22 +216,40 @@ impl VerifyResponse {
 
 #[macro_export]
 macro_rules! adapt_params {
-    ($params:ident, $generating_label: ident, $new_count: ident, $sig_type: ident, $sig_group: ident) => {{
+    ($params:ident, $generating_label: ident, $prefix: expr, $arr: ident, $new_count: ident, $sig_type: ident, $sig_group: ident) => {{
         let mut params: $sig_type = serde_wasm_bindgen::from_value($params)?;
         let current_count = params.supported_message_count();
         if current_count > $new_count {
             for _ in 0..(current_count - $new_count) {
-                params.h.pop();
+                params.$arr.pop();
             }
         } else if current_count < $new_count {
             let generating_label = $generating_label.to_vec();
             for i in current_count + 1..=$new_count {
                 let h = affine_group_elem_from_try_and_incr::<$sig_group, Blake2b512>(
-                    &concat_slices!(&generating_label, b" : h_", i.to_le_bytes()),
+                    &concat_slices!(&generating_label, b" : ", $prefix, i.to_le_bytes()),
                 );
-                params.h.push(h);
+                params.$arr.push(h);
             }
         }
         serde_wasm_bindgen::to_value(&params).map_err(|e| JsValue::from(e))
+    }};
+}
+
+#[macro_export]
+macro_rules! to_verify_response {
+    ($result: expr) => {{
+        match $result {
+            Ok(_) => Ok(serde_wasm_bindgen::to_value(&VerifyResponse {
+                verified: true,
+                error: None,
+            })
+            .unwrap()),
+            Err(e) => Ok(serde_wasm_bindgen::to_value(&VerifyResponse {
+                verified: false,
+                error: Some(format!("{:?}", e)),
+            })
+            .unwrap()),
+        }
     }};
 }

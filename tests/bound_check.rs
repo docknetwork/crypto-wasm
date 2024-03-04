@@ -24,7 +24,7 @@ use common::{bbs_params_and_keys, get_revealed_unrevealed, get_witness_equality_
 use dock_crypto_wasm::{
     composite_proof_system::statements::{
         bound_check::get_valid_min_max, generate_bound_check_lego_prover_statement,
-        generate_bound_check_lego_verifier_statement, generate_pok_bbs_plus_sig_statement,
+        generate_bound_check_lego_verifier_statement, generate_pok_bbs_plus_sig_verifier_statement,
     },
     legosnark::{legosnark_decompress_pk, legosnark_vk_from_pk},
 };
@@ -104,7 +104,8 @@ pub fn bbs_sig_and_bound_check_message() {
     console::time_end_with_label("pk decompresssion");
 
     // Create statements
-    let stmt_1 = generate_pok_bbs_plus_sig_statement(params, pk, revealed_msgs, false).unwrap();
+    let stmt_1 =
+        generate_pok_bbs_plus_sig_verifier_statement(params, pk, revealed_msgs, false).unwrap();
     console::time_with_label("bound check prover stmt");
     let prover_stmt_2 =
         generate_bound_check_lego_prover_statement(min.clone(), max.clone(), snark_pk_decom, true)

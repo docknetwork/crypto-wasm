@@ -2,11 +2,9 @@ const {
     wasm, requireWasmInitialized
 } = require('./init_wasm');
 
-function ensurePositiveInteger(num) {
-    if (!Number.isInteger(num) || num < 0) {
-        throw new Error(`Need a positive integer but found ${num} `);
-    }
-}
+const {
+    ensurePositiveInteger
+} = require('./common');
 
 module.exports.DEFAULT_BLS12381_BBS_PRIVATE_KEY_LENGTH = 32;
 

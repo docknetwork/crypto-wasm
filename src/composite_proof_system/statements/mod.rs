@@ -1,12 +1,18 @@
-use crate::utils::{fr_from_uint8_array, g1_affine_from_uint8_array, g2_affine_from_uint8_array, js_array_to_g1_affine_vec, js_array_to_g2_affine_vec, set_panic_hook};
+use crate::{
+    utils::{
+        fr_from_uint8_array, g1_affine_from_uint8_array, g2_affine_from_uint8_array,
+        js_array_to_g1_affine_vec, js_array_to_g2_affine_vec, set_panic_hook,
+    },
+    G1Affine,
+};
 use ark_bls12_381::Bls12_381;
 use ark_ec::pairing::Pairing;
+use dock_crypto_utils::commitment::PedersenCommitmentKey;
 use js_sys::Uint8Array;
 use proof_system::{
     meta_statement::{EqualWitnesses, MetaStatement},
     prelude,
 };
-use crate::G1Affine;
 use std::collections::BTreeSet;
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 use zeroize::Zeroize;
@@ -19,7 +25,8 @@ pub(crate) type PedCommG1Stmt =
 pub(crate) type PedCommG2Stmt =
     prelude::ped_comm::PedersenCommitment<<Bls12_381 as Pairing>::G2Affine>;
 
-pub(crate) type InequalityG1Stmt = prelude::inequality::PublicInequality<<Bls12_381 as Pairing>::G1Affine>;
+pub(crate) type InequalityG1Stmt =
+    prelude::inequality::PublicInequality<<Bls12_381 as Pairing>::G1Affine>;
 
 #[wasm_bindgen(js_name = generatePedersenCommitmentG1Statement)]
 pub fn generate_pedersen_commitment_g1_statement(
@@ -55,7 +62,7 @@ pub fn generate_pedersen_commitment_g2_statement(
     let commitment_key = js_array_to_g2_affine_vec(&commitment_key)?;
     let commitment = g2_affine_from_uint8_array(commitment)?;
     let statement =
-        PedCommG2Stmt::new_statement_from_params::<Bls12_381>(commitment_key, commitment);
+        PedCommG2Stmt::new_statement_from_params_g2::<Bls12_381>(commitment_key, commitment);
     Ok(obj_to_uint8array_uncompressed!(&statement, "PedCommG2Stmt"))
 }
 
@@ -67,7 +74,7 @@ pub fn generate_pedersen_commitment_g2_statement_from_param_refs(
     set_panic_hook();
     let commitment = g2_affine_from_uint8_array(commitment)?;
     let statement =
-        PedCommG2Stmt::new_statement_from_params_refs::<Bls12_381>(commitment_key, commitment);
+        PedCommG2Stmt::new_statement_from_params_refs_g2::<Bls12_381>(commitment_key, commitment);
     Ok(obj_to_uint8array_uncompressed!(&statement, "PedCommG2Stmt"))
 }
 
@@ -79,14 +86,26 @@ pub fn generate_public_inequality_g1_statement(
 ) -> Result<Uint8Array, JsValue> {
     set_panic_hook();
     let commitment_key = if uncompressed_key {
-        obj_from_uint8array_uncompressed!(schnorr_pok::inequality::CommitmentKey<G1Affine>, commitment_key, "CommitmentKey")
+        obj_from_uint8array_uncompressed!(
+            PedersenCommitmentKey<G1Affine>,
+            commitment_key,
+            "CommitmentKey"
+        )
     } else {
-        obj_from_uint8array!(schnorr_pok::inequality::CommitmentKey<G1Affine>, commitment_key, false, "CommitmentKey")
+        obj_from_uint8array!(
+            PedersenCommitmentKey<G1Affine>,
+            commitment_key,
+            false,
+            "CommitmentKey"
+        )
     };
     let inequal_to = fr_from_uint8_array(inequal_to, false)?;
     let statement =
         InequalityG1Stmt::new_statement_from_params::<Bls12_381>(inequal_to, commitment_key);
-    Ok(obj_to_uint8array_uncompressed!(&statement, "InequalityG1Stmt"))
+    Ok(obj_to_uint8array_uncompressed!(
+        &statement,
+        "InequalityG1Stmt"
+    ))
 }
 
 #[wasm_bindgen(js_name = generatePublicInequalityG1StatementFromParamRefs)]
@@ -98,7 +117,10 @@ pub fn generate_public_inequality_g1_statement_from_param_refs(
     let inequal_to = fr_from_uint8_array(inequal_to, false)?;
     let statement =
         InequalityG1Stmt::new_statement_from_params_ref::<Bls12_381>(inequal_to, commitment_key);
-    Ok(obj_to_uint8array_uncompressed!(&statement, "InequalityG1Stmt"))
+    Ok(obj_to_uint8array_uncompressed!(
+        &statement,
+        "InequalityG1Stmt"
+    ))
 }
 
 #[wasm_bindgen(js_name = generateWitnessEqualityMetaStatement)]

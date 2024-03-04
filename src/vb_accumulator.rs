@@ -19,7 +19,7 @@ use vb_accumulator::prelude::{
 };
 use zeroize::Zeroize;
 
-use crate::Fr;
+use crate::{to_verify_response, Fr};
 
 // Trying to keep types at one place so changing the curve is easier
 pub(crate) type AccumSk = SecretKey<Fr>;
@@ -1114,7 +1114,7 @@ mod macros {
             let mut rng = get_seeded_rng();
             let protocol = $protocol::init(
                 &mut rng,
-                &element,
+                element,
                 Some(blinding),
                 &$witness,
                 &pk,
@@ -1132,19 +1132,13 @@ mod macros {
             let challenge = fr_from_uint8_array($challenge, false)?;
             let pk = deserialize_public_key($public_key)?;
             let params = deserialize_params($params)?;
-
-            match $proof.verify(&accumulated, &challenge, pk.clone(), params.clone(), &$prk) {
-                Ok(_) => Ok(serde_wasm_bindgen::to_value(&VerifyResponse {
-                    verified: true,
-                    error: None,
-                })
-                .unwrap()),
-                Err(e) => Ok(serde_wasm_bindgen::to_value(&VerifyResponse {
-                    verified: false,
-                    error: Some(format!("{:?}", e)),
-                })
-                .unwrap()),
-            }
+            to_verify_response!($proof.verify(
+                &accumulated,
+                &challenge,
+                pk.clone(),
+                params.clone(),
+                &$prk
+            ))
         }};
     }
 

@@ -46,4 +46,19 @@ describe("For utils", () => {
     expect(z[0]).toEqual(165);
     expect(x[0]).toEqual(165);
   });
+
+  it("decoding generateFieldElementFromNumber", () => {
+    function bytearrayToNumber(arr: Uint8Array) {
+      const buffer = Buffer.from(arr);
+
+      return buffer.readUIntLE(0, 6);
+    }
+    console.log(generateFieldElementFromNumber(1));
+    console.log(generateFieldElementFromNumber(2));
+    console.log(generateFieldElementFromNumber(255));
+    console.log(generateFieldElementFromNumber(256));
+    [1, 2, 255, 256, 512, 1000].forEach((i) => {
+      expect(bytearrayToNumber(generateFieldElementFromNumber(i))).toEqual(i);
+    })
+  })
 });

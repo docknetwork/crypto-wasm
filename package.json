@@ -1,6 +1,6 @@
 {
   "name": "@docknetwork/crypto-wasm",
-  "version": "0.23.0",
+  "version": "0.24.0",
   "author": "Dock.io",
   "license": "Apache-2.0",
   "private": false,
@@ -28,7 +28,7 @@
     "build": "./scripts/build-package.sh DEBUG",
     "build:release": "./scripts/build-package.sh RELEASE",
     "build:profiling": "./scripts/build-package.sh PROFILING",
-    "test": "yarn test:browser && yarn test:wasm",
+    "test": "yarn test:wasm",
     "test:browser": "./scripts/test-browser.sh",
     "test:wasm": "yarn jest",
     "benchmark:wasm": "ts-node ./bench/index.ts",

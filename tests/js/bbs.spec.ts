@@ -24,7 +24,8 @@ import {
   bbsBlindSign,
 } from "../../lib";
 
-import { stringToBytes } from "../utilities";
+
+import {stringToBytes} from "./util";
 
 describe("For BBS signatures", () => {
   let sigParamsG1: BbsSigParams, sk: Uint8Array, pkG2: Uint8Array;

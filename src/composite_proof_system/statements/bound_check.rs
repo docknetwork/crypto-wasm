@@ -39,14 +39,13 @@ pub fn generate_bound_check_lego_prover_statement(
     } else {
         obj_from_uint8array!(LegoProvingKey, snark_pk, false, "LegoProvingKey")
     };
-    let statement =
-        BoundCheckLegoProverStmt::new_statement_from_params::<G1Affine>(min, max, snark_pk)
-            .map_err(|e| {
-                JsValue::from(&format!(
-                    "Creating statement for BoundCheckLegoProver returned error: {:?}",
-                    e
-                ))
-            })?;
+    let statement = BoundCheckLegoProverStmt::new_statement_from_params(min, max, snark_pk)
+        .map_err(|e| {
+            JsValue::from(&format!(
+                "Creating statement for BoundCheckLegoProver returned error: {:?}",
+                e
+            ))
+        })?;
     Ok(obj_to_uint8array_uncompressed!(
         &statement,
         "BoundCheckLegoProverStmt"
@@ -61,14 +60,13 @@ pub fn generate_bound_check_lego_prover_statement_from_param_refs(
 ) -> Result<Uint8Array, JsValue> {
     set_panic_hook();
     let (min, max) = get_valid_min_max(min, max)?;
-    let statement =
-        BoundCheckLegoProverStmt::new_statement_from_params_ref::<G1Affine>(min, max, snark_pk)
-            .map_err(|e| {
-                JsValue::from(&format!(
-                    "Creating statement for BoundCheckLegoProver returned error: {:?}",
-                    e
-                ))
-            })?;
+    let statement = BoundCheckLegoProverStmt::new_statement_from_params_ref(min, max, snark_pk)
+        .map_err(|e| {
+            JsValue::from(&format!(
+                "Creating statement for BoundCheckLegoProver returned error: {:?}",
+                e
+            ))
+        })?;
     Ok(obj_to_uint8array_uncompressed!(
         &statement,
         "BoundCheckLegoProverStmt"
@@ -91,14 +89,13 @@ pub fn generate_bound_check_lego_verifier_statement(
     } else {
         obj_from_uint8array!(LegoVerifyingKey, snark_vk, false, "LegoVerifyingKey")
     };
-    let statement =
-        BoundCheckLegoVerifierStmt::new_statement_from_params::<G1Affine>(min, max, snark_vk)
-            .map_err(|e| {
-                JsValue::from(&format!(
-                    "Creating statement for BoundCheckLegoVerifier returned error: {:?}",
-                    e
-                ))
-            })?;
+    let statement = BoundCheckLegoVerifierStmt::new_statement_from_params(min, max, snark_vk)
+        .map_err(|e| {
+            JsValue::from(&format!(
+                "Creating statement for BoundCheckLegoVerifier returned error: {:?}",
+                e
+            ))
+        })?;
     Ok(obj_to_uint8array_uncompressed!(
         &statement,
         "BoundCheckLegoVerifierStmt"
@@ -113,14 +110,13 @@ pub fn generate_bound_check_lego_verifier_statement_from_param_refs(
 ) -> Result<Uint8Array, JsValue> {
     set_panic_hook();
     let (min, max) = get_valid_min_max(min, max)?;
-    let statement =
-        BoundCheckLegoVerifierStmt::new_statement_from_params_ref::<G1Affine>(min, max, snark_vk)
-            .map_err(|e| {
-            JsValue::from(&format!(
-                "Creating statement for BoundCheckLegoVerifier returned error: {:?}",
-                e
-            ))
-        })?;
+    let statement = BoundCheckLegoVerifierStmt::new_statement_from_params_ref(min, max, snark_vk)
+        .map_err(|e| {
+        JsValue::from(&format!(
+            "Creating statement for BoundCheckLegoVerifier returned error: {:?}",
+            e
+        ))
+    })?;
     Ok(obj_to_uint8array_uncompressed!(
         &statement,
         "BoundCheckLegoVerifierStmt"
@@ -189,8 +185,8 @@ pub fn generate_bound_check_smc_statement(
     } else {
         obj_from_uint8array!(SmcParams, params, false, "SmcParamsAndCommitmentKey")
     };
-    let statement = BoundCheckSmcStmt::new_statement_from_params::<G1Affine>(min, max, params)
-        .map_err(|e| {
+    let statement =
+        BoundCheckSmcStmt::new_statement_from_params(min, max, params).map_err(|e| {
             JsValue::from(&format!(
                 "Creating statement for BoundCheckSmc returned error: {:?}",
                 e
@@ -210,8 +206,8 @@ pub fn generate_bound_check_smc_statement_from_param_refs(
 ) -> Result<Uint8Array, JsValue> {
     set_panic_hook();
     let (min, max) = get_valid_min_max(min, max)?;
-    let statement = BoundCheckSmcStmt::new_statement_from_params_ref::<G1Affine>(min, max, params)
-        .map_err(|e| {
+    let statement =
+        BoundCheckSmcStmt::new_statement_from_params_ref(min, max, params).map_err(|e| {
             JsValue::from(&format!(
                 "Creating statement for BoundCheckSmc returned error: {:?}",
                 e
@@ -234,15 +230,13 @@ pub fn generate_bound_check_smc_with_kv_prover_statement(
     } else {
         obj_from_uint8array!(SmcParams, params, false, "SmcParamsAndCommitmentKey")
     };
-    let statement = BoundCheckSmcProverStmt::new_statement_from_params::<G1Affine>(
-        min, max, params,
-    )
-    .map_err(|e| {
-        JsValue::from(&format!(
-            "Creating statement for BoundCheckSmcProver returned error: {:?}",
-            e
-        ))
-    })?;
+    let statement =
+        BoundCheckSmcProverStmt::new_statement_from_params(min, max, params).map_err(|e| {
+            JsValue::from(&format!(
+                "Creating statement for BoundCheckSmcProver returned error: {:?}",
+                e
+            ))
+        })?;
     Ok(obj_to_uint8array_uncompressed!(
         &statement,
         "BoundCheckSmcProverStmt"
@@ -257,14 +251,13 @@ pub fn generate_bound_check_smc_with_kv_prover_statement_from_param_refs(
 ) -> Result<Uint8Array, JsValue> {
     set_panic_hook();
     let (min, max) = get_valid_min_max(min, max)?;
-    let statement =
-        BoundCheckSmcProverStmt::new_statement_from_params_ref::<G1Affine>(min, max, params)
-            .map_err(|e| {
-                JsValue::from(&format!(
-                    "Creating statement for BoundCheckSmcProver returned error: {:?}",
-                    e
-                ))
-            })?;
+    let statement = BoundCheckSmcProverStmt::new_statement_from_params_ref(min, max, params)
+        .map_err(|e| {
+            JsValue::from(&format!(
+                "Creating statement for BoundCheckSmcProver returned error: {:?}",
+                e
+            ))
+        })?;
     Ok(obj_to_uint8array_uncompressed!(
         &statement,
         "BoundCheckSmcProverStmt"
@@ -294,14 +287,13 @@ pub fn generate_bound_check_smc_with_kv_verifier_statement(
             "SmcParamsAndCommitmentKeyAndSecretKey"
         )
     };
-    let statement =
-        BoundCheckSmcVerifierStmt::new_statement_from_params::<G1Affine>(min, max, params)
-            .map_err(|e| {
-                JsValue::from(&format!(
-                    "Creating statement for BoundCheckSmcVerifier returned error: {:?}",
-                    e
-                ))
-            })?;
+    let statement = BoundCheckSmcVerifierStmt::new_statement_from_params(min, max, params)
+        .map_err(|e| {
+            JsValue::from(&format!(
+                "Creating statement for BoundCheckSmcVerifier returned error: {:?}",
+                e
+            ))
+        })?;
     Ok(obj_to_uint8array_uncompressed!(
         &statement,
         "BoundCheckSmcVerifierStmt"
@@ -316,14 +308,13 @@ pub fn generate_bound_check_smc_with_kv_verifier_statement_from_param_refs(
 ) -> Result<Uint8Array, JsValue> {
     set_panic_hook();
     let (min, max) = get_valid_min_max(min, max)?;
-    let statement =
-        BoundCheckSmcVerifierStmt::new_statement_from_params_ref::<G1Affine>(min, max, params)
-            .map_err(|e| {
-                JsValue::from(&format!(
-                    "Creating statement for BoundCheckSmcVerifier returned error: {:?}",
-                    e
-                ))
-            })?;
+    let statement = BoundCheckSmcVerifierStmt::new_statement_from_params_ref(min, max, params)
+        .map_err(|e| {
+            JsValue::from(&format!(
+                "Creating statement for BoundCheckSmcVerifier returned error: {:?}",
+                e
+            ))
+        })?;
     Ok(obj_to_uint8array_uncompressed!(
         &statement,
         "BoundCheckSmcVerifierStmt"

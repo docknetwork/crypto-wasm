@@ -8,7 +8,7 @@ import {
   BbsPlusSigParams,
   bbsPlusSignG1,
   bbsPlusVerifyG1,
-  generatePoKBBSPlusSignatureStatement,
+  generatePoKBBSPlusSignatureVerifierStatement,
   generateBoundCheckLegoProverStatement,
   generateFieldElementFromNumber,
   generateWitnessEqualityMetaStatement,
@@ -39,9 +39,10 @@ import {
   generateBoundCheckSmcWithKVProverStatement,
   generateBoundCheckSmcWithKVVerifierStatement,
   generateBoundCheckSmcWithKVProverStatementFromParamRefs, generateBoundCheckSmcWithKVVerifierStatementFromParamRefs,
-  generateBoundCheckSmcWithKVWitness, generateSetupParamForSmcParamsAndSk
+  generateBoundCheckSmcWithKVWitness, generateSetupParamForSmcParamsAndSk, generatePoKBBSPlusSignatureProverStatement
 } from "../../lib";
-import { getRevealedUnrevealed, stringToBytes } from "../utilities";
+
+import {checkResult, getRevealedUnrevealed, stringToBytes} from "./util";
 
 describe("Prove and verify bounds on signed messages", () => {
   const messageCount = 5;
@@ -71,9 +72,8 @@ describe("Prove and verify bounds on signed messages", () => {
         messages,
         revealedIndices
     );
-    const statement1 = generatePoKBBSPlusSignatureStatement(
+    const statement1 = generatePoKBBSPlusSignatureProverStatement(
         sigParams,
-        sigPk,
         revealedMsgs,
         false
     );
@@ -127,7 +127,12 @@ describe("Prove and verify bounds on signed messages", () => {
     console.timeEnd("bound check verifier stmt");
 
     const verifierStatements: Uint8Array[] = [];
-    verifierStatements.push(statement1);
+    verifierStatements.push(generatePoKBBSPlusSignatureVerifierStatement(
+        sigParams,
+        sigPk,
+        revealedMsgs,
+        false
+    ));
     verifierStatements.push(statement3);
 
     console.time("proof ver");
@@ -140,7 +145,7 @@ describe("Prove and verify bounds on signed messages", () => {
         nonce
     );
     console.timeEnd("proof ver");
-    expect(res.verified).toBe(true);
+    checkResult(res);
   }
 
   function checkOverMultipleMessages(setupParamProver, setupParamVerifier, proverStmt, verifierStmt, witnessGen, proverParams, verifierParams) {
@@ -148,9 +153,8 @@ describe("Prove and verify bounds on signed messages", () => {
         messages,
         new Set<number>()
     );
-    const statement1 = generatePoKBBSPlusSignatureStatement(
+    const statement1 = generatePoKBBSPlusSignatureProverStatement(
         sigParams,
-        sigPk,
         revealedMsgs,
         false
     );
@@ -249,7 +253,12 @@ describe("Prove and verify bounds on signed messages", () => {
     );
 
     const verifierStatements: Uint8Array[] = [];
-    verifierStatements.push(statement1);
+    verifierStatements.push(generatePoKBBSPlusSignatureVerifierStatement(
+        sigParams,
+        sigPk,
+        revealedMsgs,
+        false
+    ));
     verifierStatements.push(statement5);
     verifierStatements.push(statement6);
     verifierStatements.push(statement7);

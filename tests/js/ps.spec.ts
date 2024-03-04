@@ -39,7 +39,8 @@ import {
 } from "../../lib";
 import { generateRandomG1Element } from "../../lib/dock_crypto_wasm";
 
-import { stringToBytes } from "../utilities";
+
+import {stringToBytes} from "./util";
 
 describe("For PS signatures", () => {
   let sigParams: PSSigParams, sk: Uint8Array, pk: Uint8Array, messages, h;

@@ -9,7 +9,7 @@ import {
   bbsPlusGenerateSigningKey,
   generateCompositeProofG1WithDeconstructedProofSpec,
   generateFieldElementFromNumber,
-  generatePoKBBSPlusSignatureStatement,
+  generatePoKBBSPlusSignatureVerifierStatement,
   generatePoKBBSPlusSignatureWitness,
   generateR1CSCircomProverStatement,
   generateR1CSCircomProverStatementFromParamRefs,
@@ -30,10 +30,10 @@ import {
   r1csCircuitSatisfied,
   r1csGenerateWires,
   r1csSnarkSetup,
-  verifyCompositeProofG1WithDeconstructedProofSpec,
+  verifyCompositeProofG1WithDeconstructedProofSpec, generatePoKBBSPlusSignatureProverStatement,
 } from "../../lib";
-import {areUint8ArraysEqual, fromLeToBigInt, getRevealedUnrevealed} from "../utilities";
 import {Constraint, LC, LCTerm} from "../../src/js";
+import {areUint8ArraysEqual, fromLeToBigInt, getRevealedUnrevealed} from "./util";
 
 interface ParsedR1CSFile {
   F: {fromMontgomery: (n: Uint8Array) => Uint8Array},
@@ -474,9 +474,8 @@ describe("Proof generation and verification from R1CS and WASM file", () => {
       messages,
       revealedIndices
     );
-    const statement1 = generatePoKBBSPlusSignatureStatement(
+    const statement1 = generatePoKBBSPlusSignatureProverStatement(
       sigParams,
-      sigPk,
       revealedMsgs,
       false
     );
@@ -533,7 +532,12 @@ describe("Proof generation and verification from R1CS and WASM file", () => {
     );
 
     const verifierStatements: Uint8Array[] = [];
-    verifierStatements.push(statement1);
+    verifierStatements.push(generatePoKBBSPlusSignatureVerifierStatement(
+        sigParams,
+        sigPk,
+        revealedMsgs,
+        false
+    ));
     verifierStatements.push(statement3);
 
     console.time("proof ver");
@@ -582,9 +586,8 @@ describe("Proof generation and verification from R1CS and WASM file", () => {
       messages,
       revealedIndices
     );
-    const statement1 = generatePoKBBSPlusSignatureStatement(
+    const statement1 = generatePoKBBSPlusSignatureProverStatement(
       sigParams,
-      sigPk,
       revealedMsgs,
       false
     );
@@ -641,7 +644,12 @@ describe("Proof generation and verification from R1CS and WASM file", () => {
     );
 
     const verifierStatements: Uint8Array[] = [];
-    verifierStatements.push(statement1);
+    verifierStatements.push(generatePoKBBSPlusSignatureVerifierStatement(
+        sigParams,
+        sigPk,
+        revealedMsgs,
+        false
+    ));
     verifierStatements.push(statement3);
 
     console.time("proof ver");
@@ -689,9 +697,8 @@ describe("Proof generation and verification from R1CS and WASM file", () => {
       messages,
       revealedIndices
     );
-    const statement1 = generatePoKBBSPlusSignatureStatement(
+    const statement1 = generatePoKBBSPlusSignatureProverStatement(
       sigParams,
-      sigPk,
       revealedMsgs,
       false
     );
@@ -743,7 +750,12 @@ describe("Proof generation and verification from R1CS and WASM file", () => {
     );
 
     const verifierStatements: Uint8Array[] = [];
-    verifierStatements.push(statement1);
+    verifierStatements.push(generatePoKBBSPlusSignatureVerifierStatement(
+        sigParams,
+        sigPk,
+        revealedMsgs,
+        false
+    ));
     verifierStatements.push(statement3);
 
     console.time("proof ver");
@@ -808,7 +820,7 @@ describe("Proof generation and verification from R1CS and WASM file", () => {
     const metaStatements: Uint8Array[] = [];
 
     proverStatements.push(
-      generatePoKBBSPlusSignatureStatement(sigParams, sigPk, revealedMsgs, false)
+      generatePoKBBSPlusSignatureProverStatement(sigParams, revealedMsgs, false)
     );
 
     for (let i = 0; i < messageCount; i++) {
@@ -852,7 +864,7 @@ describe("Proof generation and verification from R1CS and WASM file", () => {
 
     const verifierStatements: Uint8Array[] = [];
     verifierStatements.push(
-      generatePoKBBSPlusSignatureStatement(sigParams, sigPk, revealedMsgs, false)
+      generatePoKBBSPlusSignatureVerifierStatement(sigParams, sigPk, revealedMsgs, false)
     );
 
     for (let i = 0; i < messageCount; i++) {
@@ -908,9 +920,8 @@ describe("Proof generation and verification from R1CS and WASM file", () => {
       messages,
       revealedIndices
     );
-    const statement1 = generatePoKBBSPlusSignatureStatement(
+    const statement1 = generatePoKBBSPlusSignatureProverStatement(
       sigParams,
-      sigPk,
       revealedMsgs,
       false
     );
@@ -961,7 +972,12 @@ describe("Proof generation and verification from R1CS and WASM file", () => {
     );
 
     const verifierStatements: Uint8Array[] = [];
-    verifierStatements.push(statement1);
+    verifierStatements.push(generatePoKBBSPlusSignatureVerifierStatement(
+        sigParams,
+        sigPk,
+        revealedMsgs,
+        false
+    ));
     verifierStatements.push(statement3);
 
     console.time("proof ver");

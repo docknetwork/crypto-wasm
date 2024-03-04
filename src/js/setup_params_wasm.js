@@ -126,3 +126,8 @@ module.exports.generateSetupParamForCommitmentKey = (commKey, uncompressed) => {
     requireWasmInitialized();
     return wasm.generateSetupParamForCommitmentKey(commKey, uncompressed);
 };
+
+module.exports.generateSetupParamForBDDT16MacParameters = (params) => {
+    requireWasmInitialized();
+    return wasm.generateSetupParamForBDDT16MacParameters(params);
+};

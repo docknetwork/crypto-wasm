@@ -1,4 +1,4 @@
-import {BbsPlusSigParams, BbsSigParams, Constraint, PSSigParams} from "../types";
+import {BbsPlusSigParams, BbsSigParams, Constraint, PSSigParams, Bddt16MacParams} from "../types";
 
 export function generateSetupParamForBBSPlusSignatureParametersG1(
     params: BbsPlusSigParams
@@ -109,4 +109,8 @@ export function generateSetupParamForSmcParamsAndSk(
 export function generateSetupParamForCommitmentKey(
     commKey: Uint8Array,
     uncompressed: boolean
+): Uint8Array;
+
+export function generateSetupParamForBDDT16MacParameters(
+    params: Bddt16MacParams
 ): Uint8Array;

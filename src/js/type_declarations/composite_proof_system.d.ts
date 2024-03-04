@@ -1,27 +1,51 @@
-import {BbsPlusSigParams, INonMembershipWitness, VerifyResult, Constraint, PSSigParams, BbsSigParams} from "../types";
+import {BbsPlusSigParams, INonMembershipWitness, VerifyResult, Constraint, PSSigParams, BbsSigParams, Bddt16MacParams} from "../types";
 
-export function generatePoKBBSSignatureStatement(
+export function generatePoKBBSSignatureProverStatement(
+    params: BbsSigParams,
+    revealedMessages: Map<number, Uint8Array>,
+    encodeMessages: boolean
+): Uint8Array;
+
+export function generatePoKBBSSignatureVerifierStatement(
     params: BbsSigParams,
     publicKey: Uint8Array,
     revealedMessages: Map<number, Uint8Array>,
     encodeMessages: boolean
 ): Uint8Array;
 
-export function generatePoKBBSPlusSignatureStatement(
+export function generatePoKBBSPlusSignatureProverStatement(
+    params: BbsPlusSigParams,
+    revealedMessages: Map<number, Uint8Array>,
+    encodeMessages: boolean
+): Uint8Array;
+
+export function generatePoKBBSPlusSignatureVerifierStatement(
     params: BbsPlusSigParams,
     publicKey: Uint8Array,
     revealedMessages: Map<number, Uint8Array>,
     encodeMessages: boolean
 ): Uint8Array;
 
-export function generatePoKBBSSignatureStatementFromParamRefs(
+export function generatePoKBBSSignatureProverStatementFromParamRefs(
+    params: number,
+    revealedMessages: Map<number, Uint8Array>,
+    encodeMessages: boolean
+): Uint8Array;
+
+export function generatePoKBBSSignatureVerifierStatementFromParamRefs(
     params: number,
     publicKey: number,
     revealedMessages: Map<number, Uint8Array>,
     encodeMessages: boolean
 ): Uint8Array;
 
-export function generatePoKBBSPlusSignatureStatementFromParamRefs(
+export function generatePoKBBSPlusSignatureProverStatementFromParamRefs(
+    params: number,
+    revealedMessages: Map<number, Uint8Array>,
+    encodeMessages: boolean
+): Uint8Array;
+
+export function generatePoKBBSPlusSignatureVerifierStatementFromParamRefs(
     params: number,
     publicKey: number,
     revealedMessages: Map<number, Uint8Array>,
@@ -314,36 +338,13 @@ export function isProofSpecG1Valid(
     proofSpec: Uint8Array
 ): boolean;
 
-export function generateProofSpecG2(
-    statements: Uint8Array[],
-    metaStatements: Uint8Array[],
-    setupParams: Uint8Array[],
-    context?: Uint8Array
-): Uint8Array;
-
-export function isProofSpecG2Valid(
-    proofSpec: Uint8Array
-): boolean;
-
 export function generateCompositeProofG1(
     proofSpec: Uint8Array,
     witnesses: Uint8Array[],
     nonce?: Uint8Array
 ): Uint8Array;
 
-export function generateCompositeProofG2(
-    proofSpec: Uint8Array,
-    witnesses: Uint8Array[],
-    nonce?: Uint8Array
-): Uint8Array;
-
 export function verifyCompositeProofG1(
-    proof: Uint8Array,
-    proofSpec: Uint8Array,
-    nonce?: Uint8Array
-): Required<VerifyResult>;
-
-export function verifyCompositeProofG2(
     proof: Uint8Array,
     proofSpec: Uint8Array,
     nonce?: Uint8Array
@@ -376,3 +377,44 @@ export function saverGetCiphertextsFromProof(
     proof: Uint8Array,
     statementIndices: number[]
 ): Uint8Array[];
+
+export function generatePoKBDDT16MacStatement(
+    params: Bddt16MacParams,
+    revealedMessages: Map<number, Uint8Array>,
+    encodeMessages: boolean
+): Uint8Array;
+
+export function generatePoKBDDT16MacStatementFromParamRefs(
+    params: number,
+    revealedMessages: Map<number, Uint8Array>,
+    encodeMessages: boolean
+): Uint8Array;
+
+export function generatePoKBDDT16MacFullVerifierStatement(
+    params: Bddt16MacParams,
+    secretKey: Uint8Array,
+    revealedMessages: Map<number, Uint8Array>,
+    encodeMessages: boolean
+): Uint8Array;
+
+export function generatePoKBDDT16MacFullVerifierStatementFromParamRefs(
+    params: number,
+    secretKey: Uint8Array,
+    revealedMessages: Map<number, Uint8Array>,
+    encodeMessages: boolean
+): Uint8Array;
+
+export function generatePoKBDDT16MacWitness(
+    mac: Uint8Array,
+    unrevealedMessages: Map<number, Uint8Array>,
+    encodeMessages: boolean
+): Uint8Array;
+
+export function generateAccumulatorKVMembershipStatement(
+    accumulated: Uint8Array
+): Uint8Array;
+
+export function generateAccumulatorKVFullVerifierMembershipStatement(
+    secretKey: Uint8Array,
+    accumulated: Uint8Array
+): Uint8Array;

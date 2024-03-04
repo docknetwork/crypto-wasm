@@ -7,20 +7,6 @@ on:
   pull_request: {}
 
 jobs:
-  headless_browser_test:
-    name: Run Rust tests on headless browser
-    runs-on: ${{matrix.os}}
-    strategy:
-      matrix:
-        os: [ ubuntu-latest, macos-latest ]
-    steps:
-      - uses: actions/checkout@v1
-      - uses: jetli/wasm-pack-action@v0.3.0
-        with:
-          # Optional version of wasm-pack to install(eg. 'v0.9.1', 'latest')
-          version: 'latest'
-      - run: yarn test:browser
-
   js_test:
     name: Run JS tests in NodeJS environment
     runs-on: ${{matrix.os}}

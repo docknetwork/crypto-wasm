@@ -1,5 +1,6 @@
 use crate::{
     common::VerifyResponse,
+    to_verify_response,
     utils::{
         fr_from_uint8_array, fr_to_uint8_array, g1_affine_from_uint8_array,
         g1_affine_to_uint8_array, get_seeded_rng, random_bytes, set_panic_hook,
@@ -328,23 +329,12 @@ fn verify_decryption(
     let ct = obj_from_uint8array!(SaverCiphertext, ciphertext, false, "SaverCiphertext");
     let decrypted_message = fr_from_uint8_array(decrypted_message, false).unwrap();
     let nu = g1_affine_from_uint8_array(nu).unwrap();
-    match ct.verify_decryption_given_groth16_vk(
+    to_verify_response!(ct.verify_decryption_given_groth16_vk(
         &decrypted_message,
         &nu,
         chunk_bit_size,
         dk,
         snark_vk,
         enc_gens,
-    ) {
-        Ok(_) => Ok(serde_wasm_bindgen::to_value(&VerifyResponse {
-            verified: true,
-            error: None,
-        })
-        .unwrap()),
-        Err(e) => Ok(serde_wasm_bindgen::to_value(&VerifyResponse {
-            verified: false,
-            error: Some(format!("Verifying decryption returned error {:?}", e)),
-        })
-        .unwrap()),
-    }
+    ))
 }

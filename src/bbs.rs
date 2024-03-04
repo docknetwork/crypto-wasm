@@ -3,11 +3,11 @@ use crate::utils::{
     g1_affine_to_uint8_array, get_seeded_rng, js_set_to_btree_set, random_bytes, set_panic_hook,
 };
 
-use bbs_plus::{proof::MessageOrBlinding, setup::MultiMessageSignatureParams};
 use wasm_bindgen::prelude::*;
 
 use crate::{
     common::VerifyResponse,
+    to_verify_response,
     utils::{encode_messages_as_js_array_to_fr_vec, encode_messages_as_js_map_to_fr_btreemap},
     Fr, G1Affine,
 };
@@ -18,7 +18,11 @@ use bbs_plus::prelude::{
     Signature23G1, SignatureParams23G1,
 };
 use blake2::Blake2b512;
-use dock_crypto_utils::{concat_slices, hashing_utils::affine_group_elem_from_try_and_incr};
+use dock_crypto_utils::{
+    concat_slices,
+    hashing_utils::affine_group_elem_from_try_and_incr,
+    signature::{MessageOrBlinding, MultiMessageSignatureParams},
+};
 use zeroize::Zeroize;
 
 pub type BBSSecretKey = SecretKey<Fr>;
@@ -200,19 +204,7 @@ pub fn bbs_verify(
     let pk = obj_from_uint8array!(BBSPublicKey, public_key, false, "BBSPublicKey");
     let params: BBSSigParams = serde_wasm_bindgen::from_value(params)?;
     let messages = encode_messages_as_js_array_to_fr_vec(&messages, encode_messages)?;
-
-    match signature.verify(messages.as_slice(), pk, params) {
-        Ok(_) => Ok(serde_wasm_bindgen::to_value(&VerifyResponse {
-            verified: true,
-            error: None,
-        })
-        .unwrap()),
-        Err(e) => Ok(serde_wasm_bindgen::to_value(&VerifyResponse {
-            verified: false,
-            error: Some(format!("{:?}", e)),
-        })
-        .unwrap()),
-    }
+    to_verify_response!(signature.verify(messages.as_slice(), pk, params))
 }
 
 #[wasm_bindgen(js_name = bbsInitializeProofOfKnowledgeOfSignature)]
@@ -283,19 +275,7 @@ pub fn bbs_verify_proof(
     let challenge = fr_from_uint8_array(challenge, false)?;
 
     let msgs = encode_messages_as_js_map_to_fr_btreemap(&revealed_msgs, encode_messages)?;
-
-    match proof.verify(&msgs, &challenge, public_key, params) {
-        Ok(_) => Ok(serde_wasm_bindgen::to_value(&VerifyResponse {
-            verified: true,
-            error: None,
-        })
-        .unwrap()),
-        Err(e) => Ok(serde_wasm_bindgen::to_value(&VerifyResponse {
-            verified: false,
-            error: Some(format!("{:?}", e)),
-        })
-        .unwrap()),
-    }
+    to_verify_response!(proof.verify(&msgs, &challenge, public_key, params))
 }
 
 #[wasm_bindgen(js_name = bbsChallengeContributionFromProtocol)]
@@ -352,5 +332,13 @@ pub fn bbs_adapt_sig_params_for_msg_count(
     new_count: usize,
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
-    crate::adapt_params!(params, generating_label, new_count, BBSSigParams, G1Affine)
+    crate::adapt_params!(
+        params,
+        generating_label,
+        b"h_",
+        h,
+        new_count,
+        BBSSigParams,
+        G1Affine
+    )
 }

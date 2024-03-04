@@ -2,7 +2,6 @@ use crate::{
     legosnark::{LegoProvingKey, LegoVerifyingKey},
     r1cs::gen_r1cs,
     utils::{js_array_to_fr_vec, set_panic_hook},
-    G1Affine,
 };
 use ark_bls12_381::Bls12_381;
 use js_sys::Uint8Array;
@@ -32,14 +31,13 @@ pub fn generate_r1cs_circom_prover_statement(
     } else {
         obj_from_uint8array!(LegoProvingKey, snark_pk, false, "LegoProvingKey")
     };
-    let statement =
-        R1CSCircomProverStmt::new_statement_from_params::<G1Affine>(r, wasm_bytes, snark_pk)
-            .map_err(|e| {
-                JsValue::from(&format!(
-                    "Creating statement for R1CSCircomProver returned error: {:?}",
-                    e
-                ))
-            })?;
+    let statement = R1CSCircomProverStmt::new_statement_from_params(r, wasm_bytes, snark_pk)
+        .map_err(|e| {
+            JsValue::from(&format!(
+                "Creating statement for R1CSCircomProver returned error: {:?}",
+                e
+            ))
+        })?;
     Ok(obj_to_uint8array_uncompressed!(
         &statement,
         "R1CSCircomProverStmt"
@@ -53,14 +51,13 @@ pub fn generate_r1cs_circom_prover_statement_from_param_refs(
     snark_pk: usize,
 ) -> Result<Uint8Array, JsValue> {
     set_panic_hook();
-    let statement =
-        R1CSCircomProverStmt::new_statement_from_params_ref::<G1Affine>(r1cs, wasm_bytes, snark_pk)
-            .map_err(|e| {
-                JsValue::from(&format!(
-                    "Creating statement for R1CSCircomProver returned error: {:?}",
-                    e
-                ))
-            })?;
+    let statement = R1CSCircomProverStmt::new_statement_from_params_ref(r1cs, wasm_bytes, snark_pk)
+        .map_err(|e| {
+            JsValue::from(&format!(
+                "Creating statement for R1CSCircomProver returned error: {:?}",
+                e
+            ))
+        })?;
     Ok(obj_to_uint8array_uncompressed!(
         &statement,
         "R1CSCircomProverStmt"
@@ -80,14 +77,13 @@ pub fn generate_r1cs_circom_verifier_statement(
     } else {
         obj_from_uint8array!(LegoVerifyingKey, snark_vk, false, "LegoVerifyingKey")
     };
-    let statement =
-        R1CSCircomVerifierStmt::new_statement_from_params::<G1Affine>(public_inputs, snark_vk)
-            .map_err(|e| {
-                JsValue::from(&format!(
-                    "Creating statement for R1CSCircomVerifier returned error: {:?}",
-                    e
-                ))
-            })?;
+    let statement = R1CSCircomVerifierStmt::new_statement_from_params(public_inputs, snark_vk)
+        .map_err(|e| {
+            JsValue::from(&format!(
+                "Creating statement for R1CSCircomVerifier returned error: {:?}",
+                e
+            ))
+        })?;
     Ok(obj_to_uint8array_uncompressed!(
         &statement,
         "R1CSCircomVerifierStmt"
@@ -100,14 +96,13 @@ pub fn generate_r1cs_circom_verifier_statement_from_param_refs(
     snark_vk: usize,
 ) -> Result<Uint8Array, JsValue> {
     set_panic_hook();
-    let statement =
-        R1CSCircomVerifierStmt::new_statement_from_params_ref::<G1Affine>(public_inputs, snark_vk)
-            .map_err(|e| {
-                JsValue::from(&format!(
-                    "Creating statement for R1CSCircomVerifier returned error: {:?}",
-                    e
-                ))
-            })?;
+    let statement = R1CSCircomVerifierStmt::new_statement_from_params_ref(public_inputs, snark_vk)
+        .map_err(|e| {
+            JsValue::from(&format!(
+                "Creating statement for R1CSCircomVerifier returned error: {:?}",
+                e
+            ))
+        })?;
     Ok(obj_to_uint8array_uncompressed!(
         &statement,
         "R1CSCircomVerifierStmt"

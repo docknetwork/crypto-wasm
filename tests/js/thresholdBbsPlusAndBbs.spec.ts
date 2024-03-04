@@ -50,9 +50,8 @@ import {
     thresholdBbsPhase2Finish,
     thresholdBbsCreateSignatureShare, thresholdBbsAggregateSignatureShares
 } from "../../lib";
-import {stringToBytes} from "../utilities";
 
-import {doFrostDKG} from "./util";
+import {doFrostDKG, stringToBytes} from "./util";
 
 describe("For threshold BBS+ and BBS", () => {
     const threshold = 3;

@@ -667,6 +667,8 @@ pub fn ps_adapt_sig_params_for_msg_count(
     crate::adapt_params!(
         params,
         generating_label,
+        b"h_",
+        h,
         new_count,
         PSSignatureParams,
         G1Affine

@@ -1,7 +1,6 @@
 use crate::{
     saver::{ChunkedCommGens, EncGens, SaverEk, SaverSnarkPk, SaverSnarkVk},
     utils::set_panic_hook,
-    G1Affine,
 };
 use ark_bls12_381::Bls12_381;
 use js_sys::Uint8Array;
@@ -33,7 +32,7 @@ pub fn generate_saver_prover_statement(
         encryption_key,
         uncompressed_public_params,
     )?;
-    let statement = SaverProverStmt::new_statement_from_params::<G1Affine>(
+    let statement = SaverProverStmt::new_statement_from_params(
         chunk_bit_size,
         enc_gens,
         chunked_comm_gens,
@@ -61,7 +60,7 @@ pub fn generate_saver_prover_statement_from_param_refs(
     snark_pk: usize,
 ) -> Result<Uint8Array, JsValue> {
     set_panic_hook();
-    let statement = SaverProverStmt::new_statement_from_params_ref::<G1Affine>(
+    let statement = SaverProverStmt::new_statement_from_params_ref(
         chunk_bit_size,
         enc_gens,
         chunked_comm_gens,
@@ -95,7 +94,7 @@ pub fn generate_saver_verifier_statement(
         encryption_key,
         uncompressed_public_params,
     )?;
-    let statement = SaverVerifierStmt::new_statement_from_params::<G1Affine>(
+    let statement = SaverVerifierStmt::new_statement_from_params(
         chunk_bit_size,
         enc_gens,
         chunked_comm_gens,
@@ -123,7 +122,7 @@ pub fn generate_saver_verifier_statement_from_param_refs(
     snark_vk: usize,
 ) -> Result<Uint8Array, JsValue> {
     set_panic_hook();
-    let statement = SaverVerifierStmt::new_statement_from_params_ref::<G1Affine>(
+    let statement = SaverVerifierStmt::new_statement_from_params_ref(
         chunk_bit_size,
         enc_gens,
         chunked_comm_gens,

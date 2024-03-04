@@ -18,7 +18,7 @@ pub(crate) type BppSetupParams = SetupParams<G1Affine>;
 pub(crate) type SmcParams = SmcParamsAndCommitmentKey<Bls12_381>;
 pub(crate) type SmcParamsAndSk = SmcParamsAndCommitmentKeyAndSecretKey<Bls12_381>;
 
-/// Setup snark for proving bounds and and generate compressed or uncompressed SNARK proving key
+/// Setup snark for proving bounds and generate compressed or uncompressed SNARK proving key
 #[wasm_bindgen(js_name = boundCheckSnarkSetup)]
 pub fn bound_check_snark_setup(return_uncompressed: bool) -> Result<Uint8Array, JsValue> {
     set_panic_hook();

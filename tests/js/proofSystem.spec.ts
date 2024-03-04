@@ -1,4 +1,3 @@
-import { stringToBytes, getRevealedUnrevealed } from "../utilities";
 import {
   BbsPlusSigParams,
   accumulatorDeriveMembershipProvingKeyFromNonMembershipKey,
@@ -26,12 +25,10 @@ import {
   generateNonMembershipProvingKey,
   generatePedersenCommitmentG1Statement,
   generatePedersenCommitmentWitness,
-  generatePoKBBSPlusSignatureStatement,
+  generatePoKBBSPlusSignatureVerifierStatement,
   generatePoKBBSPlusSignatureWitness,
   generateCompositeProofG1,
-  generateCompositeProofG2,
   generateProofSpecG1,
-  generateProofSpecG2,
   generateRandomFieldElement,
   bbsPlusGenerateSignatureParamsG1,
   generateWitnessEqualityMetaStatement,
@@ -47,7 +44,6 @@ import {
   universalAccumulatorMembershipWitness,
   universalAccumulatorNonMembershipWitness,
   verifyCompositeProofG1,
-  verifyCompositeProofG2,
   initializeWasm,
   universalAccumulatorFixedInitialElements,
   generateRandomG1Element,
@@ -61,12 +57,11 @@ import {
   generateSetupParamForVbAccumulatorPublicKey,
   generateSetupParamForVbAccumulatorMemProvingKey,
   generateSetupParamForVbAccumulatorNonMemProvingKey,
-  generatePoKBBSPlusSignatureStatementFromParamRefs,
+  generatePoKBBSPlusSignatureVerifierStatementFromParamRefs,
   generateAccumulatorMembershipStatementFromParamRefs,
   generateAccumulatorNonMembershipStatementFromParamRefs,
   IUniversalAccumulator,
   isProofSpecG1Valid,
-  isProofSpecG2Valid,
   psSign,
   psGenerateSigningKey,
   psGenerateSignatureParams,
@@ -74,14 +69,40 @@ import {
   bbsGenerateSignatureParams,
   bbsGenerateSigningKey,
   bbsGeneratePublicKey,
-  generatePoKBBSSignatureStatement,
+  generatePoKBBSSignatureVerifierStatement,
   bbsSign,
   generatePoKBBSSignatureWitness,
   generateSetupParamForBBSSignatureParameters,
-  generatePoKBBSSignatureStatementFromParamRefs, generatePublicInequalityG1Statement,
-  generatePedersenCommKeyG1, generatePublicInequalityWitness
+  generatePoKBBSSignatureVerifierStatementFromParamRefs,
+  generatePublicInequalityG1Statement,
+  generatePedersenCommKeyG1,
+  generatePublicInequalityWitness,
+  Bddt16MacParams,
+  bddt16GenerateMacParams,
+  bddt16MacGenerateSecretKey,
+  bddt16MacGenerate,
+  generatePoKBDDT16MacStatement,
+  generatePoKBDDT16MacWitness,
+  generatePoKBDDT16MacFullVerifierStatement,
+  bddt16MacVerify,
+  bddt16BlindMacGenerate,
+  bddt16UnblindMac,
+  bddt16MacCommitMsgs,
+  bddt16MacGetBasesForCommitment,
+  generateAccumulatorKVMembershipStatement,
+  generateAccumulatorKVFullVerifierMembershipStatement,
+  generateSetupParamForBDDT16MacParameters,
+  generatePoKBDDT16MacStatementFromParamRefs,
+  generatePoKBDDT16MacFullVerifierStatementFromParamRefs,
+  generatePoKBBSSignatureProverStatement,
+  generatePoKBBSPlusSignatureProverStatement,
+  generatePoKBBSPlusSignatureProverStatementFromParamRefs,
+  generatePoKBBSSignatureProverStatementFromParamRefs,
+  generateMembershipProvingKey,
+  getAllDelegatedSubproofsFromProof, verifyBDDT16DelegatedProof, verifyVBAccumMembershipDelegatedProof
 } from "../../lib";
 import { BbsSigParams, PSSigParams } from "../../lib/types";
+import {checkResult, getRevealedUnrevealed, stringToBytes} from "./util";
 
 function setupMessages(
   messageCount: number,
@@ -126,6 +147,14 @@ function setupSignerPS(
   return [sigParams, sk, pk];
 }
 
+function setupSignerBDDT16(
+    messageCount: number
+): [Bddt16MacParams, Uint8Array] {
+  const macParams = bddt16GenerateMacParams(messageCount);
+  const sk = bddt16MacGenerateSecretKey();
+  return [macParams, sk];
+}
+
 function setupBBS(
   messageCount: number,
   prefix: string,
@@ -159,6 +188,18 @@ function setupPS(
   ];
 }
 
+function setupBDDT16(
+    messageCount: number,
+    prefix: string,
+    encode: boolean
+): [Bddt16MacParams, Uint8Array, Uint8Array, Uint8Array[]] {
+  return [
+    ...setupSignerBDDT16(messageCount),
+    new Uint8Array(), // dummy to reuse following test code
+    setupMessages(messageCount, prefix, encode),
+  ];
+}
+
 function getUniversalAccum(
   initialElements: Uint8Array[],
   sk: Uint8Array,
@@ -175,12 +216,15 @@ describe("Proving knowledge of many signatures", () => {
   const proveAndVerifySig = (
     setup,
     sign,
-    buildStatement,
+    buildProverStatement,
+    buildVerifierStatement,
     buildWitness,
     messageCount1: number,
     messageCount2: number,
     messageCount3: number,
-    encodeWhileSigning: boolean
+    encodeWhileSigning: boolean,
+    isPs = false,
+    isKvac = false
   ) => {
     let [sigParams1, sk1, pk1, messages1] = setup(
       messageCount1,
@@ -229,19 +273,31 @@ describe("Proving knowledge of many signatures", () => {
       revealedIndices3
     );
 
-    const statement1 = buildStatement(
+    const statement1 = !isPs ? buildProverStatement(
+        sigParams1,
+        revealedMsgs1,
+        encodeWhileSigning
+    ) : buildProverStatement(
       sigParams1,
       pk1,
       revealedMsgs1,
       encodeWhileSigning
     );
-    const statement2 = buildStatement(
+    const statement2 = !isPs ? buildProverStatement(
+        sigParams2,
+        revealedMsgs2,
+        encodeWhileSigning
+    ) : buildProverStatement(
       sigParams2,
       pk2,
       revealedMsgs2,
       encodeWhileSigning
     );
-    const statement3 = buildStatement(
+    const statement3 = !isPs ? buildProverStatement(
+        sigParams3,
+        revealedMsgs3,
+        encodeWhileSigning
+    ) : buildProverStatement(
       sigParams3,
       pk3,
       revealedMsgs3,
@@ -267,20 +323,20 @@ describe("Proving knowledge of many signatures", () => {
     set3.add([2, 5]);
     metaStatements.push(generateWitnessEqualityMetaStatement(set3));
 
-    const statements: Uint8Array[] = [];
-    statements.push(statement1);
-    statements.push(statement2);
-    statements.push(statement3);
+    const proverStatements: Uint8Array[] = [];
+    proverStatements.push(statement1);
+    proverStatements.push(statement2);
+    proverStatements.push(statement3);
 
     const context = stringToBytes("test-context");
-    const proofSpec = generateProofSpecG1(
-      statements,
+    const proverProofSpec = generateProofSpecG1(
+      proverStatements,
       metaStatements,
       [],
       context
     );
 
-    expect(isProofSpecG1Valid(proofSpec)).toEqual(true);
+    expect(isProofSpecG1Valid(proverProofSpec)).toEqual(true);
 
     const witness1 = buildWitness(
       sig1,
@@ -305,9 +361,77 @@ describe("Proving knowledge of many signatures", () => {
 
     const nonce = stringToBytes("test-nonce");
 
-    const proof = generateCompositeProofG1(proofSpec, witnesses, nonce);
-    const res = verifyCompositeProofG1(proof, proofSpec, nonce);
-    expect(res.verified).toBe(true);
+    const proof = generateCompositeProofG1(proverProofSpec, witnesses, nonce);
+
+    const verifierStatements: Uint8Array[] = [];
+    verifierStatements.push(isKvac ? buildVerifierStatement(
+        sigParams1,
+        revealedMsgs1,
+        encodeWhileSigning
+    ) : buildVerifierStatement(
+        sigParams1,
+        pk1,
+        revealedMsgs1,
+        encodeWhileSigning
+    ));
+    verifierStatements.push(isKvac ? buildVerifierStatement(
+        sigParams2,
+        revealedMsgs2,
+        encodeWhileSigning
+    ) : buildVerifierStatement(
+        sigParams2,
+        pk2,
+        revealedMsgs2,
+        encodeWhileSigning
+    ));
+    verifierStatements.push(isKvac ? buildVerifierStatement(
+        sigParams3,
+        revealedMsgs3,
+        encodeWhileSigning
+    ) : buildVerifierStatement(
+        sigParams3,
+        pk3,
+        revealedMsgs3,
+        encodeWhileSigning
+    ));
+    const verifierProofSpec = generateProofSpecG1(
+        verifierStatements,
+        metaStatements,
+        [],
+        context
+    );
+    const res = verifyCompositeProofG1(proof, verifierProofSpec, nonce);
+    checkResult(res);
+
+    if (isKvac) {
+      const statements: Uint8Array[] = [];
+      statements.push(generatePoKBDDT16MacFullVerifierStatement(
+          sigParams1,
+          sk1,
+          revealedMsgs1,
+          encodeWhileSigning
+      ));
+      statements.push(generatePoKBDDT16MacFullVerifierStatement(
+          sigParams2,
+          sk2,
+          revealedMsgs2,
+          encodeWhileSigning
+      ));
+      statements.push(generatePoKBDDT16MacFullVerifierStatement(
+          sigParams3,
+          sk3,
+          revealedMsgs3,
+          encodeWhileSigning
+      ));
+      const proofSpec = generateProofSpecG1(
+          statements,
+          metaStatements,
+          [],
+          context
+      );
+      const res = verifyCompositeProofG1(proof, proofSpec, nonce);
+      expect(res.verified).toBe(true);
+    }
   };
 
   beforeAll(async () => {
@@ -322,7 +446,8 @@ describe("Proving knowledge of many signatures", () => {
     proveAndVerifySig(
       setupBBS,
       bbsSign,
-      generatePoKBBSSignatureStatement,
+      generatePoKBBSSignatureProverStatement,
+      generatePoKBBSSignatureVerifierStatement,
       generatePoKBBSSignatureWitness,
       messageCount1,
       messageCount2,
@@ -332,7 +457,8 @@ describe("Proving knowledge of many signatures", () => {
     proveAndVerifySig(
       setupBBS,
       bbsSign,
-      generatePoKBBSSignatureStatement,
+      generatePoKBBSSignatureProverStatement,
+      generatePoKBBSSignatureVerifierStatement,
       generatePoKBBSSignatureWitness,
       messageCount1,
       messageCount2,
@@ -349,7 +475,8 @@ describe("Proving knowledge of many signatures", () => {
     proveAndVerifySig(
       setupBBSPlus,
       bbsPlusSignG1,
-      generatePoKBBSPlusSignatureStatement,
+      generatePoKBBSPlusSignatureProverStatement,
+      generatePoKBBSPlusSignatureVerifierStatement,
       generatePoKBBSPlusSignatureWitness,
       messageCount1,
       messageCount2,
@@ -359,7 +486,8 @@ describe("Proving knowledge of many signatures", () => {
     proveAndVerifySig(
       setupBBSPlus,
       bbsPlusSignG1,
-      generatePoKBBSPlusSignatureStatement,
+      generatePoKBBSPlusSignatureProverStatement,
+      generatePoKBBSPlusSignatureVerifierStatement,
       generatePoKBBSPlusSignatureWitness,
       messageCount1,
       messageCount2,
@@ -377,11 +505,46 @@ describe("Proving knowledge of many signatures", () => {
       setupPS,
       psSign,
       generatePoKPSSignatureStatement,
+        generatePoKPSSignatureStatement,
       generatePoKPSSignatureWitness,
       messageCount1,
       messageCount2,
       messageCount3,
-      false
+      false,
+        true
+    );
+  });
+
+  it("generate and verify a proof of knowledge of 3 BDDT16 MACs", () => {
+    const messageCount1 = 6;
+    const messageCount2 = 10;
+    const messageCount3 = 9;
+
+    proveAndVerifySig(
+        setupBDDT16,
+        bddt16MacGenerate,
+        generatePoKBDDT16MacStatement,
+        generatePoKBDDT16MacStatement,
+        generatePoKBDDT16MacWitness,
+        messageCount1,
+        messageCount2,
+        messageCount3,
+        true,
+        false,
+        true
+    );
+    proveAndVerifySig(
+        setupBDDT16,
+        bddt16MacGenerate,
+        generatePoKBDDT16MacStatement,
+        generatePoKBDDT16MacStatement,
+        generatePoKBDDT16MacWitness,
+        messageCount1,
+        messageCount2,
+        messageCount3,
+        false,
+        false,
+        true
     );
   });
 });
@@ -391,7 +554,7 @@ describe("Proving knowledge of signatures and accumulator membership and non-mem
     await initializeWasm();
   });
 
-  function checkSig(setup, sign, buildStatement, buildWitness) {
+  function check(setup, sign, buildProverStatement, buildVerifierStatement, buildWitness, isPs = false, isKvac = false) {
     const messageCount1 = 6;
     const messageCount2 = 8;
     let [sigParams1, sk1, pk1, messages1] = setup(
@@ -476,26 +639,47 @@ describe("Proving knowledge of signatures and accumulator membership and non-mem
     const posAccumulated = positiveAccumulatorGetAccumulated(posAccumulator);
     const uniAccumulated = universalAccumulatorGetAccumulated(uniAccumulator);
 
-    const statement1 = buildStatement(sigParams1, pk1, revealedMsgs1, false);
-    const statement2 = buildStatement(sigParams2, pk2, revealedMsgs2, false);
-    const statement3 = generateAccumulatorMembershipStatement(
-      params,
-      pk,
-      memPrk,
-      posAccumulated
+    const statement1 = !isPs ? buildProverStatement(
+        sigParams1,
+        revealedMsgs1,
+        false
+    ) : buildProverStatement(
+        sigParams1,
+        pk1,
+        revealedMsgs1,
+        false
     );
-    const statement4 = generateAccumulatorMembershipStatement(
-      params,
-      pk,
-      memPrk,
-      uniAccumulated
+    const statement2 = !isPs ? buildProverStatement(
+        sigParams2,
+        revealedMsgs2,
+        false
+    ) : buildProverStatement(
+        sigParams2,
+        pk2,
+        revealedMsgs2,
+        false
     );
-    const statement5 = generateAccumulatorNonMembershipStatement(
-      params,
-      pk,
-      nonMemPrk,
-      uniAccumulated
+    const statement3 = isKvac ? generateAccumulatorKVMembershipStatement(posAccumulated) : generateAccumulatorMembershipStatement(
+        params,
+        pk,
+        memPrk,
+        posAccumulated
     );
+    const statement4 = isKvac ? generateAccumulatorKVMembershipStatement(uniAccumulated) : generateAccumulatorMembershipStatement(
+        params,
+        pk,
+        memPrk,
+        uniAccumulated
+    );
+    let statement5;
+    if (!isKvac) {
+      statement5 = generateAccumulatorNonMembershipStatement(
+          params,
+          pk,
+          nonMemPrk,
+          uniAccumulated
+      );
+    }
 
     const metaStatements: Uint8Array[] = [];
 
@@ -506,100 +690,178 @@ describe("Proving knowledge of signatures and accumulator membership and non-mem
     set1.add([3, 0]);
     metaStatements.push(generateWitnessEqualityMetaStatement(set1));
 
-    const set2 = new Set<[number, number]>();
-    set2.add([0, 3]);
-    set2.add([4, 0]);
-    metaStatements.push(generateWitnessEqualityMetaStatement(set2));
+    if (!isKvac) {
+      const set2 = new Set<[number, number]>();
+      set2.add([0, 3]);
+      set2.add([4, 0]);
+      metaStatements.push(generateWitnessEqualityMetaStatement(set2));
+    }
 
-    const statements: Uint8Array[] = [];
-    statements.push(statement1);
-    statements.push(statement2);
-    statements.push(statement3);
-    statements.push(statement4);
-    statements.push(statement5);
+    const proverStatements: Uint8Array[] = [];
+    proverStatements.push(statement1);
+    proverStatements.push(statement2);
+    proverStatements.push(statement3);
+    proverStatements.push(statement4);
+    if (!isKvac) {
+      proverStatements.push(statement5);
+    }
 
-    const proofSpec = generateProofSpecG1(statements, metaStatements, []);
-    expect(isProofSpecG1Valid(proofSpec)).toEqual(true);
+    const proverProofSpec = generateProofSpecG1(proverStatements, metaStatements, []);
+    expect(isProofSpecG1Valid(proverProofSpec)).toEqual(true);
 
     const witness1 = buildWitness(sig1, unrevealedMsgs1, false);
     const witness2 = buildWitness(sig2, unrevealedMsgs2, false);
     const witness3 = generateAccumulatorMembershipWitness(member, posWitness);
     const witness4 = generateAccumulatorMembershipWitness(member, uniWitness);
-    const witness5 = generateAccumulatorNonMembershipWitness(
-      nonMember,
-      nmWitness
-    );
+    let witness5;
+    if (!isKvac) {
+      witness5 = generateAccumulatorNonMembershipWitness(
+          nonMember,
+          nmWitness
+      );
+    }
 
     const witnesses: Uint8Array[] = [];
     witnesses.push(witness1);
     witnesses.push(witness2);
     witnesses.push(witness3);
     witnesses.push(witness4);
-    witnesses.push(witness5);
+    if (!isKvac) {
+      witnesses.push(witness5);
+    }
 
-    const proof = generateCompositeProofG1(proofSpec, witnesses);
+    const proof = generateCompositeProofG1(proverProofSpec, witnesses);
 
-    const res = verifyCompositeProofG1(proof, proofSpec);
-    expect(res.verified).toBe(true);
+    const verifierStatements: Uint8Array[] = [];
+    verifierStatements.push(isKvac ? buildVerifierStatement(
+        sigParams1,
+        revealedMsgs1,
+        false
+    ) : buildVerifierStatement(
+        sigParams1,
+        pk1,
+        revealedMsgs1,
+        false
+    ));
+    verifierStatements.push(isKvac ? buildVerifierStatement(
+        sigParams2,
+        revealedMsgs2,
+        false
+    ) : buildVerifierStatement(
+        sigParams2,
+        pk2,
+        revealedMsgs2,
+        false
+    ));
+    verifierStatements.push(statement3);
+    verifierStatements.push(statement4);
+    if (!isKvac) {
+      verifierStatements.push(statement5);
+    }
+    const verifierProofSpec = generateProofSpecG1(verifierStatements, metaStatements, []);
+    expect(isProofSpecG1Valid(verifierProofSpec)).toEqual(true);
+    const res = verifyCompositeProofG1(proof, verifierProofSpec);
+    checkResult(res);
+
+    if (isKvac) {
+      const statements: Uint8Array[] = [];
+      statements.push(generatePoKBDDT16MacFullVerifierStatement(
+          sigParams1,
+          sk1,
+          revealedMsgs1,
+          false
+      ));
+      statements.push(generatePoKBDDT16MacFullVerifierStatement(
+          sigParams2,
+          sk2,
+          revealedMsgs2,
+          false
+      ));
+      statements.push(
+          generateAccumulatorKVFullVerifierMembershipStatement(sk, posAccumulated)
+      );
+      statements.push(
+          generateAccumulatorKVFullVerifierMembershipStatement(sk, uniAccumulated)
+      );
+      const proofSpec = generateProofSpecG1(statements, metaStatements, []);
+      const res = verifyCompositeProofG1(proof, proofSpec);
+      checkResult(res);
+    }
   }
 
   it("generate and verify a proof of knowledge of a BBS signature and accumulator membership", () => {
-    checkSig(
+    check(
       setupBBS,
       bbsSign,
-      generatePoKBBSSignatureStatement,
+      generatePoKBBSSignatureProverStatement,
+      generatePoKBBSSignatureVerifierStatement,
       generatePoKBBSSignatureWitness
     );
   });
 
   it("generate and verify a proof of knowledge of a BBS+ signature and accumulator membership", () => {
-    checkSig(
+    check(
       setupBBSPlus,
       bbsPlusSignG1,
-      generatePoKBBSPlusSignatureStatement,
+      generatePoKBBSPlusSignatureProverStatement,
+      generatePoKBBSPlusSignatureVerifierStatement,
       generatePoKBBSPlusSignatureWitness
     );
   });
 
   it("generate and verify a proof of knowledge of a PS signature and accumulator membership", () => {
-    checkSig(
+    check(
       setupPS,
       psSign,
       generatePoKPSSignatureStatement,
-      generatePoKPSSignatureWitness
+      generatePoKPSSignatureStatement,
+      generatePoKPSSignatureWitness,
+      true
+    );
+  });
+
+  it("generate and verify a proof of knowledge of a MAC and accumulator membership", () => {
+    check(
+        setupBDDT16,
+        bddt16MacGenerate,
+        generatePoKBDDT16MacStatement,
+        generatePoKBDDT16MacStatement,
+        generatePoKBDDT16MacWitness,
+        false,
+        true
     );
   });
 });
 
-describe("Proving knowledge of a BBS+ signature while requesting a partially blind BBS+ signature", () => {
+describe("Proving knowledge of a signature or MAC while requesting a partially blind signature or MAC", () => {
+  const messageCount1 = 5;
+  const messageCount2 = 6;
+
   beforeAll(async () => {
     await initializeWasm();
   });
 
-  it("generate and verify a proof of knowledge of a BBS+ signature and accumulator membership", () => {
-    const messageCount1 = 5;
-    const messageCount2 = 6;
-
-    let [sigParams1, sk1, pk1, messages1] = setupBBSPlus(
-      messageCount1,
-      "Message1",
-      false
+  function check(setup, sign, verify, blindSign, unblind, commit, getBases, buildProverStatement, buildVerifierStatement, buildWitness, isKvac = false) {
+    let [sigParams1, sk1, pk1, messages1] = setup(
+        messageCount1,
+        "Message1",
+        false
     );
-    let [sigParams2, sk2, pk2, messages2] = setupBBSPlus(
-      messageCount2,
-      "Message2",
-      false
+    let [sigParams2, sk2, pk2, messages2] = setup(
+        messageCount2,
+        "Message2",
+        false
     );
 
     messages2[5] = messages1[4];
 
-    const sig1 = bbsPlusSignG1(messages1, sk1, sigParams1, true);
+    const sig1 = sign(messages1, sk1, sigParams1, true);
 
     const revealedIndices1 = new Set<number>();
     revealedIndices1.add(0);
     const [revealedMsgs1, unrevealedMsgs1] = getRevealedUnrevealed(
-      messages1,
-      revealedIndices1
+        messages1,
+        revealedIndices1
     );
 
     const indicesToCommit = new Array<number>();
@@ -617,25 +879,24 @@ describe("Proving knowledge of a BBS+ signature while requesting a partially bli
     }
 
     const blinding = generateRandomFieldElement();
-    const commitment = bbsPlusCommitMsgsInG1(
-      msgsToCommit,
-      blinding,
-      sigParams2,
-      true
+    const commitment = commit(
+        msgsToCommit,
+        blinding,
+        sigParams2,
+        true
     );
-    const bases = bbsPlusGetBasesForCommitmentG1(sigParams2, indicesToCommit);
+    const bases = getBases(sigParams2, indicesToCommit);
 
-    const statement1 = generatePoKBBSPlusSignatureStatement(
-      sigParams1,
-      pk1,
-      revealedMsgs1,
-      true
+    const statement1 = buildProverStatement(
+        sigParams1,
+        revealedMsgs1,
+        true
     );
     const statement2 = generatePedersenCommitmentG1Statement(bases, commitment);
 
-    const statements: Uint8Array[] = [];
-    statements.push(statement1);
-    statements.push(statement2);
+    const proverStatements: Uint8Array[] = [];
+    proverStatements.push(statement1);
+    proverStatements.push(statement2);
 
     const metaStatements: Uint8Array[] = [];
 
@@ -644,13 +905,13 @@ describe("Proving knowledge of a BBS+ signature while requesting a partially bli
     set.add([1, 3]);
     metaStatements.push(generateWitnessEqualityMetaStatement(set));
 
-    const proofSpec = generateProofSpecG1(statements, metaStatements, []);
-    expect(isProofSpecG1Valid(proofSpec)).toEqual(true);
+    const proverProofSpec = generateProofSpecG1(proverStatements, metaStatements, []);
+    expect(isProofSpecG1Valid(proverProofSpec)).toEqual(true);
 
-    const witness1 = generatePoKBBSPlusSignatureWitness(
-      sig1,
-      unrevealedMsgs1,
-      true
+    const witness1 = buildWitness(
+        sig1,
+        unrevealedMsgs1,
+        true
     );
 
     const pcWits = encodeMessagesForSigning(messages2, indicesToCommit);
@@ -663,20 +924,67 @@ describe("Proving knowledge of a BBS+ signature while requesting a partially bli
 
     const nonce = stringToBytes("test");
 
-    const proof = generateCompositeProofG1(proofSpec, witnesses, nonce);
-    const res = verifyCompositeProofG1(proof, proofSpec, nonce);
-    expect(res.verified).toBe(true);
+    const proof = generateCompositeProofG1(proverProofSpec, witnesses, nonce);
 
-    const blindSig = bbsPlusBlindSignG1(
-      commitment,
-      msgsToNotCommit,
-      sk2,
-      sigParams2,
-      true
+    const verifierStatements: Uint8Array[] = [];
+    verifierStatements.push(isKvac ? buildVerifierStatement(
+        sigParams1,
+        revealedMsgs1,
+        true
+    ) : buildVerifierStatement(
+        sigParams1,
+        pk1,
+        revealedMsgs1,
+        true
+    ));
+    verifierStatements.push(statement2);
+    const verifierProofSpec = generateProofSpecG1(verifierStatements, metaStatements, []);
+    expect(isProofSpecG1Valid(verifierProofSpec)).toEqual(true);
+
+    const res = verifyCompositeProofG1(proof, verifierProofSpec, nonce);
+    checkResult(res);
+
+    const blindSig = blindSign(
+        commitment,
+        msgsToNotCommit,
+        sk2,
+        sigParams2,
+        true
     );
-    const sig2 = bbsPlusUnblindSigG1(blindSig, blinding);
-    const res1 = bbsPlusVerifyG1(messages2, sig2, pk2, sigParams2, true);
+    const sig2 = unblind(blindSig, blinding);
+    const res1 = isKvac ? verify(messages2, sig2, sk2, sigParams2, true) : verify(messages2, sig2, pk2, sigParams2, true);
     expect(res1.verified).toBe(true);
+  }
+
+  it("generate and verify a proof of knowledge of a BBS+ signature and request a blind BBS+ signature", () => {
+    check(
+        setupBBSPlus,
+        bbsPlusSignG1,
+        bbsPlusVerifyG1,
+        bbsPlusBlindSignG1,
+        bbsPlusUnblindSigG1,
+        bbsPlusCommitMsgsInG1,
+        bbsPlusGetBasesForCommitmentG1,
+        generatePoKBBSPlusSignatureProverStatement,
+        generatePoKBBSPlusSignatureVerifierStatement,
+        generatePoKBBSPlusSignatureWitness
+    )
+  });
+
+  it("generate and verify a proof of knowledge of a MAC and request a blind MAC", () => {
+    check(
+        setupBDDT16,
+        bddt16MacGenerate,
+        bddt16MacVerify,
+        bddt16BlindMacGenerate,
+        bddt16UnblindMac,
+        bddt16MacCommitMsgs,
+        bddt16MacGetBasesForCommitment,
+        generatePoKBDDT16MacStatement,
+        generatePoKBDDT16MacStatement,
+        generatePoKBDDT16MacWitness,
+        true
+    )
   });
 });
 
@@ -780,8 +1088,8 @@ describe("Proving equality of openings of Pedersen commitments", () => {
     set2.add([1, 1]);
     metaStatements.push(generateWitnessEqualityMetaStatement(set2));
 
-    const proofSpec = generateProofSpecG2(statements, metaStatements, []);
-    expect(isProofSpecG2Valid(proofSpec)).toEqual(true);
+    const proofSpec = generateProofSpecG1(statements, metaStatements, []);
+    expect(isProofSpecG1Valid(proofSpec)).toEqual(true);
 
     const witness1 = generatePedersenCommitmentWitness(m1);
     const witness2 = generatePedersenCommitmentWitness(m2);
@@ -789,8 +1097,8 @@ describe("Proving equality of openings of Pedersen commitments", () => {
     witnesses.push(witness1);
     witnesses.push(witness2);
 
-    const proof = generateCompositeProofG2(proofSpec, witnesses);
-    const res = verifyCompositeProofG2(proof, proofSpec);
+    const proof = generateCompositeProofG1(proofSpec, witnesses);
+    const res = verifyCompositeProofG1(proof, proofSpec);
     expect(res.verified).toBe(true);
   });
 });
@@ -802,13 +1110,12 @@ describe("Reusing setup params of BBS, BBS+ and accumulator", () => {
     sigSk1: Uint8Array,
     sigSk2: Uint8Array,
     sigPk1: Uint8Array,
-    sigPk2: Uint8Array;
-  let sigParams3: BbsSigParams,
-      sigParams4: BbsSigParams,
-      sigSk3: Uint8Array,
-      sigSk4: Uint8Array,
-      sigPk3: Uint8Array,
-      sigPk4: Uint8Array;
+    sigPk2: Uint8Array,
+    macParams1: Bddt16MacParams,
+    macParams2: Bddt16MacParams,
+    macSk1: Uint8Array,
+    macSk2: Uint8Array;
+
   let messages1: Uint8Array[],
     messages2: Uint8Array[],
     messages3: Uint8Array[],
@@ -824,9 +1131,8 @@ describe("Reusing setup params of BBS, BBS+ and accumulator", () => {
     await initializeWasm();
     [sigParams1, sigSk1, sigPk1] = setupSignerBBSPlus(messageCount);
     [sigParams2, sigSk2, sigPk2] = setupSignerBBSPlus(messageCount);
-
-    [sigParams3, sigSk3, sigPk3] = setupSignerBBS(messageCount);
-    [sigParams4, sigSk4, sigPk4] = setupSignerBBS(messageCount);
+    [macParams1, macSk1] = setupSignerBDDT16(messageCount);
+    [macParams2, macSk2] = setupSignerBDDT16(messageCount);
 
     messages1 = setupMessages(messageCount, "Message1", true);
     messages2 = setupMessages(messageCount, "Message2", true);
@@ -842,7 +1148,7 @@ describe("Reusing setup params of BBS, BBS+ and accumulator", () => {
     accumPk2 = generateAccumulatorPublicKey(accumSk2, accumParams2);
   });
 
-  function check(signFunc, setupParamsForSigParamsFunc, setupParamsForPkFunc, sigStmtFunc, sigWitFunc) {
+  function check(sigParams1, sigSk1, sigPk1, sigParams2, sigSk2, sigPk2, signFunc, setupParamsForSigParamsFunc, setupParamsForPkFunc, sigPrvStmtFunc, sigVerStmtFunc, sigWitFunc, isKvac = false) {
     const memberIndex = 0;
     const nonMemberIndex = 1;
 
@@ -984,11 +1290,15 @@ describe("Reusing setup params of BBS, BBS+ and accumulator", () => {
     allSetupParams.push(
         setupParamsForSigParamsFunc(sigParams1)
     );
-    allSetupParams.push(setupParamsForPkFunc(sigPk1));
+    if (!isKvac) {
+      allSetupParams.push(setupParamsForPkFunc(sigPk1));
+    }
     allSetupParams.push(
         setupParamsForSigParamsFunc(sigParams2)
     );
-    allSetupParams.push(setupParamsForPkFunc(sigPk2));
+    if (!isKvac) {
+      allSetupParams.push(setupParamsForPkFunc(sigPk2));
+    }
     allSetupParams.push(generateSetupParamForVbAccumulatorParams(accumParams1));
     allSetupParams.push(generateSetupParamForVbAccumulatorPublicKey(accumPk1));
     allSetupParams.push(generateSetupParamForVbAccumulatorParams(accumParams2));
@@ -1000,95 +1310,76 @@ describe("Reusing setup params of BBS, BBS+ and accumulator", () => {
         generateSetupParamForVbAccumulatorNonMemProvingKey(nonMemPrk)
     );
 
-    const statement1 = sigStmtFunc(
-        0,
-        1,
-        revealedMsgs1,
-        false
-    );
-    const statement2 = sigStmtFunc(
-        0,
-        1,
-        revealedMsgs2,
-        false
-    );
-    const statement3 = sigStmtFunc(
-        2,
-        3,
-        revealedMsgs3,
-        false
-    );
-    const statement4 = sigStmtFunc(
-        2,
-        3,
-        revealedMsgs4,
-        false
-    );
+    const statement1 = sigPrvStmtFunc(0, revealedMsgs1, false);
+    const statement2 = sigPrvStmtFunc(0, revealedMsgs2, false);
+    const statement3 = sigPrvStmtFunc(isKvac ? 1: 2, revealedMsgs3, false);
+    const statement4 = sigPrvStmtFunc(isKvac ? 1: 2, revealedMsgs4, false);
+    const accumStmtOffset = isKvac ? 2 : 0;
     const statement5 = generateAccumulatorMembershipStatementFromParamRefs(
-        4,
-        5,
-        8,
+        4 - accumStmtOffset,
+        5 - accumStmtOffset,
+        8 - accumStmtOffset,
         posAccumulated1
     );
     const statement6 = generateAccumulatorMembershipStatementFromParamRefs(
-        4,
-        5,
-        8,
+        4 - accumStmtOffset,
+        5 - accumStmtOffset,
+        8 - accumStmtOffset,
         posAccumulated1
     );
     const statement7 = generateAccumulatorMembershipStatementFromParamRefs(
-        6,
-        7,
-        8,
+        6 - accumStmtOffset,
+        7 - accumStmtOffset,
+        8 - accumStmtOffset,
         posAccumulated2
     );
     const statement8 = generateAccumulatorMembershipStatementFromParamRefs(
-        6,
-        7,
-        8,
+        6 - accumStmtOffset,
+        7 - accumStmtOffset,
+        8 - accumStmtOffset,
         posAccumulated2
     );
     const statement9 = generateAccumulatorNonMembershipStatementFromParamRefs(
-        4,
-        5,
-        9,
+        4 - accumStmtOffset,
+        5 - accumStmtOffset,
+        9 - accumStmtOffset,
         uniAccumulated1
     );
     const statement10 = generateAccumulatorNonMembershipStatementFromParamRefs(
-        4,
-        5,
-        9,
+        4 - accumStmtOffset,
+        5 - accumStmtOffset,
+        9 - accumStmtOffset,
         uniAccumulated1
     );
     const statement11 = generateAccumulatorNonMembershipStatementFromParamRefs(
-        6,
-        7,
-        9,
+        6 - accumStmtOffset,
+        7 - accumStmtOffset,
+        9 - accumStmtOffset,
         uniAccumulated2
     );
     const statement12 = generateAccumulatorNonMembershipStatementFromParamRefs(
-        6,
-        7,
-        9,
+        6 - accumStmtOffset,
+        7 - accumStmtOffset,
+        9 - accumStmtOffset,
         uniAccumulated2
     );
 
-    const statements: Uint8Array[] = [];
-    statements.push(statement1);
-    statements.push(statement2);
-    statements.push(statement3);
-    statements.push(statement4);
-    statements.push(statement5);
-    statements.push(statement6);
-    statements.push(statement7);
-    statements.push(statement8);
-    statements.push(statement9);
-    statements.push(statement10);
-    statements.push(statement11);
-    statements.push(statement12);
+    const proverStatements: Uint8Array[] = [];
+    proverStatements.push(statement1);
+    proverStatements.push(statement2);
+    proverStatements.push(statement3);
+    proverStatements.push(statement4);
+    proverStatements.push(statement5);
+    proverStatements.push(statement6);
+    proverStatements.push(statement7);
+    proverStatements.push(statement8);
+    proverStatements.push(statement9);
+    proverStatements.push(statement10);
+    proverStatements.push(statement11);
+    proverStatements.push(statement12);
 
-    const proofSpec = generateProofSpecG1(statements, [], allSetupParams);
-    expect(isProofSpecG1Valid(proofSpec)).toEqual(true);
+    const proverProofSpec = generateProofSpecG1(proverStatements, [], allSetupParams);
+    expect(isProofSpecG1Valid(proverProofSpec)).toEqual(true);
 
     const witness1 = sigWitFunc(
         sig1,
@@ -1157,18 +1448,97 @@ describe("Reusing setup params of BBS, BBS+ and accumulator", () => {
     witnesses.push(witness11);
     witnesses.push(witness12);
 
-    const proof = generateCompositeProofG1(proofSpec, witnesses);
+    const proof = generateCompositeProofG1(proverProofSpec, witnesses);
 
-    const res = verifyCompositeProofG1(proof, proofSpec);
-    expect(res.verified).toBe(true);
+    const verifierStatements: Uint8Array[] = [];
+    verifierStatements.push(isKvac ? sigVerStmtFunc(
+        0,
+        revealedMsgs1,
+        false
+    ) : sigVerStmtFunc(
+        0,
+        1,
+        revealedMsgs1,
+        false
+    ));
+    verifierStatements.push(isKvac ? sigVerStmtFunc(
+        0,
+        revealedMsgs2,
+        false
+    ) : sigVerStmtFunc(
+        0,
+        1,
+        revealedMsgs2,
+        false
+    ));
+    verifierStatements.push(isKvac ? sigVerStmtFunc(
+        1,
+        revealedMsgs3,
+        false
+    ) : sigVerStmtFunc(
+        2,
+        3,
+        revealedMsgs3,
+        false
+    ));
+    verifierStatements.push(isKvac ? sigVerStmtFunc(
+        1,
+        revealedMsgs4,
+        false
+    ) : sigVerStmtFunc(
+        2,
+        3,
+        revealedMsgs4,
+        false
+    ));
+    verifierStatements.push(statement5);
+    verifierStatements.push(statement6);
+    verifierStatements.push(statement7);
+    verifierStatements.push(statement8);
+    verifierStatements.push(statement9);
+    verifierStatements.push(statement10);
+    verifierStatements.push(statement11);
+    verifierStatements.push(statement12);
+
+    const verifierProofSpec = generateProofSpecG1(verifierStatements, [], allSetupParams);
+    expect(isProofSpecG1Valid(verifierProofSpec)).toEqual(true);
+
+    const res = verifyCompositeProofG1(proof, verifierProofSpec);
+    checkResult(res);
+
+    if (isKvac) {
+      const statements: Uint8Array[] = [];
+      statements.push(generatePoKBDDT16MacFullVerifierStatementFromParamRefs(0, sigSk1,  revealedMsgs1, false));
+      statements.push(generatePoKBDDT16MacFullVerifierStatementFromParamRefs(0, sigSk1,  revealedMsgs2, false));
+      statements.push(generatePoKBDDT16MacFullVerifierStatementFromParamRefs(1, sigSk2,  revealedMsgs3, false));
+      statements.push(generatePoKBDDT16MacFullVerifierStatementFromParamRefs(1, sigSk2,  revealedMsgs4, false));
+      statements.push(statement5);
+      statements.push(statement6);
+      statements.push(statement7);
+      statements.push(statement8);
+      statements.push(statement9);
+      statements.push(statement10);
+      statements.push(statement11);
+      statements.push(statement12);
+
+      const proofSpec = generateProofSpecG1(statements, [], allSetupParams);
+      const res = verifyCompositeProofG1(proof, proofSpec);
+      expect(res.verified).toBe(true);
+    }
   }
 
   it("generate and verify a proof of knowledge with BBS+ signature and accumulator using setup parameters", () => {
-    check(bbsPlusSignG1, generateSetupParamForBBSPlusSignatureParametersG1, generateSetupParamForBBSPlusPublicKeyG2, generatePoKBBSPlusSignatureStatementFromParamRefs, generatePoKBBSPlusSignatureWitness)
+    check(sigParams1, sigSk1, sigPk1, sigParams2, sigSk2, sigPk2, bbsPlusSignG1, generateSetupParamForBBSPlusSignatureParametersG1, generateSetupParamForBBSPlusPublicKeyG2, generatePoKBBSPlusSignatureProverStatementFromParamRefs, generatePoKBBSPlusSignatureVerifierStatementFromParamRefs, generatePoKBBSPlusSignatureWitness)
   });
 
   it("generate and verify a proof of knowledge with BBS signature and accumulator using setup parameters", () => {
-    check(bbsSign, generateSetupParamForBBSSignatureParameters, generateSetupParamForBBSPlusPublicKeyG2, generatePoKBBSSignatureStatementFromParamRefs, generatePoKBBSSignatureWitness)
+    check(sigParams1, sigSk1, sigPk1, sigParams2, sigSk2, sigPk2, bbsSign, generateSetupParamForBBSSignatureParameters, generateSetupParamForBBSPlusPublicKeyG2, generatePoKBBSSignatureProverStatementFromParamRefs, generatePoKBBSSignatureVerifierStatementFromParamRefs, generatePoKBBSSignatureWitness)
+  });
+
+  it("generate and verify a proof of knowledge with MAC and accumulator using setup parameters", () => {
+    check(
+        macParams1, macSk1, undefined, macParams2, macSk2, undefined, bddt16MacGenerate, generateSetupParamForBDDT16MacParameters, undefined, generatePoKBDDT16MacStatementFromParamRefs, generatePoKBDDT16MacStatementFromParamRefs, generatePoKBDDT16MacWitness, true
+    )
   });
 });
 
@@ -1176,8 +1546,11 @@ describe("Proving knowledge of signature and inequality of a signed message with
   const check = (
       setup,
       sign,
-      buildStatement,
+      buildProverStatement,
+      buildVerifierStatement,
       buildWitness,
+      isPs = false,
+      isKvac = false,
   ) => {
     let [sigParams, sk, pk, messages] = setup(
         5,
@@ -1200,12 +1573,16 @@ describe("Proving knowledge of signature and inequality of a signed message with
     const inequalTo = generateRandomFieldElement();
     expect(messages[inequalMsgIdx]).not.toEqual(inequalTo);
 
-    const statement1 = buildStatement(
+    const statement1 = !isPs ? buildProverStatement(
+        sigParams,
+        revealedMsgs,
+        false
+    ) : buildProverStatement(
         sigParams,
         pk,
         revealedMsgs,
         false
-    );
+    );;
     const statement2 = generatePublicInequalityG1Statement(inequalTo, comm_key, true);
 
     const metaStatements: Uint8Array[] = [];
@@ -1215,19 +1592,19 @@ describe("Proving knowledge of signature and inequality of a signed message with
     set.add([1, 0]);
     metaStatements.push(generateWitnessEqualityMetaStatement(set));
 
-    const statements: Uint8Array[] = [];
-    statements.push(statement1);
-    statements.push(statement2);
+    const proverStatements: Uint8Array[] = [];
+    proverStatements.push(statement1);
+    proverStatements.push(statement2);
 
     const context = stringToBytes("test-context");
-    const proofSpec = generateProofSpecG1(
-        statements,
+    const proverProofSpec = generateProofSpecG1(
+        proverStatements,
         metaStatements,
         [],
         context
     );
 
-    expect(isProofSpecG1Valid(proofSpec)).toEqual(true);
+    expect(isProofSpecG1Valid(proverProofSpec)).toEqual(true);
 
     const witness1 = buildWitness(
         sig,
@@ -1242,9 +1619,29 @@ describe("Proving knowledge of signature and inequality of a signed message with
 
     const nonce = stringToBytes("test-nonce");
 
-    const proof = generateCompositeProofG1(proofSpec, witnesses, nonce);
-    const res = verifyCompositeProofG1(proof, proofSpec, nonce);
-    expect(res.verified).toBe(true);
+    const proof = generateCompositeProofG1(proverProofSpec, witnesses, nonce);
+
+    const verifierStatements: Uint8Array[] = [];
+    verifierStatements.push(isKvac ? buildVerifierStatement(
+        sigParams,
+        revealedMsgs,
+        false
+    ) : buildVerifierStatement(
+        sigParams,
+        pk,
+        revealedMsgs,
+        false
+    ));
+    verifierStatements.push(statement2);
+    const verifierProofSpec = generateProofSpecG1(
+        verifierStatements,
+        metaStatements,
+        [],
+        context
+    );
+
+    const res = verifyCompositeProofG1(proof, verifierProofSpec, nonce);
+    checkResult(res);
   };
 
   beforeAll(async () => {
@@ -1255,13 +1652,8 @@ describe("Proving knowledge of signature and inequality of a signed message with
     check(
         setupBBS,
         bbsSign,
-        generatePoKBBSSignatureStatement,
-        generatePoKBBSSignatureWitness,
-    );
-    check(
-        setupBBS,
-        bbsSign,
-        generatePoKBBSSignatureStatement,
+        generatePoKBBSSignatureProverStatement,
+        generatePoKBBSSignatureVerifierStatement,
         generatePoKBBSSignatureWitness,
     );
   });
@@ -1270,13 +1662,8 @@ describe("Proving knowledge of signature and inequality of a signed message with
     check(
         setupBBSPlus,
         bbsPlusSignG1,
-        generatePoKBBSPlusSignatureStatement,
-        generatePoKBBSPlusSignatureWitness,
-    );
-    check(
-        setupBBSPlus,
-        bbsPlusSignG1,
-        generatePoKBBSPlusSignatureStatement,
+        generatePoKBBSPlusSignatureProverStatement,
+        generatePoKBBSPlusSignatureVerifierStatement,
         generatePoKBBSPlusSignatureWitness,
     );
   });
@@ -1286,7 +1673,144 @@ describe("Proving knowledge of signature and inequality of a signed message with
         setupPS,
         psSign,
         generatePoKPSSignatureStatement,
+        generatePoKPSSignatureStatement,
         generatePoKPSSignatureWitness,
+        true
+    );
+  });
+
+  it("when BDDT16 MAC signatures", () => {
+    check(
+        setupBDDT16,
+        bddt16MacGenerate,
+        generatePoKBDDT16MacStatement,
+        generatePoKBDDT16MacStatement,
+        generatePoKBDDT16MacWitness,
+        false,
+        true
     );
   });
 });
+
+describe("Delegated proofs", () => {
+  beforeAll(async () => {
+    await initializeWasm();
+  });
+
+  it("works", () => {
+    const messageCount = 6;
+    let [bbsParams, bbsSk, bbsPk, messages1] = setupBBS(
+        messageCount,
+        "Message",
+        true
+    );
+    let [bddt16Params, bddt16Sk, , messages2] = setupBDDT16(
+        messageCount,
+        "Message",
+        true
+    );
+
+    // This will be added in accumulator
+    let member = generateFieldElementFromBytes(stringToBytes("userid-1234"));
+    messages1[5] = member;
+    messages2[5] = member;
+
+    const sig1 = bbsSign(messages1, bbsSk, bbsParams, false);
+    const sig2 = bddt16MacGenerate(messages2, bddt16Sk, bddt16Params, false);
+
+    const params = generateAccumulatorParams();
+    const sk = generateAccumulatorSecretKey();
+    const pk = generateAccumulatorPublicKey(sk, params);
+
+    let accumulator = positiveAccumulatorInitialize(params);
+    const prk = generateMembershipProvingKey();
+    accumulator = positiveAccumulatorAdd(accumulator, member, sk);
+    const witness = positiveAccumulatorMembershipWitness(
+        accumulator,
+        member,
+        sk
+    );
+    const accumulated = positiveAccumulatorGetAccumulated(accumulator);
+
+    const [revealedMsgs1, unrevealedMsgs1] = getRevealedUnrevealed(
+        messages1,
+        new Set()
+    );
+    const [revealedMsgs2, unrevealedMsgs2] = getRevealedUnrevealed(
+        messages2,
+        new Set()
+    );
+
+    const proverStatements: Uint8Array[] = [];
+    proverStatements.push(generatePoKBBSSignatureProverStatement(bbsParams, revealedMsgs1, false));
+    proverStatements.push(generatePoKBDDT16MacStatement(bddt16Params, revealedMsgs2, false));
+    proverStatements.push(generateAccumulatorMembershipStatement(
+        params,
+        pk,
+        prk,
+        accumulated
+    ));
+    proverStatements.push(generateAccumulatorKVMembershipStatement(accumulated));
+
+    const metaStatements: Uint8Array[] = [];
+
+    const set1 = new Set<[number, number]>();
+    set1.add([0, 5]);
+    set1.add([1, 5]);
+    set1.add([2, 0]);
+    set1.add([3, 0]);
+    metaStatements.push(generateWitnessEqualityMetaStatement(set1));
+
+    const proverProofSpec = generateProofSpecG1(proverStatements, metaStatements, []);
+    expect(isProofSpecG1Valid(proverProofSpec)).toEqual(true);
+
+    const witness1 = generatePoKBBSSignatureWitness(sig1, unrevealedMsgs1, false);
+    const witness2 = generatePoKBDDT16MacWitness(sig2, unrevealedMsgs2, false);
+    const witness3 = generateAccumulatorMembershipWitness(member, witness);
+    const witness4 = generateAccumulatorMembershipWitness(member, witness);
+
+    const witnesses: Uint8Array[] = [];
+    witnesses.push(witness1);
+    witnesses.push(witness2);
+    witnesses.push(witness3);
+    witnesses.push(witness4);
+
+    const proof = generateCompositeProofG1(proverProofSpec, witnesses);
+
+    const verifierStatements: Uint8Array[] = [];
+    verifierStatements.push(generatePoKBBSSignatureVerifierStatement(bbsParams,
+        bbsPk,
+        revealedMsgs1,
+        false));
+    verifierStatements.push(generatePoKBDDT16MacStatement(bddt16Params,
+        revealedMsgs1,
+        false));
+    verifierStatements.push(generateAccumulatorMembershipStatement(
+        params,
+        pk,
+        prk,
+        accumulated
+    ));
+    verifierStatements.push(generateAccumulatorKVMembershipStatement(accumulated));
+
+    const verifierProofSpec = generateProofSpecG1(verifierStatements, metaStatements, []);
+    expect(isProofSpecG1Valid(verifierProofSpec)).toEqual(true);
+    checkResult(verifyCompositeProofG1(proof, verifierProofSpec));
+
+    const dps: Map<number, [number, Uint8Array]> = getAllDelegatedSubproofsFromProof(proof);
+    expect(dps.size).toEqual(2);
+    const dp0 = dps.get(1);
+    const dp1 = dps.get(3);
+    expect(Array.isArray(dp0) && dp0.length).toEqual(2);
+    expect(Array.isArray(dp1) && dp1.length).toEqual(2);
+    // @ts-ignore
+    expect(dp0[0]).toEqual(0);
+    // @ts-ignore
+    expect(dp1[0]).toEqual(1);
+
+    // @ts-ignore
+    checkResult(verifyBDDT16DelegatedProof(dp0[1], bddt16Sk));
+    // @ts-ignore
+    checkResult(verifyVBAccumMembershipDelegatedProof(dp1[1], sk));
+  })
+})

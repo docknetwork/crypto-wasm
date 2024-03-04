@@ -39,7 +39,8 @@ import {
   initializeWasm,
 } from "../../lib";
 
-import { stringToBytes } from "../utilities";
+
+import {stringToBytes} from "./util";
 
 describe("For BBS+ signatures", () => {
   let sigParamsG1: BbsPlusSigParams,

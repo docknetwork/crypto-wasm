@@ -8,14 +8,6 @@ use ark_ec::pairing::Pairing;
 use ark_serialize::CanonicalDeserialize;
 use ark_std::collections::BTreeSet;
 use dock_crypto_wasm::{
-    accumulator::{
-        accumulator_derive_membership_proving_key_from_non_membership_key,
-        generate_non_membership_proving_key, positive_accumulator_add,
-        positive_accumulator_get_accumulated, positive_accumulator_initialize,
-        positive_accumulator_membership_witness, universal_accumulator_add,
-        universal_accumulator_compute_d, universal_accumulator_get_accumulated,
-        universal_accumulator_membership_witness, universal_accumulator_non_membership_witness,
-    },
     bbs::*,
     bbs_plus::{
         bbs_plus_blind_sign_g1, bbs_plus_commit_to_message_in_g1,
@@ -25,25 +17,32 @@ use dock_crypto_wasm::{
     common::{
         encode_message_for_signing, encode_messages_for_signing, field_element_as_bytes,
         field_element_from_number, generate_field_element_from_bytes,
-        generate_random_field_element, generate_random_g1_element, generate_random_g2_element,
-        pedersen_commitment_g1, pedersen_commitment_g2, VerifyResponse,
+        generate_random_field_element, generate_random_g1_element, pedersen_commitment_g1,
+        VerifyResponse,
     },
     composite_proof_system::{
         generate_accumulator_membership_witness, generate_accumulator_non_membership_witness,
-        generate_composite_proof_g1, generate_composite_proof_g2,
-        generate_pedersen_commitment_witness, generate_pok_bbs_plus_sig_witness,
-        generate_pok_bbs_sig_witness, generate_proof_spec_g1, generate_proof_spec_g2,
+        generate_composite_proof_g1, generate_pedersen_commitment_witness,
+        generate_pok_bbs_plus_sig_witness, generate_pok_bbs_sig_witness, generate_proof_spec_g1,
         setup_params::{
             generate_setup_param_for_vb_accumulator_mem_proving_key,
             generate_setup_param_for_vb_accumulator_non_mem_proving_key,
             generate_setup_param_for_vb_accumulator_params,
             generate_setup_param_for_vb_accumulator_public_key,
         },
-        verify_composite_proof_g1, verify_composite_proof_g2, Witness,
+        verify_composite_proof_g1, Witness,
     },
     utils::{
         encode_messages_as_js_map_to_fr_btreemap, fr_from_jsvalue,
         js_array_of_bytearrays_from_vector_of_bytevectors, random_bytes,
+    },
+    vb_accumulator::{
+        accumulator_derive_membership_proving_key_from_non_membership_key,
+        generate_non_membership_proving_key, positive_accumulator_add,
+        positive_accumulator_get_accumulated, positive_accumulator_initialize,
+        positive_accumulator_membership_witness, universal_accumulator_add,
+        universal_accumulator_compute_d, universal_accumulator_get_accumulated,
+        universal_accumulator_membership_witness, universal_accumulator_non_membership_witness,
     },
 };
 use proof_system::statement;
@@ -57,8 +56,9 @@ use dock_crypto_wasm::composite_proof_system::statements::{
     generate_accumulator_membership_statement_from_param_refs,
     generate_accumulator_non_membership_statement,
     generate_accumulator_non_membership_statement_from_param_refs,
-    generate_pedersen_commitment_g1_statement, generate_pedersen_commitment_g2_statement,
-    generate_pok_bbs_plus_sig_statement, generate_pok_bbs_sig_statement,
+    generate_pedersen_commitment_g1_statement, generate_pok_bbs_plus_sig_prover_statement,
+    generate_pok_bbs_plus_sig_verifier_statement, generate_pok_bbs_sig_prover_statement,
+    generate_pok_bbs_sig_verifier_statement,
 };
 use wasm_bindgen::JsValue;
 use wasm_bindgen_test::*;
@@ -68,10 +68,10 @@ wasm_bindgen_test_configure!(run_in_browser);
 fn test_bbs_statement(stmt_j: js_sys::Uint8Array, revealed_msgs: js_sys::Map) {
     let s = js_sys::Uint8Array::new(&stmt_j);
     let serz = s.to_vec();
-    let stmt: statement::Statement<Bls12_381, <Bls12_381 as Pairing>::G1Affine> =
+    let stmt: statement::Statement<Bls12_381> =
         CanonicalDeserialize::deserialize_uncompressed(&serz[..]).unwrap();
     match stmt {
-        statement::Statement::PoKBBSSignature23G1(s) => {
+        statement::Statement::PoKBBSSignature23G1Prover(s) => {
             assert_eq!(s.revealed_messages.len() as u32, revealed_msgs.size());
             for (i, m) in s.revealed_messages.iter() {
                 assert_eq!(
@@ -103,10 +103,10 @@ fn test_bbs_witness(wit_j: JsValue, unrevealed_msgs: js_sys::Map) {
 fn test_bbs_plus_statement(stmt_j: js_sys::Uint8Array, revealed_msgs: js_sys::Map) {
     let s = js_sys::Uint8Array::new(&stmt_j);
     let serz = s.to_vec();
-    let stmt: statement::Statement<Bls12_381, <Bls12_381 as Pairing>::G1Affine> =
+    let stmt: statement::Statement<Bls12_381> =
         CanonicalDeserialize::deserialize_uncompressed(&serz[..]).unwrap();
     match stmt {
-        statement::Statement::PoKBBSSignatureG1(s) => {
+        statement::Statement::PoKBBSSignatureG1Prover(s) => {
             assert_eq!(s.revealed_messages.len() as u32, revealed_msgs.size());
             for (i, m) in s.revealed_messages.iter() {
                 assert_eq!(
@@ -177,11 +177,14 @@ pub fn three_bbs_plus_sigs_and_msg_equality() {
 
     // Create statements
     let stmt_1 =
-        generate_pok_bbs_plus_sig_statement(params_1, pk_1, revealed_msgs_1, true).unwrap();
+        generate_pok_bbs_plus_sig_prover_statement(params_1.clone(), revealed_msgs_1.clone(), true)
+            .unwrap();
     let stmt_2 =
-        generate_pok_bbs_plus_sig_statement(params_2, pk_2, revealed_msgs_2, true).unwrap();
+        generate_pok_bbs_plus_sig_prover_statement(params_2.clone(), revealed_msgs_2.clone(), true)
+            .unwrap();
     let stmt_3 =
-        generate_pok_bbs_plus_sig_statement(params_3, pk_3, revealed_msgs_3, true).unwrap();
+        generate_pok_bbs_plus_sig_prover_statement(params_3.clone(), revealed_msgs_3.clone(), true)
+            .unwrap();
 
     let meta_statements = js_sys::Array::new();
 
@@ -196,8 +199,13 @@ pub fn three_bbs_plus_sigs_and_msg_equality() {
 
     let context = Some("test-context".as_bytes().to_vec());
 
-    let proof_spec =
-        generate_proof_spec_g1(statements, meta_statements, js_sys::Array::new(), context).unwrap();
+    let proof_spec = generate_proof_spec_g1(
+        statements,
+        meta_statements.clone(),
+        js_sys::Array::new(),
+        context.clone(),
+    )
+    .unwrap();
 
     let witness_1 = generate_pok_bbs_plus_sig_witness(sig_1, unrevealed_msgs_1, true).unwrap();
     let witness_2 = generate_pok_bbs_plus_sig_witness(sig_2, unrevealed_msgs_2, true).unwrap();
@@ -215,6 +223,21 @@ pub fn three_bbs_plus_sigs_and_msg_equality() {
     console::time_end_with_label("proof gen");
 
     console::time_with_label("proof ver");
+    let stmt_1 =
+        generate_pok_bbs_plus_sig_verifier_statement(params_1, pk_1, revealed_msgs_1, true)
+            .unwrap();
+    let stmt_2 =
+        generate_pok_bbs_plus_sig_verifier_statement(params_2, pk_2, revealed_msgs_2, true)
+            .unwrap();
+    let stmt_3 =
+        generate_pok_bbs_plus_sig_verifier_statement(params_3, pk_3, revealed_msgs_3, true)
+            .unwrap();
+    let statements = js_sys::Array::new();
+    statements.push(&stmt_1);
+    statements.push(&stmt_2);
+    statements.push(&stmt_3);
+    let proof_spec =
+        generate_proof_spec_g1(statements, meta_statements, js_sys::Array::new(), context).unwrap();
     let result = verify_composite_proof_g1(proof, proof_spec, nonce).unwrap();
     console::time_end_with_label("proof ver");
     let r: VerifyResponse = serde_wasm_bindgen::from_value(result).unwrap();
@@ -392,16 +415,14 @@ pub fn bbs_plus_sig_and_accumulator() {
                         .unwrap(),
                 );
 
-                let stmt_1 = generate_pok_bbs_plus_sig_statement(
-                    params_1,
-                    pk_1,
+                let stmt_1 = generate_pok_bbs_plus_sig_prover_statement(
+                    params_1.clone(),
                     revealed_msgs_1.clone(),
                     false,
                 )
                 .unwrap();
-                let stmt_2 = generate_pok_bbs_plus_sig_statement(
-                    params_2,
-                    pk_2,
+                let stmt_2 = generate_pok_bbs_plus_sig_prover_statement(
+                    params_2.clone(),
                     revealed_msgs_2.clone(),
                     false,
                 )
@@ -466,16 +487,14 @@ pub fn bbs_plus_sig_and_accumulator() {
                     stmt_1, stmt_2, stmt_3, stmt_4, stmt_5, stmt_6, stmt_7, stmt_8, stmt_9,
                 )
             } else {
-                let stmt_1 = generate_pok_bbs_plus_sig_statement(
-                    params_1,
-                    pk_1,
+                let stmt_1 = generate_pok_bbs_plus_sig_prover_statement(
+                    params_1.clone(),
                     revealed_msgs_1.clone(),
                     false,
                 )
                 .unwrap();
-                let stmt_2 = generate_pok_bbs_plus_sig_statement(
-                    params_2,
-                    pk_2,
+                let stmt_2 = generate_pok_bbs_plus_sig_prover_statement(
+                    params_2.clone(),
                     revealed_msgs_2.clone(),
                     false,
                 )
@@ -574,8 +593,13 @@ pub fn bbs_plus_sig_and_accumulator() {
 
         let context = Some("test-context".as_bytes().to_vec());
 
-        let proof_spec =
-            generate_proof_spec_g1(statements, meta_statements, setup_params, context).unwrap();
+        let proof_spec = generate_proof_spec_g1(
+            statements,
+            meta_statements.clone(),
+            setup_params.clone(),
+            context.clone(),
+        )
+        .unwrap();
 
         let witness_1 =
             generate_pok_bbs_plus_sig_witness(sig_1, unrevealed_msgs_1.clone(), false).unwrap();
@@ -607,8 +631,8 @@ pub fn bbs_plus_sig_and_accumulator() {
         let msgs = encode_messages_as_js_map_to_fr_btreemap(&revealed_msgs_1, false).unwrap();
         assert_eq!(msgs.len(), 1);
 
-        test_bbs_plus_statement(stmt_1, revealed_msgs_1);
-        test_bbs_plus_statement(stmt_2, revealed_msgs_2);
+        test_bbs_plus_statement(stmt_1, revealed_msgs_1.clone());
+        test_bbs_plus_statement(stmt_2, revealed_msgs_2.clone());
         test_bbs_plus_witness(witness_1, unrevealed_msgs_1);
         test_bbs_plus_witness(witness_2, unrevealed_msgs_2);
 
@@ -616,6 +640,33 @@ pub fn bbs_plus_sig_and_accumulator() {
 
         let proof =
             generate_composite_proof_g1(proof_spec.clone(), witnesses, nonce.clone()).unwrap();
+
+        let statements = js_sys::Array::new();
+        let stmt_1 = generate_pok_bbs_plus_sig_verifier_statement(
+            params_1,
+            pk_1,
+            revealed_msgs_1.clone(),
+            false,
+        )
+        .unwrap();
+        let stmt_2 = generate_pok_bbs_plus_sig_verifier_statement(
+            params_2,
+            pk_2,
+            revealed_msgs_2.clone(),
+            false,
+        )
+        .unwrap();
+        statements.push(&stmt_1);
+        statements.push(&stmt_2);
+        statements.push(&stmt_3);
+        statements.push(&stmt_4);
+        statements.push(&stmt_5);
+        statements.push(&stmt_6);
+        statements.push(&stmt_7);
+        statements.push(&stmt_8);
+        statements.push(&stmt_9);
+        let proof_spec =
+            generate_proof_spec_g1(statements, meta_statements, setup_params, context).unwrap();
 
         let result = verify_composite_proof_g1(proof, proof_spec, nonce).unwrap();
         let r: VerifyResponse = serde_wasm_bindgen::from_value(result).unwrap();
@@ -796,12 +847,20 @@ pub fn bbs_sig_and_accumulator() {
                         .unwrap(),
                 );
 
-                let stmt_1 =
-                    generate_pok_bbs_sig_statement(params_1, pk_1, revealed_msgs_1.clone(), false)
-                        .unwrap();
-                let stmt_2 =
-                    generate_pok_bbs_sig_statement(params_2, pk_2, revealed_msgs_2.clone(), false)
-                        .unwrap();
+                let stmt_1 = generate_pok_bbs_sig_verifier_statement(
+                    params_1,
+                    pk_1,
+                    revealed_msgs_1.clone(),
+                    false,
+                )
+                .unwrap();
+                let stmt_2 = generate_pok_bbs_sig_verifier_statement(
+                    params_2,
+                    pk_2,
+                    revealed_msgs_2.clone(),
+                    false,
+                )
+                .unwrap();
                 // Membership of member_1 in positive accumulator
                 let stmt_3 = generate_accumulator_membership_statement_from_param_refs(
                     0,
@@ -862,12 +921,20 @@ pub fn bbs_sig_and_accumulator() {
                     stmt_1, stmt_2, stmt_3, stmt_4, stmt_5, stmt_6, stmt_7, stmt_8, stmt_9,
                 )
             } else {
-                let stmt_1 =
-                    generate_pok_bbs_sig_statement(params_1, pk_1, revealed_msgs_1.clone(), false)
-                        .unwrap();
-                let stmt_2 =
-                    generate_pok_bbs_sig_statement(params_2, pk_2, revealed_msgs_2.clone(), false)
-                        .unwrap();
+                let stmt_1 = generate_pok_bbs_sig_verifier_statement(
+                    params_1,
+                    pk_1,
+                    revealed_msgs_1.clone(),
+                    false,
+                )
+                .unwrap();
+                let stmt_2 = generate_pok_bbs_sig_verifier_statement(
+                    params_2,
+                    pk_2,
+                    revealed_msgs_2.clone(),
+                    false,
+                )
+                .unwrap();
                 // Membership of member_1 in positive accumulator
                 let stmt_3 = generate_accumulator_membership_statement(
                     accum_params.clone(),
@@ -1058,7 +1125,8 @@ pub fn request_blind_bbs_sig() {
     let commitment = bbs_commit_to_message(msgs_to_commit, params_2.clone(), true).unwrap();
 
     let statements = js_sys::Array::new();
-    let stmt_1 = generate_pok_bbs_sig_statement(params_1, pk_1, revealed_msgs_1, true).unwrap();
+    let stmt_1 =
+        generate_pok_bbs_sig_verifier_statement(params_1, pk_1, revealed_msgs_1, true).unwrap();
     statements.push(&stmt_1);
 
     let bases = bbs_get_bases_for_commitment(params_2.clone(), indices_to_commit.clone()).unwrap();
@@ -1148,7 +1216,8 @@ pub fn request_blind_bbs_plus_sig() {
 
     let statements = js_sys::Array::new();
     let stmt_1 =
-        generate_pok_bbs_plus_sig_statement(params_1, pk_1, revealed_msgs_1, true).unwrap();
+        generate_pok_bbs_plus_sig_verifier_statement(params_1, pk_1, revealed_msgs_1, true)
+            .unwrap();
     statements.push(&stmt_1);
 
     let bases =
@@ -1240,41 +1309,6 @@ pub fn pedersen_commitment_opening_equality() {
 
     let proof = generate_composite_proof_g1(proof_spec.clone(), witnesses, None).unwrap();
     let result = verify_composite_proof_g1(proof, proof_spec, None).unwrap();
-    let r: VerifyResponse = serde_wasm_bindgen::from_value(result).unwrap();
-    r.validate();
-
-    let bases_1 = js_sys::Array::new();
-    bases_1.push(&generate_random_g2_element(None).unwrap());
-    bases_1.push(&generate_random_g2_element(None).unwrap());
-
-    let comm_1 = pedersen_commitment_g2(bases_1.clone(), msgs_1.clone()).unwrap();
-
-    let bases_2 = js_sys::Array::new();
-    bases_2.push(&generate_random_g2_element(None).unwrap());
-    bases_2.push(&generate_random_g2_element(None).unwrap());
-    bases_2.push(&generate_random_g2_element(None).unwrap());
-
-    let comm_2 = pedersen_commitment_g2(bases_2.clone(), msgs_2.clone()).unwrap();
-
-    let statements = js_sys::Array::new();
-    let stmt_1 = generate_pedersen_commitment_g2_statement(bases_1, comm_1).unwrap();
-    let stmt_2 = generate_pedersen_commitment_g2_statement(bases_2, comm_2).unwrap();
-    statements.push(&stmt_1);
-    statements.push(&stmt_2);
-
-    let meta_statements = js_sys::Array::new();
-    meta_statements.push(&get_witness_equality_statement(vec![(0, 0), (1, 0)]));
-    meta_statements.push(&get_witness_equality_statement(vec![(0, 1), (1, 1)]));
-
-    let proof_spec =
-        generate_proof_spec_g2(statements, meta_statements, js_sys::Array::new(), None).unwrap();
-
-    let witnesses = js_sys::Array::new();
-    witnesses.push(&generate_pedersen_commitment_witness(msgs_1).unwrap());
-    witnesses.push(&generate_pedersen_commitment_witness(msgs_2).unwrap());
-
-    let proof = generate_composite_proof_g2(proof_spec.clone(), witnesses, None).unwrap();
-    let result = verify_composite_proof_g2(proof, proof_spec, None).unwrap();
     let r: VerifyResponse = serde_wasm_bindgen::from_value(result).unwrap();
     r.validate();
 }

@@ -11,4 +11,6 @@ export * from "./r1cs";
 export * from "./ps";
 export * from "./frost_dkg";
 export * from "./threshold_sig";
+export * from "./bdd16_kvac";
+export * from "./delegated_proof";
 

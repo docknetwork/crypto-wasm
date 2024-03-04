@@ -2,24 +2,44 @@ const {
     wasm, requireWasmInitialized
 } = require('./init_wasm');
 
-module.exports.generatePoKBBSSignatureStatement = (params, publicKey, revealedMessages, encodeMessages) => {
+module.exports.generatePoKBBSSignatureProverStatement = (params, revealedMessages, encodeMessages) => {
     requireWasmInitialized();
-    return wasm.generatePoKBBSSignatureStatement(params, publicKey, revealedMessages, encodeMessages);
+    return wasm.generatePoKBBSSignatureProverStatement(params, revealedMessages, encodeMessages);
 };
 
-module.exports.generatePoKBBSPlusSignatureStatement = (params, publicKey, revealedMessages, encodeMessages) => {
+module.exports.generatePoKBBSSignatureVerifierStatement = (params, publicKey, revealedMessages, encodeMessages) => {
     requireWasmInitialized();
-    return wasm.generatePoKBBSPlusSignatureStatement(params, publicKey, revealedMessages, encodeMessages);
+    return wasm.generatePoKBBSSignatureVerifierStatement(params, publicKey, revealedMessages, encodeMessages);
 };
 
-module.exports.generatePoKBBSSignatureStatementFromParamRefs = (params, publicKey, revealedMessages, encodeMessages) => {
+module.exports.generatePoKBBSPlusSignatureProverStatement = (params, revealedMessages, encodeMessages) => {
     requireWasmInitialized();
-    return wasm.generatePoKBBSSignatureStatementFromParamRefs(params, publicKey, revealedMessages, encodeMessages);
+    return wasm.generatePoKBBSPlusSignatureProverStatement(params, revealedMessages, encodeMessages);
 };
 
-module.exports.generatePoKBBSPlusSignatureStatementFromParamRefs = (params, publicKey, revealedMessages, encodeMessages) => {
+module.exports.generatePoKBBSPlusSignatureVerifierStatement = (params, publicKey, revealedMessages, encodeMessages) => {
     requireWasmInitialized();
-    return wasm.generatePoKBBSPlusSignatureStatementFromParamRefs(params, publicKey, revealedMessages, encodeMessages);
+    return wasm.generatePoKBBSPlusSignatureVerifierStatement(params, publicKey, revealedMessages, encodeMessages);
+};
+
+module.exports.generatePoKBBSSignatureProverStatementFromParamRefs = (params, revealedMessages, encodeMessages) => {
+    requireWasmInitialized();
+    return wasm.generatePoKBBSSignatureProverStatementFromParamRefs(params, revealedMessages, encodeMessages);
+};
+
+module.exports.generatePoKBBSSignatureVerifierStatementFromParamRefs = (params, publicKey, revealedMessages, encodeMessages) => {
+    requireWasmInitialized();
+    return wasm.generatePoKBBSSignatureVerifierStatementFromParamRefs(params, publicKey, revealedMessages, encodeMessages);
+};
+
+module.exports.generatePoKBBSPlusSignatureProverStatementFromParamRefs = (params, revealedMessages, encodeMessages) => {
+    requireWasmInitialized();
+    return wasm.generatePoKBBSPlusSignatureProverStatementFromParamRefs(params, revealedMessages, encodeMessages);
+};
+
+module.exports.generatePoKBBSPlusSignatureVerifierStatementFromParamRefs = (params, publicKey, revealedMessages, encodeMessages) => {
+    requireWasmInitialized();
+    return wasm.generatePoKBBSPlusSignatureVerifierStatementFromParamRefs(params, publicKey, revealedMessages, encodeMessages);
 };
 
 module.exports.generatePoKPSSignatureStatement = (params, publicKey, revealedMessages) => {
@@ -262,34 +282,14 @@ module.exports.isProofSpecG1Valid = (proofSpec) => {
     return wasm.isProofSpecG1Valid(proofSpec);
 };
 
-module.exports.generateProofSpecG2 = (statements, metaStatements, setupParams, context) => {
-    requireWasmInitialized();
-    return wasm.generateProofSpecG2(statements, metaStatements, setupParams, context);
-};
-
-module.exports.isProofSpecG2Valid = (proofSpec) => {
-    requireWasmInitialized();
-    return wasm.isProofSpecG2Valid(proofSpec);
-};
-
 module.exports.generateCompositeProofG1 = (proofSpec, witnesses, nonce) => {
     requireWasmInitialized();
     return wasm.generateCompositeProofG1(proofSpec, witnesses, nonce);
 };
 
-module.exports.generateCompositeProofG2 = (proofSpec, witnesses, nonce) => {
-    requireWasmInitialized();
-    return wasm.generateCompositeProofG2(proofSpec, witnesses, nonce);
-};
-
 module.exports.verifyCompositeProofG1 = (proof, proofSpec, nonce) => {
     requireWasmInitialized();
     return wasm.verifyCompositeProofG1(proof, proofSpec, nonce);
-};
-
-module.exports.verifyCompositeProofG2 = (proof, proofSpec, nonce) => {
-    requireWasmInitialized();
-    return wasm.verifyCompositeProofG2(proof, proofSpec, nonce);
 };
 
 module.exports.generateCompositeProofG1WithDeconstructedProofSpec = (statements, metaStatements, setupParams, witnesses, context, nonce) => {
@@ -310,4 +310,39 @@ module.exports.saverGetCiphertextFromProof = (proof, statementIndex) => {
 module.exports.saverGetCiphertextsFromProof = (proof, statementIndices) => {
     requireWasmInitialized();
     return wasm.saverGetCiphertextsFromProof(proof, statementIndices);
+};
+
+module.exports.generatePoKBDDT16MacStatement = (params, revealedMessages, encodeMessages) => {
+    requireWasmInitialized();
+    return wasm.generatePoKBDDT16MacStatement(params, revealedMessages, encodeMessages);
+};
+
+module.exports.generatePoKBDDT16MacStatementFromParamRefs = (params, revealedMessages, encodeMessages) => {
+    requireWasmInitialized();
+    return wasm.generatePoKBDDT16MacStatementFromParamRefs(params, revealedMessages, encodeMessages);
+};
+
+module.exports.generatePoKBDDT16MacFullVerifierStatement = (params, secretKey, revealedMessages, encodeMessages) => {
+    requireWasmInitialized();
+    return wasm.generatePoKBDDT16MacFullVerifierStatement(params, secretKey, revealedMessages, encodeMessages);
+};
+
+module.exports.generatePoKBDDT16MacFullVerifierStatementFromParamRefs = (params, secretKey, revealedMessages, encodeMessages) => {
+    requireWasmInitialized();
+    return wasm.generatePoKBDDT16MacFullVerifierStatementFromParamRefs(params, secretKey, revealedMessages, encodeMessages);
+};
+
+module.exports.generatePoKBDDT16MacWitness = (mac, unrevealedMessages, encodeMessages) => {
+    requireWasmInitialized();
+    return wasm.generatePoKBDDT16MacWitness(mac, unrevealedMessages, encodeMessages);
+};
+
+module.exports.generateAccumulatorKVMembershipStatement = (accumulated) => {
+    requireWasmInitialized();
+    return wasm.generateAccumulatorKVMembershipStatement(accumulated);
+};
+
+module.exports.generateAccumulatorKVFullVerifierMembershipStatement = (secretKey, accumulated) => {
+    requireWasmInitialized();
+    return wasm.generateAccumulatorKVFullVerifierMembershipStatement(secretKey, accumulated);
 };

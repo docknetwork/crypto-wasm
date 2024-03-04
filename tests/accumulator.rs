@@ -3,11 +3,11 @@ extern crate wasm_bindgen_test;
 
 use ark_bls12_381::Bls12_381;
 use dock_crypto_wasm::{
-    accumulator::*,
     common::{
         generate_challenge_from_bytes, generate_random_field_element, random_ff, VerifyResponse,
     },
     utils::{fr_from_uint8_array, js_array_from_frs},
+    vb_accumulator::*,
 };
 use vb_accumulator::prelude::{PositiveAccumulator, UniversalAccumulator};
 use wasm_bindgen::JsValue;

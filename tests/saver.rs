@@ -20,7 +20,7 @@ use dock_crypto_wasm::{
 mod common;
 use common::{bbs_params_and_keys, get_revealed_unrevealed, get_witness_equality_statement};
 use dock_crypto_wasm::composite_proof_system::statements::{
-    generate_pok_bbs_plus_sig_statement, generate_saver_prover_statement,
+    generate_pok_bbs_plus_sig_verifier_statement, generate_saver_prover_statement,
     generate_saver_verifier_statement,
 };
 
@@ -69,7 +69,8 @@ pub fn bbs_sig_and_verifiable_encryption() {
     console::time_end_with_label("decompresssion");
 
     // Create statements
-    let stmt_1 = generate_pok_bbs_plus_sig_statement(params, pk, revealed_msgs, false).unwrap();
+    let stmt_1 =
+        generate_pok_bbs_plus_sig_verifier_statement(params, pk, revealed_msgs, false).unwrap();
     console::time_with_label("saver stmt");
     let prover_stmt_2 = generate_saver_prover_statement(
         chunk_bit_size,

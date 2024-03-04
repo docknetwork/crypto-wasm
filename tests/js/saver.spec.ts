@@ -6,7 +6,7 @@ import {
   bbsPlusGeneratePublicKeyG2,
   bbsPlusGenerateSigningKey,
   generateCompositeProofG1WithDeconstructedProofSpec,
-  generatePoKBBSPlusSignatureStatement,
+  generatePoKBBSPlusSignatureVerifierStatement,
   generatePoKBBSPlusSignatureWitness,
   generateSaverProverStatement,
   generateSaverProverStatementFromParamRefs,
@@ -36,10 +36,11 @@ import {
   saverGetSnarkVkFromPk,
   saverVerifyDecryptionUsingSnarkPk,
   saverVerifyDecryptionUsingSnarkVk,
-  verifyCompositeProofG1WithDeconstructedProofSpec,
+  verifyCompositeProofG1WithDeconstructedProofSpec, generatePoKBBSPlusSignatureProverStatement,
 } from "../../lib";
 
-import {stringToBytes, getRevealedUnrevealed, areUint8ArraysEqual} from "../utilities";
+
+import {areUint8ArraysEqual, getRevealedUnrevealed, stringToBytes} from "./util";
 
 describe("Verifiable encryption of a signed message", () => {
   const messageCount = 5;
@@ -116,9 +117,8 @@ describe("Verifiable encryption of a signed message", () => {
       messages,
       revealedIndices
     );
-    const statement1 = generatePoKBBSPlusSignatureStatement(
+    const statement1 = generatePoKBBSPlusSignatureProverStatement(
       sigParams,
-      sigPk,
       revealedMsgs,
       false
     );
@@ -176,7 +176,12 @@ describe("Verifiable encryption of a signed message", () => {
     console.timeEnd("saver check verifier stmt");
 
     const verifierStatements = new Array<Uint8Array>();
-    verifierStatements.push(statement1);
+    verifierStatements.push(generatePoKBBSPlusSignatureVerifierStatement(
+        sigParams,
+        sigPk,
+        revealedMsgs,
+        false
+    ));
     verifierStatements.push(statement3);
 
     console.time("proof ver");
@@ -257,9 +262,8 @@ describe("Verifiable encryption of a signed message", () => {
       messages,
       new Set<number>()
     );
-    const statement1 = generatePoKBBSPlusSignatureStatement(
+    const statement1 = generatePoKBBSPlusSignatureProverStatement(
       sigParams,
-      sigPk,
       revealedMsgs,
       false
     );
@@ -387,7 +391,12 @@ describe("Verifiable encryption of a signed message", () => {
     );
 
     const verifierStatements = new Array<Uint8Array>();
-    verifierStatements.push(statement1);
+    verifierStatements.push(generatePoKBBSPlusSignatureVerifierStatement(
+        sigParams,
+        sigPk,
+        revealedMsgs,
+        false
+    ));
     verifierStatements.push(statement5);
     verifierStatements.push(statement6);
     verifierStatements.push(statement7);

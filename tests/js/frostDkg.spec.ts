@@ -21,8 +21,7 @@ import {
     generateRandomPublicKeyBaseInG2,
     initializeWasm
 } from "../../lib";
-import {stringToBytes} from "../utilities";
-import {doFrostDKG} from "./util";
+import {doFrostDKG, stringToBytes} from "./util";
 
 describe("For Frost DKG", () => {
     beforeAll(async () => {

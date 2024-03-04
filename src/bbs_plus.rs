@@ -4,11 +4,11 @@ use crate::utils::{
     g2_affine_to_uint8_array, get_seeded_rng, js_set_to_btree_set, random_bytes, set_panic_hook,
 };
 
-use bbs_plus::{proof::MessageOrBlinding, setup::MultiMessageSignatureParams};
 use wasm_bindgen::prelude::*;
 
 use crate::{
     common::VerifyResponse,
+    to_verify_response,
     utils::{encode_messages_as_js_array_to_fr_vec, encode_messages_as_js_map_to_fr_btreemap},
     Fr, G1Affine, G2Affine,
 };
@@ -19,7 +19,11 @@ use bbs_plus::prelude::{
     PublicKeyG2, SecretKey, SignatureG1, SignatureG2, SignatureParamsG1, SignatureParamsG2,
 };
 use blake2::Blake2b512;
-use dock_crypto_utils::{concat_slices, hashing_utils::affine_group_elem_from_try_and_incr};
+use dock_crypto_utils::{
+    concat_slices,
+    hashing_utils::affine_group_elem_from_try_and_incr,
+    signature::{MessageOrBlinding, MultiMessageSignatureParams},
+};
 use zeroize::Zeroize;
 
 pub type BBSPlusSigningKey = SecretKey<Fr>;
@@ -341,19 +345,7 @@ pub fn bbs_plus_verify_g1(
     let pk = obj_from_uint8array!(BBSPlusPublicKeyG2, public_key, false, "BBSPlusPublicKeyG2");
     let params: BBSPlusSigParamsG1 = serde_wasm_bindgen::from_value(params)?;
     let messages = encode_messages_as_js_array_to_fr_vec(&messages, encode_messages)?;
-
-    match signature.verify(messages.as_slice(), pk, params) {
-        Ok(_) => Ok(serde_wasm_bindgen::to_value(&VerifyResponse {
-            verified: true,
-            error: None,
-        })
-        .unwrap()),
-        Err(e) => Ok(serde_wasm_bindgen::to_value(&VerifyResponse {
-            verified: false,
-            error: Some(format!("{:?}", e)),
-        })
-        .unwrap()),
-    }
+    to_verify_response!(signature.verify(messages.as_slice(), pk, params))
 }
 
 #[wasm_bindgen(js_name = bbsPlusSignG2)]
@@ -431,19 +423,7 @@ pub fn bbs_plus_verify_g2(
     let pk = obj_from_uint8array!(BBSPlusPublicKeyG1, public_key, false, "BBSPlusPublicKeyG1");
     let params: BBSPlusSigParamsG2 = serde_wasm_bindgen::from_value(params)?;
     let messages = encode_messages_as_js_array_to_fr_vec(&messages, encode_messages)?;
-
-    match signature.verify(messages.as_slice(), &pk, &params) {
-        Ok(_) => Ok(serde_wasm_bindgen::to_value(&VerifyResponse {
-            verified: true,
-            error: None,
-        })
-        .unwrap()),
-        Err(e) => Ok(serde_wasm_bindgen::to_value(&VerifyResponse {
-            verified: false,
-            error: Some(format!("{:?}", e)),
-        })
-        .unwrap()),
-    }
+    to_verify_response!(signature.verify(messages.as_slice(), &pk, &params))
 }
 
 #[wasm_bindgen(js_name = bbsPlusInitializeProofOfKnowledgeOfSignature)]
@@ -506,7 +486,6 @@ pub fn bbs_plus_verify_proof(
     encode_messages: bool,
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
-    // let proof: PoKOfSigProof = serde_wasm_bindgen::from_value(proof)?;
     let proof: BBSPlusPoKOfSigProof = obj_from_uint8array!(BBSPlusPoKOfSigProof, proof, false);
     let params: BBSPlusSigParamsG1 = serde_wasm_bindgen::from_value(params)?;
     let public_key =
@@ -515,18 +494,7 @@ pub fn bbs_plus_verify_proof(
 
     let msgs = encode_messages_as_js_map_to_fr_btreemap(&revealed_msgs, encode_messages)?;
 
-    match proof.verify(&msgs, &challenge, public_key, params) {
-        Ok(_) => Ok(serde_wasm_bindgen::to_value(&VerifyResponse {
-            verified: true,
-            error: None,
-        })
-        .unwrap()),
-        Err(e) => Ok(serde_wasm_bindgen::to_value(&VerifyResponse {
-            verified: false,
-            error: Some(format!("{:?}", e)),
-        })
-        .unwrap()),
-    }
+    to_verify_response!(proof.verify(&msgs, &challenge, public_key, params))
 }
 
 #[wasm_bindgen(js_name = bbsPlusChallengeContributionFromProtocol)]
@@ -586,6 +554,8 @@ pub fn bbs_plus_adapt_sig_params_g1_for_msg_count(
     crate::adapt_params!(
         params,
         generating_label,
+        b"h_",
+        h,
         new_count,
         BBSPlusSigParamsG1,
         G1Affine
@@ -602,6 +572,8 @@ pub fn bbs_plus_adapt_sig_params_g2_for_msg_count(
     crate::adapt_params!(
         params,
         generating_label,
+        b"h_",
+        h,
         new_count,
         BBSPlusSigParamsG2,
         G2Affine
