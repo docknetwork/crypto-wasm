@@ -362,7 +362,6 @@ pub fn bbs_plus_sign_g2(
 
     let mut rng = get_seeded_rng();
     match BBSPlusSigG2::new(&mut rng, &messages, &sk, &params) {
-        // Ok(sig) => Ok(serde_wasm_bindgen::to_value(&sig).map_err(|e| JsValue::from(e)).unwrap()),
         Ok(sig) => Ok(obj_to_uint8array!(&sig, true, "BBSPlusSigG2")),
         Err(e) => Err(JsValue::from(&format!("{:?}", e))),
     }
@@ -388,7 +387,6 @@ pub fn bbs_plus_blind_sign_g2(
 
     let mut rng = get_seeded_rng();
     match BBSPlusSigG2::new_with_committed_messages(&mut rng, &commitment, msgs_ref, &sk, &params) {
-        // Ok(sig) => Ok(serde_wasm_bindgen::to_value(&sig).map_err(|e| JsValue::from(e)).unwrap()),
         Ok(sig) => Ok(obj_to_uint8array!(&sig, true, "BBSPlusSigG2")),
         Err(e) => Err(JsValue::from(&format!("{:?}", e))),
     }
@@ -528,7 +526,6 @@ pub fn bbs_plus_challenge_contribution_from_proof(
     encode_messages: bool,
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
-    // let proof: PoKOfSigProof = serde_wasm_bindgen::from_value(proof)?;
     let proof: BBSPlusPoKOfSigProof = obj_from_uint8array!(BBSPlusPoKOfSigProof, proof, false);
     let msgs = encode_messages_as_js_map_to_fr_btreemap(&revealed_msgs, encode_messages)?;
     let params: BBSPlusSigParamsG1 = serde_wasm_bindgen::from_value(params)?;

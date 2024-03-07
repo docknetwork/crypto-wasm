@@ -199,7 +199,6 @@ pub fn bbs_verify(
     encode_messages: bool,
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
-    // let signature: SigG1 = serde_wasm_bindgen::from_value(signature)?;
     let signature = obj_from_uint8array!(BBSSignature, signature, true);
     let pk = obj_from_uint8array!(BBSPublicKey, public_key, false, "BBSPublicKey");
     let params: BBSSigParams = serde_wasm_bindgen::from_value(params)?;
@@ -252,7 +251,6 @@ pub fn bbs_gen_proof(
     let protocol: BBSPoKOfSigProtocol = serde_wasm_bindgen::from_value(protocol)?;
     let challenge = fr_from_uint8_array(challenge, false)?;
     match protocol.gen_proof(&challenge) {
-        // Ok(proof) => Ok(serde_wasm_bindgen::to_value(&proof).map_err(|e| JsValue::from(e)).unwrap()),
         Ok(proof) => Ok(obj_to_uint8array!(&proof, false, "BBS+ProofG1")),
         Err(e) => Err(JsValue::from(&format!("{:?}", e))),
     }
@@ -268,7 +266,6 @@ pub fn bbs_verify_proof(
     encode_messages: bool,
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
-    // let proof: PoKOfSigProof = serde_wasm_bindgen::from_value(proof)?;
     let proof: BBSPoKOfSigProof = obj_from_uint8array!(BBSPoKOfSigProof, proof, false);
     let params: BBSSigParams = serde_wasm_bindgen::from_value(params)?;
     let public_key = obj_from_uint8array!(BBSPublicKey, public_key, false, "BBSPublicKey");
@@ -309,7 +306,6 @@ pub fn bbs_challenge_contribution_from_proof(
     encode_messages: bool,
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
-    // let proof: PoKOfSigProof = serde_wasm_bindgen::from_value(proof)?;
     let proof: BBSPoKOfSigProof = obj_from_uint8array!(BBSPoKOfSigProof, proof, false);
     let msgs = encode_messages_as_js_map_to_fr_btreemap(&revealed_msgs, encode_messages)?;
     let params: BBSSigParams = serde_wasm_bindgen::from_value(params)?;

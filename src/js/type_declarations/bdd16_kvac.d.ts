@@ -29,6 +29,10 @@ export function bddt16MacAdaptParamsForMsgCount(
     new_count: number
 ): Bddt16MacParams;
 
+export function bddt16MacGeneratePublicKeyG1(secretKey: Uint8Array, params: Bddt16MacParams): Uint8Array;
+
+export function bddt16MacIsPublicKeyG1Valid(publicKey: Uint8Array): boolean;
+
 export function bddt16MacGetBasesForCommitment(
     params: Bddt16MacParams,
     indicesToCommit: number[]
@@ -45,6 +49,22 @@ export function bddt16MacVerify(
     messages: Uint8Array[],
     mac: Uint8Array,
     secretKey: Uint8Array,
+    params: Bddt16MacParams,
+    encodeMessages: boolean
+): Required<VerifyResult>;
+
+export function bddt16MacProofOfValidity(
+    mac: Uint8Array,
+    secretKey: Uint8Array,
+    publicKey: Uint8Array,
+    params: Bddt16MacParams,
+): Uint8Array;
+
+export function bddt16MacVerifyProofOfValidity(
+    proof: Uint8Array,
+    mac: Uint8Array,
+    messages: Uint8Array[],
+    publicKey: Uint8Array,
     params: Bddt16MacParams,
     encodeMessages: boolean
 ): Required<VerifyResult>;

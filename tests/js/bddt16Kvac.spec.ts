@@ -2,21 +2,27 @@ import {
     bddt16MacAdaptParamsForMsgCount,
     bddt16BlindMacGenerate,
     bddt16GenerateMacParams,
-    bddt16IsMacParamsValid, bddt16MacCommitMsgs,
+    bddt16IsMacParamsValid,
+    bddt16MacCommitMsgs,
     bddt16MacGenerate,
     bddt16MacGenerateSecretKey,
     Bddt16MacParams,
     bddt16MacParamsFromBytes,
     bddt16MacParamsMaxSupportedMsgs,
     bddt16MacParamsToBytes,
-    bddt16MacVerify, bddt16UnblindMac,
+    bddt16MacVerify,
+    bddt16UnblindMac,
     generateRandomFieldElement,
-    initializeWasm
+    initializeWasm,
+    bddt16MacGeneratePublicKeyG1,
+    bddt16MacIsPublicKeyG1Valid,
+    bddt16MacProofOfValidity,
+    bddt16MacVerifyProofOfValidity
 } from "../../lib";
-import {stringToBytes} from "./util";
+import {checkResult, stringToBytes} from "./util";
 
 describe("For BBS+ signatures", () => {
-    let macParams: Bddt16MacParams, sk: Uint8Array;
+    let macParams: Bddt16MacParams, sk: Uint8Array, pkG1: Uint8Array;
     const seed = new Uint8Array([0, 2, 3, 4, 5]);
     const messages = [
         stringToBytes("Message1"),
@@ -70,10 +76,19 @@ describe("For BBS+ signatures", () => {
         macParams = params;
     });
 
-    it("generate and verify MAC", () => {
+    it("generate public key in G1 from secret key", () => {
+        pkG1 = bddt16MacGeneratePublicKeyG1(sk, macParams);
+        expect(pkG1).toBeInstanceOf(Uint8Array);
+        expect(bddt16MacIsPublicKeyG1Valid(pkG1)).toBe(true);
+    });
+
+    it("generate and verify MAC and its proof of validity", () => {
         const mac = bddt16MacGenerate(messages, sk, macParams, true);
         const res = bddt16MacVerify(messages, mac, sk, macParams, true);
-        expect(res.verified).toBe(true);
+        checkResult(res);
+
+        let proofOfValidity = bddt16MacProofOfValidity(mac, sk, pkG1, macParams);
+        checkResult(bddt16MacVerifyProofOfValidity(proofOfValidity, mac, messages, pkG1, macParams, true));
     });
 
     it("extend MAC params", () => {

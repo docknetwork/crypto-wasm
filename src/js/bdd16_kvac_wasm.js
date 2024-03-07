@@ -42,6 +42,16 @@ module.exports.bddt16MacAdaptParamsForMsgCount = (params, generating_label, new_
     return wasm.bddt16MacAdaptParamsForMsgCount(params, generating_label, new_count);
 };
 
+module.exports.bddt16MacGeneratePublicKeyG1 = (secretKey, params) => {
+    requireWasmInitialized();
+    return wasm.bddt16MacGeneratePublicKeyG1(secretKey, params);
+};
+
+module.exports.bddt16MacIsPublicKeyG1Valid = (publicKey) => {
+    requireWasmInitialized();
+    return wasm.bddt16MacIsPublicKeyG1Valid(publicKey);
+};
+
 module.exports.bddt16MacGetBasesForCommitment = (params, indicesToCommit) => {
     requireWasmInitialized();
     return wasm.bddt16MacGetBasesForCommitment(params, indicesToCommit);
@@ -66,6 +76,28 @@ module.exports.bddt16MacVerify = (
 ) => {
     requireWasmInitialized();
     return wasm.bddt16MacVerify(messages, mac, secretKey, params, encodeMessages);
+};
+
+module.exports.bddt16MacProofOfValidity = (
+    mac,
+    secretKey,
+    publicKey,
+    params,
+) => {
+    requireWasmInitialized();
+    return wasm.bddt16MacProofOfValidity(mac, secretKey, publicKey, params);
+};
+
+module.exports.bddt16MacVerifyProofOfValidity = (
+    proof,
+    mac,
+    messages,
+    publicKey,
+    params,
+    encodeMessages
+) => {
+    requireWasmInitialized();
+    return wasm.bddt16MacVerifyProofOfValidity(proof, mac, messages, publicKey, params, encodeMessages);
 };
 
 module.exports.bddt16MacCommitMsgs = (

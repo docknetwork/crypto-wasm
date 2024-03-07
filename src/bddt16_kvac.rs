@@ -15,15 +15,19 @@ use dock_crypto_utils::{
 };
 use kvac::bddt_2016::{
     mac::MAC,
-    setup::{MACParams, SecretKey},
+    setup::{MACParams, SecretKey, PublicKey},
 };
 use std::collections::BTreeMap;
+use ark_ec::AffineRepr;
+use kvac::bddt_2016::mac::ProofOfValidityOfMAC;
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 use zeroize::Zeroize;
 
 pub type BDDT16MACParams = MACParams<G1Affine>;
 pub type BDDT16MACSecretKey = SecretKey<Fr>;
+pub type BDDT16MACPublicKeyG1 = PublicKey<G1Affine>;
 pub type BDDT16MAC = MAC<G1Affine>;
+pub type ProofOfValidityOfMACG1 = ProofOfValidityOfMAC<G1Affine>;
 
 #[wasm_bindgen(js_name = bddt16GenerateMacParams)]
 pub fn bddt16_generate_mac_params(
@@ -90,6 +94,25 @@ pub fn bddt16_mac_generate_secret_key(
     let seed = seed.unwrap_or_else(random_bytes);
     let sk = BDDT16MACSecretKey::generate_using_seed::<Blake2b512>(&seed);
     Ok(obj_to_uint8array!(&sk, true, "BDDT16MACSecretKey"))
+}
+
+#[wasm_bindgen(js_name = bddt16MacGeneratePublicKeyG1)]
+pub fn bddt16_mac_generate_public_key_g1(
+    secret_key: js_sys::Uint8Array,
+    params: JsValue,
+) -> Result<js_sys::Uint8Array, JsValue> {
+    set_panic_hook();
+    let sk = obj_from_uint8array!(BDDT16MACSecretKey, secret_key, true, "BDDT16MACSecretKey");
+    let params: BDDT16MACParams = serde_wasm_bindgen::from_value(params)?;
+    let pk = BDDT16MACPublicKeyG1::new(&sk, &params.g_0);
+    Ok(obj_to_uint8array!(&pk, false, "BDDT16MACPublicKeyG1"))
+}
+
+#[wasm_bindgen(js_name = bddt16MacIsPublicKeyG1Valid)]
+pub fn bddt16_mac_is_pubkey_g1_valid(public_key: js_sys::Uint8Array) -> Result<bool, JsValue> {
+    set_panic_hook();
+    let pk = obj_from_uint8array!(BDDT16MACPublicKeyG1, public_key, false, "BDDT16MACPublicKeyG1");
+    Ok(!pk.0.is_zero())
 }
 
 #[wasm_bindgen(js_name = bddt16MacGetBasesForCommitment)]
@@ -193,6 +216,40 @@ pub fn bddt16_unblind_mac(
         true,
         "BDDT16MAC"
     ))
+}
+
+#[wasm_bindgen(js_name = bddt16MacProofOfValidity)]
+pub fn bddt16_mac_proof_of_validity(
+    mac: js_sys::Uint8Array,
+    secret_key: js_sys::Uint8Array,
+    public_key: js_sys::Uint8Array,
+    params: JsValue,
+) -> Result<js_sys::Uint8Array, JsValue> {
+    set_panic_hook();
+    let mac = obj_from_uint8array!(BDDT16MAC, mac, true);
+    let sk = obj_from_uint8array!(BDDT16MACSecretKey, secret_key, true, "BDDT16MACSecretKey");
+    let pk = obj_from_uint8array!(BDDT16MACPublicKeyG1, public_key, false, "BDDT16MACPublicKeyG1");
+    let params: BDDT16MACParams = serde_wasm_bindgen::from_value(params)?;
+    let mut rng = get_seeded_rng();
+    let proof = ProofOfValidityOfMACG1::new::<_, Blake2b512>(&mut rng, &mac, &sk, &pk, &params);
+    Ok(obj_to_uint8array!(&proof, false, "ProofOfValidityOfMACG1"))
+}
+
+#[wasm_bindgen(js_name = bddt16MacVerifyProofOfValidity)]
+pub fn bddt16_mac_verify_proof_of_validity(
+    proof: js_sys::Uint8Array,
+    mac: js_sys::Uint8Array,
+    messages: js_sys::Array,
+    public_key: js_sys::Uint8Array,
+    params: JsValue,
+    encode_messages: bool
+) -> Result<JsValue, JsValue> {
+    let proof = obj_from_uint8array!(ProofOfValidityOfMACG1, proof, false);
+    let mac = obj_from_uint8array!(BDDT16MAC, mac, true);
+    let messages = encode_messages_as_js_array_to_fr_vec(&messages, encode_messages)?;
+    let pk = obj_from_uint8array!(BDDT16MACPublicKeyG1, public_key, false, "BDDT16MACPublicKeyG1");
+    let params: BDDT16MACParams = serde_wasm_bindgen::from_value(params)?;
+    to_verify_response!(proof.verify::<Blake2b512>(&mac, messages.as_slice(), &pk, &params))
 }
 
 #[wasm_bindgen(js_name = bddt16MacVerify)]

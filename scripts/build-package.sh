@@ -13,7 +13,7 @@ export PATH="$PATH:node_modules/.bin"
 
 if [ -z "$BUILD_MODE" ]
 then
-  echo "BUILD_MODE not specified defaulting to RELEASE"
+  echo "BUILD_MODE not specified, defaulting to RELEASE"
   BUILD_MODE="RELEASE"
 fi
 
@@ -21,11 +21,11 @@ fi
 if [ "$BUILD_MODE" = "RELEASE" ]; 
 then
     echo "Building WASM Output in RELEASE MODE"
-    rustup run stable wasm-pack build --release --out-dir lib --target web
+    rustup run stable wasm-pack build --release --out-dir lib --target web -- --features="console"
 elif [ "$BUILD_MODE" = "PROFILING" ];
 then
     echo "Building WASM Output in PROFILING MODE"
-    rustup run stable wasm-pack build --profiling --out-dir lib --target web
+    rustup run stable wasm-pack build --profiling --out-dir lib --target web -- --features="console"
 elif [ "$BUILD_MODE" = "DEBUG" ]; 
 then
     echo "Building WASM Output in DEBUG MODE"
