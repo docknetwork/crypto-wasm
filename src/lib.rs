@@ -20,6 +20,7 @@ use ark_ec::pairing::Pairing;
 
 #[macro_use]
 pub mod utils;
+pub mod accumulator;
 pub mod bbs;
 pub mod bbs_plus;
 mod bddt16_kvac;
@@ -33,7 +34,6 @@ pub mod ps;
 pub mod r1cs;
 pub mod saver;
 pub mod threshold_sig;
-pub mod vb_accumulator;
 
 // Trying to keep types at one place so changing the curve is easier
 pub(crate) type Fr = <Bls12_381 as Pairing>::ScalarField;

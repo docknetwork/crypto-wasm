@@ -16,3 +16,13 @@ module.exports.verifyVBAccumMembershipDelegatedProof = (proof, secretKey) => {
     requireWasmInitialized();
     return wasm.verifyVBAccumMembershipDelegatedProof(proof, secretKey);
 };
+
+module.exports.verifyKBUniAccumMembershipDelegatedProof = (proof, secretKey) => {
+    requireWasmInitialized();
+    return wasm.verifyKBUniAccumMembershipDelegatedProof(proof, secretKey);
+};
+
+module.exports.verifyKBUniAccumNonMembershipDelegatedProof = (proof, secretKey) => {
+    requireWasmInitialized();
+    return wasm.verifyKBUniAccumNonMembershipDelegatedProof(proof, secretKey);
+};

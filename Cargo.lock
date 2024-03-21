@@ -1246,9 +1246,9 @@ dependencies = [
 
 [[package]]
 name = "proof_system"
-version = "0.25.0"
+version = "0.26.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ca4eb6c89bb45e12362ee53919110d8577acd0f18c41ffbd9a02a6946111a527"
+checksum = "3683ff20a514049abf66b4a773ff3d3045b76f7c6180452d85483ced6b0302e6"
 dependencies = [
  "aead",
  "ark-ec",
@@ -1841,9 +1841,9 @@ checksum = "79daa5ed5740825c40b389c5e50312b9c86df53fccd33f281df655642b43869d"
 
 [[package]]
 name = "vb_accumulator"
-version = "0.20.0"
+version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c2835edd3b7878ced8b25b39b1862dc3a96f5177339e336e3b1b0cb73064522b"
+checksum = "502486b9f6ce41edd9a4797f31448ede0341b97723e6032d92f36dba97952e29"
 dependencies = [
  "ark-ec",
  "ark-ff",

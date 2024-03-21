@@ -5,6 +5,10 @@ use wasm_bindgen::prelude::*;
 use zeroize::Zeroize;
 
 use crate::{
+    accumulator::{
+        common::{AccumPk, AccumSetupParams},
+        vb_accumulator::{MembershipPrk, NonMembershipPrk},
+    },
     bbs::BBSSigParams,
     bbs_plus::{BBSPlusPublicKeyG2, BBSPlusSigParamsG1},
     bddt16_kvac::BDDT16MACParams,
@@ -16,7 +20,6 @@ use crate::{
     utils::{
         js_array_to_fr_vec, js_array_to_g1_affine_vec, js_array_to_g2_affine_vec, set_panic_hook,
     },
-    vb_accumulator::{AccumPk, AccumSetupParams, MembershipPrk, NonMembershipPrk},
     G1Affine,
 };
 

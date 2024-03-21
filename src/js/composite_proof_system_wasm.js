@@ -72,6 +72,36 @@ module.exports.generateAccumulatorNonMembershipStatementFromParamRefs = (params,
     return wasm.generateAccumulatorNonMembershipStatementFromParamRefs(params, publicKey, provingKey, accumulated);
 };
 
+module.exports.generateKBUniversalAccumulatorMembershipProverStatement = (accumulated) => {
+    requireWasmInitialized();
+    return wasm.generateKBUniversalAccumulatorMembershipProverStatement(accumulated);
+};
+
+module.exports.generateKBUniversalAccumulatorMembershipVerifierStatement = (params, publicKey, accumulated) => {
+    requireWasmInitialized();
+    return wasm.generateKBUniversalAccumulatorMembershipVerifierStatement(params, publicKey, accumulated);
+};
+
+module.exports.generateKBUniversalAccumulatorMembershipVerifierStatementFromParamRefs = (params, publicKey, accumulated) => {
+    requireWasmInitialized();
+    return wasm.generateKBUniversalAccumulatorMembershipVerifierStatementFromParamRefs(params, publicKey, accumulated);
+};
+
+module.exports.generateKBUniversalAccumulatorNonMembershipProverStatement = (accumulated) => {
+    requireWasmInitialized();
+    return wasm.generateKBUniversalAccumulatorNonMembershipProverStatement(accumulated);
+};
+
+module.exports.generateKBUniversalAccumulatorNonMembershipVerifierStatement = (params, publicKey, accumulated) => {
+    requireWasmInitialized();
+    return wasm.generateKBUniversalAccumulatorNonMembershipVerifierStatement(params, publicKey, accumulated);
+};
+
+module.exports.generateKBUniversalAccumulatorNonMembershipVerifierStatementFromParamRefs = (params, publicKey, accumulated) => {
+    requireWasmInitialized();
+    return wasm.generateKBUniversalAccumulatorNonMembershipVerifierStatementFromParamRefs(params, publicKey, accumulated);
+};
+
 module.exports.generatePedersenCommitmentG1Statement = (bases, commitment) => {
     requireWasmInitialized();
     return wasm.generatePedersenCommitmentG1Statement(bases, commitment);
@@ -232,6 +262,16 @@ module.exports.generateAccumulatorNonMembershipWitness = (element, witness) => {
     return wasm.generateAccumulatorNonMembershipWitness(element, witness);
 };
 
+module.exports.generateKBUniversalAccumulatorMembershipWitness = (element, witness) => {
+    requireWasmInitialized();
+    return wasm.generateKBUniversalAccumulatorMembershipWitness(element, witness);
+};
+
+module.exports.generateKBUniversalAccumulatorNonMembershipWitness = (element, witness) => {
+    requireWasmInitialized();
+    return wasm.generateKBUniversalAccumulatorNonMembershipWitness(element, witness);
+};
+
 module.exports.generatePedersenCommitmentWitness = (elements) => {
     requireWasmInitialized();
     return wasm.generatePedersenCommitmentWitness(elements);
@@ -345,4 +385,24 @@ module.exports.generateAccumulatorKVMembershipStatement = (accumulated) => {
 module.exports.generateAccumulatorKVFullVerifierMembershipStatement = (secretKey, accumulated) => {
     requireWasmInitialized();
     return wasm.generateAccumulatorKVFullVerifierMembershipStatement(secretKey, accumulated);
+};
+
+module.exports.generateKBUniversalAccumulatorKVMembershipStatement = (accumulated) => {
+    requireWasmInitialized();
+    return wasm.generateKBUniversalAccumulatorKVMembershipStatement(accumulated);
+};
+
+module.exports.generateKBUniversalAccumulatorKVFullVerifierMembershipStatement = (secretKey, accumulated) => {
+    requireWasmInitialized();
+    return wasm.generateKBUniversalAccumulatorKVFullVerifierMembershipStatement(secretKey, accumulated);
+};
+
+module.exports.generateKBUniversalAccumulatorKVNonMembershipStatement = (accumulated) => {
+    requireWasmInitialized();
+    return wasm.generateKBUniversalAccumulatorKVNonMembershipStatement(accumulated);
+};
+
+module.exports.generateKBUniversalAccumulatorKVFullVerifierNonMembershipStatement = (secretKey, accumulated) => {
+    requireWasmInitialized();
+    return wasm.generateKBUniversalAccumulatorKVFullVerifierNonMembershipStatement(secretKey, accumulated);
 };

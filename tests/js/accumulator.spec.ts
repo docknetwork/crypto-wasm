@@ -67,7 +67,7 @@ import {
 
 import {stringToBytes} from "./util";
 
-describe("For Positive accumulator", () => {
+describe("For VB positive accumulator", () => {
   let params: Uint8Array,
     sk: Uint8Array,
     pk: Uint8Array,
@@ -147,7 +147,7 @@ describe("For Positive accumulator", () => {
     const witness1 = positiveAccumulatorMembershipWitness(accumulator1, e1, sk);
     expect(
       positiveAccumulatorVerifyMembership(
-        positiveAccumulatorGetAccumulated(accumulator1),
+          accumulator1,
         e1,
         witness1,
         pk,
@@ -159,7 +159,7 @@ describe("For Positive accumulator", () => {
     const witness2 = positiveAccumulatorMembershipWitness(accumulator2, e2, sk);
     expect(
       positiveAccumulatorVerifyMembership(
-        positiveAccumulatorGetAccumulated(accumulator2),
+          accumulator2,
         e2,
         witness2,
         pk,
@@ -168,7 +168,7 @@ describe("For Positive accumulator", () => {
     ).toBe(true);
     expect(
       positiveAccumulatorVerifyMembership(
-        positiveAccumulatorGetAccumulated(accumulator2),
+          accumulator2,
         e1,
         witness1,
         pk,
@@ -187,7 +187,7 @@ describe("For Positive accumulator", () => {
     );
     expect(
       positiveAccumulatorVerifyMembership(
-        positiveAccumulatorGetAccumulated(accumulator3),
+          accumulator3,
         e1,
         witness11,
         pk,
@@ -197,7 +197,7 @@ describe("For Positive accumulator", () => {
 
     expect(
       positiveAccumulatorVerifyMembership(
-        positiveAccumulatorGetAccumulated(accumulator3),
+          accumulator3,
         e1,
         witness1,
         pk,
@@ -221,7 +221,7 @@ describe("For Positive accumulator", () => {
     const witness1 = positiveAccumulatorMembershipWitness(accumulator1, e1, sk);
     expect(
       positiveAccumulatorVerifyMembership(
-        positiveAccumulatorGetAccumulated(accumulator1),
+        accumulator1,
         e1,
         witness1,
         pk,
@@ -231,7 +231,7 @@ describe("For Positive accumulator", () => {
     const witness2 = positiveAccumulatorMembershipWitness(accumulator1, e2, sk);
     expect(
       positiveAccumulatorVerifyMembership(
-        positiveAccumulatorGetAccumulated(accumulator1),
+        accumulator1,
         e2,
         witness2,
         pk,
@@ -241,7 +241,7 @@ describe("For Positive accumulator", () => {
     const witness3 = positiveAccumulatorMembershipWitness(accumulator1, e3, sk);
     expect(
       positiveAccumulatorVerifyMembership(
-        positiveAccumulatorGetAccumulated(accumulator1),
+        accumulator1,
         e3,
         witness3,
         pk,
@@ -251,7 +251,7 @@ describe("For Positive accumulator", () => {
     const witness4 = positiveAccumulatorMembershipWitness(accumulator1, e4, sk);
     expect(
       positiveAccumulatorVerifyMembership(
-        positiveAccumulatorGetAccumulated(accumulator1),
+        accumulator1,
         e4,
         witness4,
         pk,
@@ -269,7 +269,7 @@ describe("For Positive accumulator", () => {
 
     expect(
       positiveAccumulatorVerifyMembership(
-        positiveAccumulatorGetAccumulated(accumulator2),
+        accumulator2,
         e1,
         witness1,
         pk,
@@ -278,7 +278,7 @@ describe("For Positive accumulator", () => {
     ).toBe(false);
     expect(
       positiveAccumulatorVerifyMembership(
-        positiveAccumulatorGetAccumulated(accumulator2),
+        accumulator2,
         e2,
         witness2,
         pk,
@@ -287,7 +287,7 @@ describe("For Positive accumulator", () => {
     ).toBe(false);
     expect(
       positiveAccumulatorVerifyMembership(
-        positiveAccumulatorGetAccumulated(accumulator2),
+        accumulator2,
         e3,
         witness3,
         pk,
@@ -296,7 +296,7 @@ describe("For Positive accumulator", () => {
     ).toBe(false);
     expect(
       positiveAccumulatorVerifyMembership(
-        positiveAccumulatorGetAccumulated(accumulator2),
+        accumulator2,
         e4,
         witness4,
         pk,
@@ -311,7 +311,7 @@ describe("For Positive accumulator", () => {
     );
     expect(
       positiveAccumulatorVerifyMembership(
-        positiveAccumulatorGetAccumulated(accumulator2),
+        accumulator2,
         e2,
         witness22,
         pk,
@@ -325,7 +325,7 @@ describe("For Positive accumulator", () => {
     );
     expect(
       positiveAccumulatorVerifyMembership(
-        positiveAccumulatorGetAccumulated(accumulator2),
+        accumulator2,
         e4,
         witness42,
         pk,
@@ -346,7 +346,7 @@ describe("For Positive accumulator", () => {
     const witness5 = positiveAccumulatorMembershipWitness(accumulator3, e5, sk);
     expect(
       positiveAccumulatorVerifyMembership(
-        positiveAccumulatorGetAccumulated(accumulator3),
+        accumulator3,
         e5,
         witness5,
         pk,
@@ -356,7 +356,7 @@ describe("For Positive accumulator", () => {
     const witness6 = positiveAccumulatorMembershipWitness(accumulator3, e6, sk);
     expect(
       positiveAccumulatorVerifyMembership(
-        positiveAccumulatorGetAccumulated(accumulator3),
+        accumulator3,
         e6,
         witness6,
         pk,
@@ -394,7 +394,7 @@ describe("For Positive accumulator", () => {
     );
     expect(
       positiveAccumulatorVerifyMembership(
-        positiveAccumulatorGetAccumulated(accumulator1),
+        accumulator1,
         batch[0],
         witnesses[0],
         pk,
@@ -403,7 +403,7 @@ describe("For Positive accumulator", () => {
     ).toBe(true);
     expect(
       positiveAccumulatorVerifyMembership(
-        positiveAccumulatorGetAccumulated(accumulator1),
+        accumulator1,
         batch[1],
         witnesses[1],
         pk,
@@ -412,7 +412,7 @@ describe("For Positive accumulator", () => {
     ).toBe(true);
     expect(
       positiveAccumulatorVerifyMembership(
-        positiveAccumulatorGetAccumulated(accumulator1),
+        accumulator1,
         batch[2],
         witnesses[2],
         pk,
@@ -422,7 +422,7 @@ describe("For Positive accumulator", () => {
   });
 });
 
-describe("For Universal accumulator", () => {
+describe("For VB universal accumulator", () => {
   let params: Uint8Array,
     sk: Uint8Array,
     pk: Uint8Array,
@@ -506,7 +506,7 @@ describe("For Universal accumulator", () => {
     );
     expect(
       universalAccumulatorVerifyMembership(
-        universalAccumulatorGetAccumulated(accumulator1),
+          accumulator1.V,
         e1,
         witness1,
         pk,
@@ -522,7 +522,7 @@ describe("For Universal accumulator", () => {
     );
     expect(
       universalAccumulatorVerifyMembership(
-        universalAccumulatorGetAccumulated(accumulator2),
+          accumulator2.V,
         e2,
         witness2,
         pk,
@@ -531,7 +531,7 @@ describe("For Universal accumulator", () => {
     ).toBe(true);
     expect(
       universalAccumulatorVerifyMembership(
-        universalAccumulatorGetAccumulated(accumulator2),
+          accumulator2.V,
         e1,
         witness1,
         pk,
@@ -550,7 +550,7 @@ describe("For Universal accumulator", () => {
     );
     expect(
       universalAccumulatorVerifyMembership(
-        universalAccumulatorGetAccumulated(accumulator3),
+          accumulator3.V,
         e1,
         witness11,
         pk,
@@ -560,7 +560,7 @@ describe("For Universal accumulator", () => {
 
     expect(
       universalAccumulatorVerifyMembership(
-        universalAccumulatorGetAccumulated(accumulator3),
+          accumulator3.V,
         e1,
         witness1,
         pk,
@@ -583,7 +583,7 @@ describe("For Universal accumulator", () => {
     );
     expect(
       universalAccumulatorVerifyNonMembership(
-        universalAccumulatorGetAccumulated(accumulator3),
+          accumulator3.V,
         nonMember,
         witness,
         pk,
@@ -609,7 +609,7 @@ describe("For Universal accumulator", () => {
     );
     expect(
       universalAccumulatorVerifyNonMembership(
-        universalAccumulatorGetAccumulated(accumulator),
+          accumulator.V,
         nonMember,
         nmWitness,
         pk,
@@ -639,7 +639,7 @@ describe("For Universal accumulator", () => {
     );
     expect(
       universalAccumulatorVerifyMembership(
-        universalAccumulatorGetAccumulated(accumulator1),
+          accumulator1.V,
         e1,
         witness1,
         pk,
@@ -653,7 +653,7 @@ describe("For Universal accumulator", () => {
     );
     expect(
       universalAccumulatorVerifyMembership(
-        universalAccumulatorGetAccumulated(accumulator1),
+          accumulator1.V,
         e2,
         witness2,
         pk,
@@ -667,7 +667,7 @@ describe("For Universal accumulator", () => {
     );
     expect(
       universalAccumulatorVerifyMembership(
-        universalAccumulatorGetAccumulated(accumulator1),
+        accumulator1.V,
         e3,
         witness3,
         pk,
@@ -681,7 +681,7 @@ describe("For Universal accumulator", () => {
     );
     expect(
       universalAccumulatorVerifyMembership(
-        universalAccumulatorGetAccumulated(accumulator1),
+        accumulator1.V,
         e4,
         witness4,
         pk,
@@ -699,7 +699,7 @@ describe("For Universal accumulator", () => {
     );
     expect(
       universalAccumulatorVerifyNonMembership(
-        universalAccumulatorGetAccumulated(accumulator1),
+        accumulator1.V,
         nonMember,
         nmWitness,
         pk,
@@ -717,7 +717,7 @@ describe("For Universal accumulator", () => {
 
     expect(
       universalAccumulatorVerifyMembership(
-        universalAccumulatorGetAccumulated(accumulator2),
+        accumulator2.V,
         e1,
         witness1,
         pk,
@@ -726,7 +726,7 @@ describe("For Universal accumulator", () => {
     ).toBe(false);
     expect(
       universalAccumulatorVerifyMembership(
-        universalAccumulatorGetAccumulated(accumulator2),
+        accumulator2.V,
         e2,
         witness2,
         pk,
@@ -735,7 +735,7 @@ describe("For Universal accumulator", () => {
     ).toBe(false);
     expect(
       universalAccumulatorVerifyMembership(
-        universalAccumulatorGetAccumulated(accumulator2),
+        accumulator2.V,
         e3,
         witness3,
         pk,
@@ -744,7 +744,7 @@ describe("For Universal accumulator", () => {
     ).toBe(false);
     expect(
       universalAccumulatorVerifyMembership(
-        universalAccumulatorGetAccumulated(accumulator2),
+        accumulator2.V,
         e4,
         witness4,
         pk,
@@ -759,7 +759,7 @@ describe("For Universal accumulator", () => {
     );
     expect(
       universalAccumulatorVerifyMembership(
-        universalAccumulatorGetAccumulated(accumulator2),
+        accumulator2.V,
         e2,
         witness22,
         pk,
@@ -773,7 +773,7 @@ describe("For Universal accumulator", () => {
     );
     expect(
       universalAccumulatorVerifyMembership(
-        universalAccumulatorGetAccumulated(accumulator2),
+        accumulator2.V,
         e4,
         witness42,
         pk,
@@ -791,7 +791,7 @@ describe("For Universal accumulator", () => {
     );
     expect(
       universalAccumulatorVerifyNonMembership(
-        universalAccumulatorGetAccumulated(accumulator2),
+        accumulator2.V,
         nonMember,
         nmWitness,
         pk,
@@ -816,7 +816,7 @@ describe("For Universal accumulator", () => {
     );
     expect(
       universalAccumulatorVerifyMembership(
-        universalAccumulatorGetAccumulated(accumulator3),
+        accumulator3.V,
         e5,
         witness5,
         pk,
@@ -830,7 +830,7 @@ describe("For Universal accumulator", () => {
     );
     expect(
       universalAccumulatorVerifyMembership(
-        universalAccumulatorGetAccumulated(accumulator3),
+        accumulator3.V,
         e6,
         witness6,
         pk,
@@ -848,7 +848,7 @@ describe("For Universal accumulator", () => {
     );
     expect(
       universalAccumulatorVerifyNonMembership(
-        universalAccumulatorGetAccumulated(accumulator3),
+        accumulator3.V,
         nonMember,
         nmWitness,
         pk,
@@ -887,7 +887,7 @@ describe("For Universal accumulator", () => {
     );
     expect(
       universalAccumulatorVerifyMembership(
-        universalAccumulatorGetAccumulated(accumulator1),
+        accumulator1.V,
         batch[0],
         witnesses[0],
         pk,
@@ -896,7 +896,7 @@ describe("For Universal accumulator", () => {
     ).toBe(true);
     expect(
       universalAccumulatorVerifyMembership(
-        universalAccumulatorGetAccumulated(accumulator1),
+        accumulator1.V,
         batch[1],
         witnesses[1],
         pk,
@@ -905,7 +905,7 @@ describe("For Universal accumulator", () => {
     ).toBe(true);
     expect(
       universalAccumulatorVerifyMembership(
-        universalAccumulatorGetAccumulated(accumulator1),
+        accumulator1.V,
         batch[2],
         witnesses[2],
         pk,
@@ -928,7 +928,7 @@ describe("For Universal accumulator", () => {
     );
     expect(
       universalAccumulatorVerifyNonMembership(
-        universalAccumulatorGetAccumulated(accumulator1),
+        accumulator1.V,
         nonMembers[0],
         nmWitnesses[0],
         pk,
@@ -937,7 +937,7 @@ describe("For Universal accumulator", () => {
     ).toBe(true);
     expect(
       universalAccumulatorVerifyNonMembership(
-        universalAccumulatorGetAccumulated(accumulator1),
+        accumulator1.V,
         nonMembers[1],
         nmWitnesses[1],
         pk,
@@ -946,7 +946,7 @@ describe("For Universal accumulator", () => {
     ).toBe(true);
     expect(
       universalAccumulatorVerifyNonMembership(
-        universalAccumulatorGetAccumulated(accumulator1),
+        accumulator1.V,
         nonMembers[2],
         nmWitnesses[2],
         pk,
@@ -961,7 +961,7 @@ describe("For Universal accumulator", () => {
   });
 });
 
-describe("Witness update", () => {
+describe("For VB accumulator witness update", () => {
   let params: Uint8Array,
     sk: Uint8Array,
     pk: Uint8Array,
@@ -1017,7 +1017,7 @@ describe("Witness update", () => {
     );
     expect(
       positiveAccumulatorVerifyMembership(
-        positiveAccumulatorGetAccumulated(posAccumulator),
+        posAccumulator,
         e1,
         posMemWit,
         pk,
@@ -1032,7 +1032,7 @@ describe("Witness update", () => {
     );
     expect(
       universalAccumulatorVerifyMembership(
-        universalAccumulatorGetAccumulated(uniAccumulator),
+        uniAccumulator.V,
         e1,
         uniMemWit,
         pk,
@@ -1050,7 +1050,7 @@ describe("Witness update", () => {
     );
     expect(
       universalAccumulatorVerifyNonMembership(
-        universalAccumulatorGetAccumulated(uniAccumulator),
+        uniAccumulator.V,
         nonMember,
         nonMemWit,
         pk,
@@ -1067,11 +1067,11 @@ describe("Witness update", () => {
       posMemWit,
       e1,
       e2,
-      positiveAccumulatorGetAccumulated(posAccumulator)
+      posAccumulator
     );
     expect(
       positiveAccumulatorVerifyMembership(
-        positiveAccumulatorGetAccumulated(posAccumulator1),
+        posAccumulator1,
         e1,
         posMemWit,
         pk,
@@ -1083,11 +1083,11 @@ describe("Witness update", () => {
       uniMemWit,
       e1,
       e2,
-      universalAccumulatorGetAccumulated(uniAccumulator)
+        uniAccumulator.V
     );
     expect(
       universalAccumulatorVerifyMembership(
-        universalAccumulatorGetAccumulated(uniAccumulator1),
+          uniAccumulator1.V,
         e1,
         uniMemWit,
         pk,
@@ -1099,11 +1099,11 @@ describe("Witness update", () => {
       nonMemWit,
       nonMember,
       e2,
-      universalAccumulatorGetAccumulated(uniAccumulator)
+      uniAccumulator.V
     );
     expect(
       universalAccumulatorVerifyNonMembership(
-        universalAccumulatorGetAccumulated(uniAccumulator1),
+          uniAccumulator1.V,
         nonMember,
         nonMemWit,
         pk,
@@ -1118,11 +1118,11 @@ describe("Witness update", () => {
       posMemWit,
       e1,
       e2,
-      positiveAccumulatorGetAccumulated(posAccumulator2)
+      posAccumulator2
     );
     expect(
       positiveAccumulatorVerifyMembership(
-        positiveAccumulatorGetAccumulated(posAccumulator2),
+        posAccumulator2,
         e1,
         posMemWit,
         pk,
@@ -1134,11 +1134,11 @@ describe("Witness update", () => {
       uniMemWit,
       e1,
       e2,
-      universalAccumulatorGetAccumulated(uniAccumulator2)
+        uniAccumulator2.V
     );
     expect(
       universalAccumulatorVerifyMembership(
-        universalAccumulatorGetAccumulated(uniAccumulator2),
+          uniAccumulator2.V,
         e1,
         uniMemWit,
         pk,
@@ -1150,11 +1150,11 @@ describe("Witness update", () => {
       nonMemWit,
       nonMember,
       e2,
-      universalAccumulatorGetAccumulated(uniAccumulator2)
+      uniAccumulator2.V
     );
     expect(
       universalAccumulatorVerifyNonMembership(
-        universalAccumulatorGetAccumulated(uniAccumulator2),
+        uniAccumulator2.V,
         nonMember,
         nonMemWit,
         pk,
@@ -1192,12 +1192,12 @@ describe("Witness update", () => {
       [member1, member2],
       [member3, member4],
       [],
-      positiveAccumulatorGetAccumulated(posAccumulator),
+      posAccumulator,
       sk
     );
     expect(
       positiveAccumulatorVerifyMembership(
-        positiveAccumulatorGetAccumulated(posAccumulator1),
+        posAccumulator1,
         member1,
         newWits[0],
         pk,
@@ -1206,7 +1206,7 @@ describe("Witness update", () => {
     ).toBe(true);
     expect(
       positiveAccumulatorVerifyMembership(
-        positiveAccumulatorGetAccumulated(posAccumulator1),
+        posAccumulator1,
         member2,
         newWits[1],
         pk,
@@ -1231,7 +1231,7 @@ describe("Witness update", () => {
     );
     expect(
       positiveAccumulatorVerifyMembership(
-        positiveAccumulatorGetAccumulated(posAccumulator),
+        posAccumulator,
         member,
         posMemWitInitial,
         pk,
@@ -1246,7 +1246,7 @@ describe("Witness update", () => {
     );
     expect(
       universalAccumulatorVerifyMembership(
-        universalAccumulatorGetAccumulated(uniAccumulator),
+        uniAccumulator.V,
         member,
         uniMemWitInitial,
         pk,
@@ -1264,7 +1264,7 @@ describe("Witness update", () => {
     );
     expect(
       universalAccumulatorVerifyNonMembership(
-        universalAccumulatorGetAccumulated(uniAccumulator),
+        uniAccumulator.V,
         nonMember,
         nonMemWitInitial,
         pk,
@@ -1278,13 +1278,13 @@ describe("Witness update", () => {
     ];
 
     const posPublicInfo0 = publicInfoForWitnessUpdate(
-      positiveAccumulatorGetAccumulated(posAccumulator),
+      posAccumulator,
       addBatch0,
       [],
       sk
     );
     const uniPublicInfo0 = publicInfoForWitnessUpdate(
-      universalAccumulatorGetAccumulated(uniAccumulator),
+      uniAccumulator.V,
       addBatch0,
       [],
       sk
@@ -1306,7 +1306,7 @@ describe("Witness update", () => {
     );
     expect(
       positiveAccumulatorVerifyMembership(
-        positiveAccumulatorGetAccumulated(posAccumulator),
+        posAccumulator,
         member,
         posMemWit,
         pk,
@@ -1323,7 +1323,7 @@ describe("Witness update", () => {
     );
     expect(
       universalAccumulatorVerifyMembership(
-        universalAccumulatorGetAccumulated(uniAccumulator),
+        uniAccumulator.V,
         member,
         uniMemWit,
         pk,
@@ -1340,7 +1340,7 @@ describe("Witness update", () => {
     );
     expect(
       universalAccumulatorVerifyNonMembership(
-        universalAccumulatorGetAccumulated(uniAccumulator),
+        uniAccumulator.V,
         nonMember,
         nonMemWit,
         pk,
@@ -1355,13 +1355,13 @@ describe("Witness update", () => {
     const remBatch1 = addBatch0;
 
     const posPublicInfo1 = publicInfoForWitnessUpdate(
-      positiveAccumulatorGetAccumulated(posAccumulator),
+      posAccumulator,
       addBatch1,
       remBatch1,
       sk
     );
     const uniPublicInfo1 = publicInfoForWitnessUpdate(
-      universalAccumulatorGetAccumulated(uniAccumulator),
+      uniAccumulator.V,
       addBatch1,
       remBatch1,
       sk
@@ -1389,7 +1389,7 @@ describe("Witness update", () => {
     );
     expect(
       positiveAccumulatorVerifyMembership(
-        positiveAccumulatorGetAccumulated(posAccumulator),
+        posAccumulator,
         member,
         posMemWit,
         pk,
@@ -1406,7 +1406,7 @@ describe("Witness update", () => {
     );
     expect(
       universalAccumulatorVerifyMembership(
-        universalAccumulatorGetAccumulated(uniAccumulator),
+        uniAccumulator.V,
         member,
         uniMemWit,
         pk,
@@ -1423,7 +1423,7 @@ describe("Witness update", () => {
     );
     expect(
       universalAccumulatorVerifyNonMembership(
-        universalAccumulatorGetAccumulated(uniAccumulator),
+        uniAccumulator.V,
         nonMember,
         nonMemWit,
         pk,
@@ -1438,13 +1438,13 @@ describe("Witness update", () => {
     const remBatch2 = addBatch1;
 
     const posPublicInfo2 = publicInfoForWitnessUpdate(
-      positiveAccumulatorGetAccumulated(posAccumulator),
+      posAccumulator,
       addBatch2,
       remBatch2,
       sk
     );
     const uniPublicInfo2 = publicInfoForWitnessUpdate(
-      universalAccumulatorGetAccumulated(uniAccumulator),
+      uniAccumulator.V,
       addBatch2,
       remBatch2,
       sk
@@ -1472,7 +1472,7 @@ describe("Witness update", () => {
     );
     expect(
       positiveAccumulatorVerifyMembership(
-        positiveAccumulatorGetAccumulated(posAccumulator),
+        posAccumulator,
         member,
         posMemWit,
         pk,
@@ -1489,7 +1489,7 @@ describe("Witness update", () => {
     );
     expect(
       universalAccumulatorVerifyMembership(
-        universalAccumulatorGetAccumulated(uniAccumulator),
+        uniAccumulator.V,
         member,
         uniMemWit,
         pk,
@@ -1506,7 +1506,7 @@ describe("Witness update", () => {
     );
     expect(
       universalAccumulatorVerifyNonMembership(
-        universalAccumulatorGetAccumulated(uniAccumulator),
+        uniAccumulator.V,
         nonMember,
         nonMemWit,
         pk,
@@ -1523,7 +1523,7 @@ describe("Witness update", () => {
     );
     expect(
       positiveAccumulatorVerifyMembership(
-        positiveAccumulatorGetAccumulated(posAccumulator),
+        posAccumulator,
         member,
         posMemWit,
         pk,
@@ -1540,7 +1540,7 @@ describe("Witness update", () => {
     );
     expect(
       universalAccumulatorVerifyMembership(
-        universalAccumulatorGetAccumulated(uniAccumulator),
+        uniAccumulator.V,
         member,
         uniMemWit,
         pk,
@@ -1557,7 +1557,7 @@ describe("Witness update", () => {
     );
     expect(
       universalAccumulatorVerifyNonMembership(
-        universalAccumulatorGetAccumulated(uniAccumulator),
+        uniAccumulator.V,
         nonMember,
         nonMemWit,
         pk,
@@ -1567,7 +1567,7 @@ describe("Witness update", () => {
   });
 });
 
-describe("Proofs ", () => {
+describe("For VB accumulator proofs ", () => {
   let params: Uint8Array,
     sk: Uint8Array,
     pk: Uint8Array,
@@ -1621,7 +1621,7 @@ describe("Proofs ", () => {
     );
     expect(
       positiveAccumulatorVerifyMembership(
-        positiveAccumulatorGetAccumulated(posAccumulator),
+        posAccumulator,
         member,
         posMemWit,
         pk,
@@ -1636,7 +1636,7 @@ describe("Proofs ", () => {
     );
     expect(
       universalAccumulatorVerifyMembership(
-        universalAccumulatorGetAccumulated(accumulator),
+        accumulator.V,
         member,
         uniMemWit,
         pk,
@@ -1656,7 +1656,7 @@ describe("Proofs ", () => {
 
     let pBytes = accumulatorChallengeContributionFromMembershipProtocol(
       protocol,
-      positiveAccumulatorGetAccumulated(posAccumulator),
+      posAccumulator,
       pk,
       params,
       prk
@@ -1668,7 +1668,7 @@ describe("Proofs ", () => {
 
     let vBytes = accumulatorChallengeContributionFromMembershipProof(
       proof,
-      positiveAccumulatorGetAccumulated(posAccumulator),
+      posAccumulator,
       pk,
       params,
       prk
@@ -1680,7 +1680,7 @@ describe("Proofs ", () => {
 
     let result = accumulatorVerifyMembershipProof(
       proof,
-      positiveAccumulatorGetAccumulated(posAccumulator),
+      posAccumulator,
       verifierChallenge,
       pk,
       params,
@@ -1700,7 +1700,7 @@ describe("Proofs ", () => {
 
     pBytes = accumulatorChallengeContributionFromMembershipProtocol(
       protocol,
-      universalAccumulatorGetAccumulated(accumulator),
+      accumulator.V,
       pk,
       params,
       prk
@@ -1712,7 +1712,7 @@ describe("Proofs ", () => {
 
     vBytes = accumulatorChallengeContributionFromMembershipProof(
       proof,
-      universalAccumulatorGetAccumulated(accumulator),
+      accumulator.V,
       pk,
       params,
       prk
@@ -1724,7 +1724,7 @@ describe("Proofs ", () => {
 
     result = accumulatorVerifyMembershipProof(
       proof,
-      universalAccumulatorGetAccumulated(accumulator),
+      accumulator.V,
       verifierChallenge,
       pk,
       params,
@@ -1751,7 +1751,7 @@ describe("Proofs ", () => {
     );
     expect(
       universalAccumulatorVerifyNonMembership(
-        universalAccumulatorGetAccumulated(accumulator),
+        accumulator.V,
         nonMember,
         nonMemWit,
         pk,
@@ -1771,7 +1771,7 @@ describe("Proofs ", () => {
 
     const pBytes = accumulatorChallengeContributionFromNonMembershipProtocol(
       protocol,
-      universalAccumulatorGetAccumulated(accumulator),
+      accumulator.V,
       pk,
       params,
       prk
@@ -1783,7 +1783,7 @@ describe("Proofs ", () => {
 
     const vBytes = accumulatorChallengeContributionFromNonMembershipProof(
       proof,
-      universalAccumulatorGetAccumulated(accumulator),
+      accumulator.V,
       pk,
       params,
       prk
@@ -1795,7 +1795,7 @@ describe("Proofs ", () => {
 
     const result = accumulatorVerifyNonMembershipProof(
       proof,
-      universalAccumulatorGetAccumulated(accumulator),
+      accumulator.V,
       verifierChallenge,
       pk,
       params,

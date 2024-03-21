@@ -92,6 +92,38 @@ export function generateAccumulatorNonMembershipStatementFromParamRefs(
     accumulated: Uint8Array
 ): Uint8Array;
 
+export function generateKBUniversalAccumulatorMembershipProverStatement(
+    accumulated: Uint8Array
+): Uint8Array;
+
+export function generateKBUniversalAccumulatorMembershipVerifierStatement(
+    params: Uint8Array,
+    publicKey: Uint8Array,
+    accumulated: Uint8Array
+): Uint8Array;
+
+export function generateKBUniversalAccumulatorMembershipVerifierStatementFromParamRefs(
+    params: number,
+    publicKey: number,
+    accumulated: Uint8Array
+): Uint8Array;
+
+export function generateKBUniversalAccumulatorNonMembershipProverStatement(
+    accumulated: Uint8Array
+): Uint8Array;
+
+export function generateKBUniversalAccumulatorNonMembershipVerifierStatement(
+    params: Uint8Array,
+    publicKey: Uint8Array,
+    accumulated: Uint8Array
+): Uint8Array;
+
+export function generateKBUniversalAccumulatorNonMembershipVerifierStatementFromParamRefs(
+    params: number,
+    publicKey: number,
+    accumulated: Uint8Array
+): Uint8Array;
+
 export function generatePedersenCommitmentG1Statement(
     bases: Uint8Array[],
     commitment: Uint8Array
@@ -293,6 +325,16 @@ export function generateAccumulatorNonMembershipWitness(
     accumulatorWitness: INonMembershipWitness
 ): Uint8Array;
 
+export function generateKBUniversalAccumulatorMembershipWitness(
+    element: Uint8Array,
+    accumulatorWitness: Uint8Array
+): Uint8Array;
+
+export function generateKBUniversalAccumulatorNonMembershipWitness(
+    element: Uint8Array,
+    accumulatorWitness: Uint8Array
+): Uint8Array;
+
 export function generatePedersenCommitmentWitness(
     elements: Uint8Array[]
 ): Uint8Array;
@@ -415,6 +457,24 @@ export function generateAccumulatorKVMembershipStatement(
 ): Uint8Array;
 
 export function generateAccumulatorKVFullVerifierMembershipStatement(
+    secretKey: Uint8Array,
+    accumulated: Uint8Array
+): Uint8Array;
+
+export function generateKBUniversalAccumulatorKVMembershipStatement(
+    accumulated: Uint8Array
+): Uint8Array;
+
+export function generateKBUniversalAccumulatorKVFullVerifierMembershipStatement(
+    secretKey: Uint8Array,
+    accumulated: Uint8Array
+): Uint8Array;
+
+export function generateKBUniversalAccumulatorKVNonMembershipStatement(
+    accumulated: Uint8Array
+): Uint8Array;
+
+export function generateKBUniversalAccumulatorKVFullVerifierNonMembershipStatement(
     secretKey: Uint8Array,
     accumulated: Uint8Array
 ): Uint8Array;

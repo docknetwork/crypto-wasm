@@ -8,18 +8,17 @@ use crate::{
     },
     Fr, G1Affine,
 };
+use ark_ec::AffineRepr;
 use blake2::Blake2b512;
 use dock_crypto_utils::{
     concat_slices, hashing_utils::affine_group_elem_from_try_and_incr,
     signature::MultiMessageSignatureParams,
 };
 use kvac::bddt_2016::{
-    mac::MAC,
-    setup::{MACParams, SecretKey, PublicKey},
+    mac::{ProofOfValidityOfMAC, MAC},
+    setup::{MACParams, PublicKey, SecretKey},
 };
 use std::collections::BTreeMap;
-use ark_ec::AffineRepr;
-use kvac::bddt_2016::mac::ProofOfValidityOfMAC;
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 use zeroize::Zeroize;
 
@@ -111,7 +110,12 @@ pub fn bddt16_mac_generate_public_key_g1(
 #[wasm_bindgen(js_name = bddt16MacIsPublicKeyG1Valid)]
 pub fn bddt16_mac_is_pubkey_g1_valid(public_key: js_sys::Uint8Array) -> Result<bool, JsValue> {
     set_panic_hook();
-    let pk = obj_from_uint8array!(BDDT16MACPublicKeyG1, public_key, false, "BDDT16MACPublicKeyG1");
+    let pk = obj_from_uint8array!(
+        BDDT16MACPublicKeyG1,
+        public_key,
+        false,
+        "BDDT16MACPublicKeyG1"
+    );
     Ok(!pk.0.is_zero())
 }
 
@@ -228,7 +232,12 @@ pub fn bddt16_mac_proof_of_validity(
     set_panic_hook();
     let mac = obj_from_uint8array!(BDDT16MAC, mac, true);
     let sk = obj_from_uint8array!(BDDT16MACSecretKey, secret_key, true, "BDDT16MACSecretKey");
-    let pk = obj_from_uint8array!(BDDT16MACPublicKeyG1, public_key, false, "BDDT16MACPublicKeyG1");
+    let pk = obj_from_uint8array!(
+        BDDT16MACPublicKeyG1,
+        public_key,
+        false,
+        "BDDT16MACPublicKeyG1"
+    );
     let params: BDDT16MACParams = serde_wasm_bindgen::from_value(params)?;
     let mut rng = get_seeded_rng();
     let proof = ProofOfValidityOfMACG1::new::<_, Blake2b512>(&mut rng, &mac, &sk, &pk, &params);
@@ -242,12 +251,17 @@ pub fn bddt16_mac_verify_proof_of_validity(
     messages: js_sys::Array,
     public_key: js_sys::Uint8Array,
     params: JsValue,
-    encode_messages: bool
+    encode_messages: bool,
 ) -> Result<JsValue, JsValue> {
     let proof = obj_from_uint8array!(ProofOfValidityOfMACG1, proof, false);
     let mac = obj_from_uint8array!(BDDT16MAC, mac, true);
     let messages = encode_messages_as_js_array_to_fr_vec(&messages, encode_messages)?;
-    let pk = obj_from_uint8array!(BDDT16MACPublicKeyG1, public_key, false, "BDDT16MACPublicKeyG1");
+    let pk = obj_from_uint8array!(
+        BDDT16MACPublicKeyG1,
+        public_key,
+        false,
+        "BDDT16MACPublicKeyG1"
+    );
     let params: BDDT16MACParams = serde_wasm_bindgen::from_value(params)?;
     to_verify_response!(proof.verify::<Blake2b512>(&mac, messages.as_slice(), &pk, &params))
 }

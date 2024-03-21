@@ -39,7 +39,6 @@ import {
   universalAccumulatorAdd,
   universalAccumulatorComputeD,
   universalAccumulatorComputeInitialFv,
-  universalAccumulatorGetAccumulated,
   universalAccumulatorInitialiseGivenFv,
   universalAccumulatorMembershipWitness,
   universalAccumulatorNonMembershipWitness,
@@ -99,7 +98,27 @@ import {
   generatePoKBBSPlusSignatureProverStatementFromParamRefs,
   generatePoKBBSSignatureProverStatementFromParamRefs,
   generateMembershipProvingKey,
-  getAllDelegatedSubproofsFromProof, verifyBDDT16DelegatedProof, verifyVBAccumMembershipDelegatedProof
+  getAllDelegatedSubproofsFromProof,
+  verifyBDDT16DelegatedProof,
+  verifyVBAccumMembershipDelegatedProof,
+  kbUniversalAccumulatorInitialise,
+  kbUniversalAccumulatorAdd,
+  kbUniversalAccumulatorMembershipWitness,
+  kbUniversalAccumulatorNonMembershipWitness,
+  generateKBUniversalAccumulatorKVMembershipStatement,
+  generateKBUniversalAccumulatorKVNonMembershipStatement,
+  generateKBUniversalAccumulatorMembershipProverStatement,
+  generateKBUniversalAccumulatorNonMembershipProverStatement,
+  generateKBUniversalAccumulatorMembershipWitness,
+  generateKBUniversalAccumulatorNonMembershipWitness,
+  generateKBUniversalAccumulatorMembershipVerifierStatement,
+  generateKBUniversalAccumulatorNonMembershipVerifierStatement,
+  generateKBUniversalAccumulatorKVFullVerifierMembershipStatement,
+  generateKBUniversalAccumulatorKVFullVerifierNonMembershipStatement,
+  generateKBUniversalAccumulatorMembershipVerifierStatementFromParamRefs,
+  generateKBUniversalAccumulatorNonMembershipVerifierStatementFromParamRefs,
+  verifyKBUniAccumMembershipDelegatedProof,
+  verifyKBUniAccumNonMembershipDelegatedProof
 } from "../../lib";
 import { BbsSigParams, PSSigParams } from "../../lib/types";
 import {checkResult, getRevealedUnrevealed, stringToBytes} from "./util";
@@ -573,6 +592,8 @@ describe("Proving knowledge of signatures and accumulator membership and non-mem
     messages1[5] = member;
     messages2[5] = member;
 
+    const nonMember = messages1[3];
+
     const sig1 = sign(messages1, sk1, sigParams1, false);
     const sig2 = sign(messages2, sk2, sigParams2, false);
 
@@ -605,16 +626,24 @@ describe("Proving knowledge of signatures and accumulator membership and non-mem
     ];
 
     let uniAccumulator = getUniversalAccum(initialElements, sk, params, 100);
-    const nonMemPrk = generateNonMembershipProvingKey();
 
+    const domain: Uint8Array[] = [];
+    for (let i = 1; i <= 10; i++) {
+      domain.push(generateFieldElementFromNumber(100 + i));
+    }
+    // Non-member should be part of the domain
+    domain.push(nonMember);
+
+    let kbUniAccumulator = kbUniversalAccumulatorInitialise(domain, sk, params);
+
+    const nonMemPrk = generateNonMembershipProvingKey();
     const memPrk = accumulatorDeriveMembershipProvingKeyFromNonMembershipKey(
       nonMemPrk
     );
 
     posAccumulator = positiveAccumulatorAdd(posAccumulator, member, sk);
     uniAccumulator = universalAccumulatorAdd(uniAccumulator, member, sk);
-
-    const nonMember = messages1[3];
+    kbUniAccumulator = kbUniversalAccumulatorAdd(kbUniAccumulator, member, sk);
 
     const posWitness = positiveAccumulatorMembershipWitness(
       posAccumulator,
@@ -626,6 +655,11 @@ describe("Proving knowledge of signatures and accumulator membership and non-mem
       member,
       sk
     );
+    const kbUniWitness = kbUniversalAccumulatorMembershipWitness(
+        kbUniAccumulator,
+        member,
+        sk
+    );
 
     const d = universalAccumulatorComputeD(nonMember, [member]);
     const nmWitness = universalAccumulatorNonMembershipWitness(
@@ -636,8 +670,14 @@ describe("Proving knowledge of signatures and accumulator membership and non-mem
       params
     );
 
-    const posAccumulated = positiveAccumulatorGetAccumulated(posAccumulator);
-    const uniAccumulated = universalAccumulatorGetAccumulated(uniAccumulator);
+    const kbUniNmWitness = kbUniversalAccumulatorNonMembershipWitness(
+        kbUniAccumulator,
+        nonMember,
+        sk
+    );
+
+    const posAccumulated = posAccumulator;
+    const uniAccumulated = uniAccumulator.V;
 
     const statement1 = !isPs ? buildProverStatement(
         sigParams1,
@@ -671,9 +711,15 @@ describe("Proving knowledge of signatures and accumulator membership and non-mem
         memPrk,
         uniAccumulated
     );
-    let statement5;
+    const statement5 = isKvac ? generateKBUniversalAccumulatorKVMembershipStatement(kbUniAccumulator.mem) : generateKBUniversalAccumulatorMembershipProverStatement(
+        kbUniAccumulator.mem
+    );
+    const statement6 = isKvac ? generateKBUniversalAccumulatorKVNonMembershipStatement(kbUniAccumulator.non_mem) : generateKBUniversalAccumulatorNonMembershipProverStatement(
+        kbUniAccumulator.non_mem
+    );
+    let statement7;
     if (!isKvac) {
-      statement5 = generateAccumulatorNonMembershipStatement(
+      statement7 = generateAccumulatorNonMembershipStatement(
           params,
           pk,
           nonMemPrk,
@@ -688,13 +734,19 @@ describe("Proving knowledge of signatures and accumulator membership and non-mem
     set1.add([1, 5]);
     set1.add([2, 0]);
     set1.add([3, 0]);
+    set1.add([4, 0]);
     metaStatements.push(generateWitnessEqualityMetaStatement(set1));
 
+    const set2 = new Set<[number, number]>();
+    set2.add([0, 3]);
+    set2.add([5, 0]);
+    metaStatements.push(generateWitnessEqualityMetaStatement(set2));
+
     if (!isKvac) {
-      const set2 = new Set<[number, number]>();
-      set2.add([0, 3]);
-      set2.add([4, 0]);
-      metaStatements.push(generateWitnessEqualityMetaStatement(set2));
+      const set3 = new Set<[number, number]>();
+      set3.add([0, 3]);
+      set3.add([6, 0]);
+      metaStatements.push(generateWitnessEqualityMetaStatement(set3));
     }
 
     const proverStatements: Uint8Array[] = [];
@@ -702,8 +754,10 @@ describe("Proving knowledge of signatures and accumulator membership and non-mem
     proverStatements.push(statement2);
     proverStatements.push(statement3);
     proverStatements.push(statement4);
+    proverStatements.push(statement5);
+    proverStatements.push(statement6);
     if (!isKvac) {
-      proverStatements.push(statement5);
+      proverStatements.push(statement7);
     }
 
     const proverProofSpec = generateProofSpecG1(proverStatements, metaStatements, []);
@@ -713,9 +767,11 @@ describe("Proving knowledge of signatures and accumulator membership and non-mem
     const witness2 = buildWitness(sig2, unrevealedMsgs2, false);
     const witness3 = generateAccumulatorMembershipWitness(member, posWitness);
     const witness4 = generateAccumulatorMembershipWitness(member, uniWitness);
-    let witness5;
+    const witness5 = generateKBUniversalAccumulatorMembershipWitness(member, kbUniWitness);
+    const witness6 = generateKBUniversalAccumulatorNonMembershipWitness(nonMember, kbUniNmWitness);
+    let witness7;
     if (!isKvac) {
-      witness5 = generateAccumulatorNonMembershipWitness(
+      witness7 = generateAccumulatorNonMembershipWitness(
           nonMember,
           nmWitness
       );
@@ -726,8 +782,10 @@ describe("Proving knowledge of signatures and accumulator membership and non-mem
     witnesses.push(witness2);
     witnesses.push(witness3);
     witnesses.push(witness4);
+    witnesses.push(witness5);
+    witnesses.push(witness6);
     if (!isKvac) {
-      witnesses.push(witness5);
+      witnesses.push(witness7);
     }
 
     const proof = generateCompositeProofG1(proverProofSpec, witnesses);
@@ -755,8 +813,16 @@ describe("Proving knowledge of signatures and accumulator membership and non-mem
     ));
     verifierStatements.push(statement3);
     verifierStatements.push(statement4);
+    verifierStatements.push(isKvac ? statement5 : generateKBUniversalAccumulatorMembershipVerifierStatement(
+        params,
+        pk,
+        kbUniAccumulator.mem));
+    verifierStatements.push(isKvac ? statement6 : generateKBUniversalAccumulatorNonMembershipVerifierStatement(
+        params,
+        pk,
+        kbUniAccumulator.non_mem));
     if (!isKvac) {
-      verifierStatements.push(statement5);
+      verifierStatements.push(statement7);
     }
     const verifierProofSpec = generateProofSpecG1(verifierStatements, metaStatements, []);
     expect(isProofSpecG1Valid(verifierProofSpec)).toEqual(true);
@@ -782,6 +848,12 @@ describe("Proving knowledge of signatures and accumulator membership and non-mem
       );
       statements.push(
           generateAccumulatorKVFullVerifierMembershipStatement(sk, uniAccumulated)
+      );
+      statements.push(
+          generateKBUniversalAccumulatorKVFullVerifierMembershipStatement(sk, kbUniAccumulator.mem)
+      );
+      statements.push(
+          generateKBUniversalAccumulatorKVFullVerifierNonMembershipStatement(sk, kbUniAccumulator.non_mem)
       );
       const proofSpec = generateProofSpecG1(statements, metaStatements, []);
       const res = verifyCompositeProofG1(proof, proofSpec);
@@ -1205,9 +1277,34 @@ describe("Reusing setup params of BBS, BBS+ and accumulator", () => {
         100
     );
 
+    const domain1: Uint8Array[] = [];
+    for (let i = 1; i <= 10; i++) {
+      domain1.push(generateFieldElementFromNumber(100 + i));
+    }
+    domain1.push(messages3[nonMemberIndex]);
+    let kbUniAccumulator1 = kbUniversalAccumulatorInitialise(domain1, accumSk1, accumParams1);
+
+    const domain2: Uint8Array[] = [];
+    for (let i = 1; i <= 10; i++) {
+      domain2.push(generateFieldElementFromNumber(200 + i));
+    }
+    domain2.push(messages4[nonMemberIndex]);
+    let kbUniAccumulator2 = kbUniversalAccumulatorInitialise(domain2, accumSk2, accumParams2);
+
     const nonMemPrk = generateNonMembershipProvingKey();
     const memPrk = accumulatorDeriveMembershipProvingKeyFromNonMembershipKey(
         nonMemPrk
+    );
+
+    kbUniAccumulator1 = kbUniversalAccumulatorAdd(
+        kbUniAccumulator1,
+        messages1[memberIndex],
+        accumSk1
+    );
+    kbUniAccumulator2 = kbUniversalAccumulatorAdd(
+        kbUniAccumulator2,
+        messages2[memberIndex],
+        accumSk2
     );
 
     const [revealedMsgs1, unrevealedMsgs1] = getRevealedUnrevealed(
@@ -1281,10 +1378,31 @@ describe("Reusing setup params of BBS, BBS+ and accumulator", () => {
         accumParams2
     );
 
-    const posAccumulated1 = positiveAccumulatorGetAccumulated(posAccumulator1);
-    const posAccumulated2 = positiveAccumulatorGetAccumulated(posAccumulator2);
-    const uniAccumulated1 = universalAccumulatorGetAccumulated(uniAccumulator1);
-    const uniAccumulated2 = universalAccumulatorGetAccumulated(uniAccumulator2);
+    const kbUniMemWitness1 = kbUniversalAccumulatorMembershipWitness(
+        kbUniAccumulator1,
+        messages1[memberIndex],
+        accumSk1
+    );
+    const kbUniMemWitness2 = kbUniversalAccumulatorMembershipWitness(
+        kbUniAccumulator2,
+        messages2[memberIndex],
+        accumSk2
+    );
+    const kbUniNonMemWitness1 = kbUniversalAccumulatorNonMembershipWitness(
+        kbUniAccumulator1,
+        messages3[nonMemberIndex],
+        accumSk1
+    );
+    const kbUniNonMemWitness2 = kbUniversalAccumulatorNonMembershipWitness(
+        kbUniAccumulator2,
+        messages4[nonMemberIndex],
+        accumSk2
+    );
+
+    const posAccumulated1 = posAccumulator1;
+    const posAccumulated2 = posAccumulator2;
+    const uniAccumulated1 = uniAccumulator1.V;
+    const uniAccumulated2 = uniAccumulator2.V;
 
     const allSetupParams: Uint8Array[] = [];
     allSetupParams.push(
@@ -1363,6 +1481,18 @@ describe("Reusing setup params of BBS, BBS+ and accumulator", () => {
         9 - accumStmtOffset,
         uniAccumulated2
     );
+    const statement13 = generateKBUniversalAccumulatorMembershipProverStatement(
+        kbUniAccumulator1.mem
+    );
+    const statement14 = generateKBUniversalAccumulatorMembershipProverStatement(
+        kbUniAccumulator2.mem
+    );
+    const statement15 = generateKBUniversalAccumulatorNonMembershipProverStatement(
+        kbUniAccumulator1.non_mem
+    );
+    const statement16 = generateKBUniversalAccumulatorNonMembershipProverStatement(
+        kbUniAccumulator2.non_mem
+    );
 
     const proverStatements: Uint8Array[] = [];
     proverStatements.push(statement1);
@@ -1377,6 +1507,10 @@ describe("Reusing setup params of BBS, BBS+ and accumulator", () => {
     proverStatements.push(statement10);
     proverStatements.push(statement11);
     proverStatements.push(statement12);
+    proverStatements.push(statement13);
+    proverStatements.push(statement14);
+    proverStatements.push(statement15);
+    proverStatements.push(statement16);
 
     const proverProofSpec = generateProofSpecG1(proverStatements, [], allSetupParams);
     expect(isProofSpecG1Valid(proverProofSpec)).toEqual(true);
@@ -1433,6 +1567,22 @@ describe("Reusing setup params of BBS, BBS+ and accumulator", () => {
         messages4[nonMemberIndex],
         uniWitness4
     );
+    const witness13 = generateKBUniversalAccumulatorMembershipWitness(
+        messages1[memberIndex],
+        kbUniMemWitness1
+    );
+    const witness14 = generateKBUniversalAccumulatorMembershipWitness(
+        messages2[memberIndex],
+        kbUniMemWitness2
+    );
+    const witness15 = generateKBUniversalAccumulatorNonMembershipWitness(
+        messages3[nonMemberIndex],
+        kbUniNonMemWitness1
+    );
+    const witness16 = generateKBUniversalAccumulatorNonMembershipWitness(
+        messages4[nonMemberIndex],
+        kbUniNonMemWitness2
+    );
 
     const witnesses: Uint8Array[] = [];
     witnesses.push(witness1);
@@ -1447,8 +1597,21 @@ describe("Reusing setup params of BBS, BBS+ and accumulator", () => {
     witnesses.push(witness10);
     witnesses.push(witness11);
     witnesses.push(witness12);
+    witnesses.push(witness13);
+    witnesses.push(witness14);
+    witnesses.push(witness15);
+    witnesses.push(witness16);
 
     const proof = generateCompositeProofG1(proverProofSpec, witnesses);
+
+    const statement17 = generateKBUniversalAccumulatorMembershipVerifierStatementFromParamRefs(4 - accumStmtOffset,
+        5 - accumStmtOffset, kbUniAccumulator1.mem);
+    const statement18 = generateKBUniversalAccumulatorMembershipVerifierStatementFromParamRefs(6 - accumStmtOffset,
+        7 - accumStmtOffset, kbUniAccumulator2.mem);
+    const statement19 = generateKBUniversalAccumulatorNonMembershipVerifierStatementFromParamRefs(4 - accumStmtOffset,
+        5 - accumStmtOffset, kbUniAccumulator1.non_mem);
+    const statement20 = generateKBUniversalAccumulatorNonMembershipVerifierStatementFromParamRefs(6 - accumStmtOffset,
+        7 - accumStmtOffset, kbUniAccumulator2.non_mem);
 
     const verifierStatements: Uint8Array[] = [];
     verifierStatements.push(isKvac ? sigVerStmtFunc(
@@ -1499,6 +1662,10 @@ describe("Reusing setup params of BBS, BBS+ and accumulator", () => {
     verifierStatements.push(statement10);
     verifierStatements.push(statement11);
     verifierStatements.push(statement12);
+    verifierStatements.push(statement17);
+    verifierStatements.push(statement18);
+    verifierStatements.push(statement19);
+    verifierStatements.push(statement20);
 
     const verifierProofSpec = generateProofSpecG1(verifierStatements, [], allSetupParams);
     expect(isProofSpecG1Valid(verifierProofSpec)).toEqual(true);
@@ -1520,6 +1687,10 @@ describe("Reusing setup params of BBS, BBS+ and accumulator", () => {
       statements.push(statement10);
       statements.push(statement11);
       statements.push(statement12);
+      statements.push(statement17);
+      statements.push(statement18);
+      statements.push(statement19);
+      statements.push(statement20);
 
       const proofSpec = generateProofSpecG1(statements, [], allSetupParams);
       const res = verifyCompositeProofG1(proof, proofSpec);
@@ -1715,6 +1886,8 @@ describe("Delegated proofs", () => {
     messages1[5] = member;
     messages2[5] = member;
 
+    const nonMember = messages1[3];
+
     const sig1 = bbsSign(messages1, bbsSk, bbsParams, false);
     const sig2 = bddt16MacGenerate(messages2, bddt16Sk, bddt16Params, false);
 
@@ -1730,7 +1903,26 @@ describe("Delegated proofs", () => {
         member,
         sk
     );
-    const accumulated = positiveAccumulatorGetAccumulated(accumulator);
+    const accumulated = accumulator;
+
+    const domain: Uint8Array[] = [];
+    for (let i = 1; i <= 10; i++) {
+      domain.push(generateFieldElementFromNumber(100 + i));
+    }
+    domain.push(nonMember);
+    let kbUniAccumulator = kbUniversalAccumulatorInitialise(domain, sk, params);
+    kbUniAccumulator = kbUniversalAccumulatorAdd(kbUniAccumulator, member, sk);
+    const kbUniMemWitness = kbUniversalAccumulatorMembershipWitness(
+        kbUniAccumulator,
+        member,
+        sk
+    );
+
+    const kbUniNonMemWitness = kbUniversalAccumulatorNonMembershipWitness(
+        kbUniAccumulator,
+        nonMember,
+        sk
+    );
 
     const [revealedMsgs1, unrevealedMsgs1] = getRevealedUnrevealed(
         messages1,
@@ -1744,6 +1936,7 @@ describe("Delegated proofs", () => {
     const proverStatements: Uint8Array[] = [];
     proverStatements.push(generatePoKBBSSignatureProverStatement(bbsParams, revealedMsgs1, false));
     proverStatements.push(generatePoKBDDT16MacStatement(bddt16Params, revealedMsgs2, false));
+
     proverStatements.push(generateAccumulatorMembershipStatement(
         params,
         pk,
@@ -1752,6 +1945,11 @@ describe("Delegated proofs", () => {
     ));
     proverStatements.push(generateAccumulatorKVMembershipStatement(accumulated));
 
+    proverStatements.push(generateKBUniversalAccumulatorMembershipProverStatement(kbUniAccumulator.mem));
+    proverStatements.push(generateKBUniversalAccumulatorNonMembershipProverStatement(kbUniAccumulator.non_mem));
+    proverStatements.push(generateKBUniversalAccumulatorKVMembershipStatement(kbUniAccumulator.mem));
+    proverStatements.push(generateKBUniversalAccumulatorKVNonMembershipStatement(kbUniAccumulator.non_mem));
+
     const metaStatements: Uint8Array[] = [];
 
     const set1 = new Set<[number, number]>();
@@ -1759,7 +1957,15 @@ describe("Delegated proofs", () => {
     set1.add([1, 5]);
     set1.add([2, 0]);
     set1.add([3, 0]);
+    set1.add([4, 0]);
+    set1.add([6, 0]);
     metaStatements.push(generateWitnessEqualityMetaStatement(set1));
+
+    const set2 = new Set<[number, number]>();
+    set2.add([0, 3]);
+    set2.add([5, 0]);
+    set2.add([7, 0]);
+    metaStatements.push(generateWitnessEqualityMetaStatement(set2));
 
     const proverProofSpec = generateProofSpecG1(proverStatements, metaStatements, []);
     expect(isProofSpecG1Valid(proverProofSpec)).toEqual(true);
@@ -1768,12 +1974,20 @@ describe("Delegated proofs", () => {
     const witness2 = generatePoKBDDT16MacWitness(sig2, unrevealedMsgs2, false);
     const witness3 = generateAccumulatorMembershipWitness(member, witness);
     const witness4 = generateAccumulatorMembershipWitness(member, witness);
+    const witness5 = generateKBUniversalAccumulatorMembershipWitness(member, kbUniMemWitness);
+    const witness6 = generateKBUniversalAccumulatorNonMembershipWitness(nonMember, kbUniNonMemWitness);
+    const witness7 = generateKBUniversalAccumulatorMembershipWitness(member, kbUniMemWitness);
+    const witness8 = generateKBUniversalAccumulatorNonMembershipWitness(nonMember, kbUniNonMemWitness);
 
     const witnesses: Uint8Array[] = [];
     witnesses.push(witness1);
     witnesses.push(witness2);
     witnesses.push(witness3);
     witnesses.push(witness4);
+    witnesses.push(witness5);
+    witnesses.push(witness6);
+    witnesses.push(witness7);
+    witnesses.push(witness8);
 
     const proof = generateCompositeProofG1(proverProofSpec, witnesses);
 
@@ -1792,25 +2006,41 @@ describe("Delegated proofs", () => {
         accumulated
     ));
     verifierStatements.push(generateAccumulatorKVMembershipStatement(accumulated));
+    verifierStatements.push(generateKBUniversalAccumulatorMembershipVerifierStatement(params, pk, kbUniAccumulator.mem));
+    verifierStatements.push(generateKBUniversalAccumulatorNonMembershipVerifierStatement(params, pk, kbUniAccumulator.non_mem));
+    verifierStatements.push(generateKBUniversalAccumulatorKVMembershipStatement(kbUniAccumulator.mem));
+    verifierStatements.push(generateKBUniversalAccumulatorKVNonMembershipStatement(kbUniAccumulator.non_mem));
 
     const verifierProofSpec = generateProofSpecG1(verifierStatements, metaStatements, []);
     expect(isProofSpecG1Valid(verifierProofSpec)).toEqual(true);
     checkResult(verifyCompositeProofG1(proof, verifierProofSpec));
 
     const dps: Map<number, [number, Uint8Array]> = getAllDelegatedSubproofsFromProof(proof);
-    expect(dps.size).toEqual(2);
+    expect(dps.size).toEqual(4);
     const dp0 = dps.get(1);
     const dp1 = dps.get(3);
+    const dp2 = dps.get(6);
+    const dp3 = dps.get(7);
     expect(Array.isArray(dp0) && dp0.length).toEqual(2);
     expect(Array.isArray(dp1) && dp1.length).toEqual(2);
+    expect(Array.isArray(dp2) && dp2.length).toEqual(2);
+    expect(Array.isArray(dp3) && dp3.length).toEqual(2);
     // @ts-ignore
     expect(dp0[0]).toEqual(0);
     // @ts-ignore
     expect(dp1[0]).toEqual(1);
+    // @ts-ignore
+    expect(dp2[0]).toEqual(2);
+    // @ts-ignore
+    expect(dp3[0]).toEqual(3);
 
     // @ts-ignore
     checkResult(verifyBDDT16DelegatedProof(dp0[1], bddt16Sk));
     // @ts-ignore
     checkResult(verifyVBAccumMembershipDelegatedProof(dp1[1], sk));
+    // @ts-ignore
+    checkResult(verifyKBUniAccumMembershipDelegatedProof(dp2[1], sk));
+    // @ts-ignore
+    checkResult(verifyKBUniAccumNonMembershipDelegatedProof(dp3[1], sk));
   })
 })

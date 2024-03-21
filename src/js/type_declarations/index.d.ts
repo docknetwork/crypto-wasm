@@ -13,4 +13,6 @@ export * from "./frost_dkg";
 export * from "./threshold_sig";
 export * from "./bdd16_kvac";
 export * from "./delegated_proof";
+export * from "./kb_accumulator";
+
 

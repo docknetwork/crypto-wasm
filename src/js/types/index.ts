@@ -30,3 +30,4 @@ export { type IUniversalAccumulator } from "./IUniversalAccumulator";
 export { type INonMembershipWitness } from "./INonMembershipWitness";
 export { type LCTerm, type LC, type Constraint, type R1CS } from "./R1CS";
 export { type Bddt16MacParams } from "./Bddt16MacParams";
+export { type IKBUniversalAccumulator } from "./IKBUniversalAccumulator";
