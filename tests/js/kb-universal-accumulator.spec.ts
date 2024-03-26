@@ -1,5 +1,4 @@
 import {
-    accumulatorGetElementFromBytes,
     generateAccumulatorParams,
     generateAccumulatorPublicKey,
     generateAccumulatorSecretKey,

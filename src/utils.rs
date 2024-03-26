@@ -14,13 +14,12 @@
 use crate::{Fr, G1Affine, G2Affine};
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use ark_std::{
-    collections::BTreeMap,
+    collections::{BTreeMap, BTreeSet},
     rand::prelude::{RngCore, SeedableRng, StdRng},
 };
 use blake2::Blake2b512;
 use dock_crypto_utils::concat_slices;
 use serde_wasm_bindgen::from_value;
-use std::collections::BTreeSet;
 use wasm_bindgen::prelude::*;
 use zeroize::Zeroize;
 
@@ -337,12 +336,7 @@ pub fn zeroize_uint8array(value: js_sys::Uint8Array) {
 
 pub fn get_seeded_rng() -> StdRng {
     let mut buf = [0u8; 32];
-    use rand::{thread_rng, RngCore as RngCoreOld};
-    let mut rng = thread_rng();
-    rng.fill_bytes(&mut buf);
-    // getrandom is using node-js crypto module which doesn't work when building for target web. It
-    // works for `wasm-pack test` with chrome in headless and normal mode
-    // getrandom::getrandom(&mut buf).unwrap();
+    getrandom::getrandom(&mut buf).unwrap();
     StdRng::from_seed(buf)
 }
 
