@@ -804,6 +804,14 @@ describe("For KB universal accumulator witness update", () => {
             [],
             sk
         );
+        let [memPublicInfo_, nonMemPublicInfo_] = publicInfoForBothKBUniversalWitnessUpdate(
+            accumulator,
+            addBatch0,
+            [],
+            sk
+        );
+        expect(areUint8ArraysEqual(memPublicInfo0, memPublicInfo_)).toEqual(true);
+        expect(areUint8ArraysEqual(nonMemPublicInfo0, nonMemPublicInfo_)).toEqual(true);
 
         accumulator = kbUniversalAccumulatorAddBatch(
             accumulator,
@@ -845,15 +853,6 @@ describe("For KB universal accumulator witness update", () => {
             )
         ).toBe(true);
 
-        // let [memPublicInfo_, nonMemPublicInfo_] = publicInfoForBothKBUniversalWitnessUpdate(
-        //     accumulator,
-        //     addBatch0,
-        //     [],
-        //     sk
-        // );
-        // expect(areUint8ArraysEqual(memPublicInfo0, memPublicInfo_)).toEqual(true);
-        // expect(areUint8ArraysEqual(nonMemPublicInfo0, nonMemPublicInfo_)).toEqual(true);
-
         const addBatch1 = [
             domain[3],
             domain[4],
@@ -872,6 +871,15 @@ describe("For KB universal accumulator witness update", () => {
             remBatch1,
             sk
         );
+
+        [memPublicInfo_, nonMemPublicInfo_] = publicInfoForBothKBUniversalWitnessUpdate(
+            accumulator,
+            addBatch1,
+            remBatch1,
+            sk
+        );
+        expect(areUint8ArraysEqual(memPublicInfo1, memPublicInfo_)).toEqual(true);
+        expect(areUint8ArraysEqual(nonMemPublicInfo1, nonMemPublicInfo_)).toEqual(true);
 
         accumulator = kbUniversalAccumulatorBatchUpdates(
             accumulator,
@@ -913,15 +921,6 @@ describe("For KB universal accumulator witness update", () => {
                 params
             )
         ).toBe(true);
-
-        // [memPublicInfo_, nonMemPublicInfo_] = publicInfoForBothKBUniversalWitnessUpdate(
-        //     accumulator,
-        //     addBatch1,
-        //     remBatch1,
-        //     sk
-        // );
-        // expect(areUint8ArraysEqual(memPublicInfo1, memPublicInfo_)).toEqual(true);
-        // expect(areUint8ArraysEqual(nonMemPublicInfo1, nonMemPublicInfo_)).toEqual(true);
 
         const addBatch2 = [
             domain[5],
