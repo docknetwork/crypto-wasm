@@ -192,3 +192,31 @@ export function updateKBUniversalNonMembershipWitnessUsingPublicInfoAfterMultipl
     removals: Uint8Array[][],
     publicInfo: Uint8Array[],
 ): Uint8Array;
+
+export function kbUpdateNonMembershipWitnessesPostDomainExtension(
+    witnesses: Uint8Array[],
+    nonMembers: Uint8Array[],
+    newElements: Uint8Array[],
+    oldAccumulator: IKBUniversalAccumulator,
+    secretKey: Uint8Array,
+): Uint8Array[];
+
+export function publicInfoForKBUniversalNonMemWitnessUpdateOnDomainExtension(
+    oldAccumulator: IKBUniversalAccumulator,
+    newElements: Uint8Array[],
+    secretKey: Uint8Array,
+): Uint8Array;
+
+export function updateKBUniversalNonMembershipWitnessUsingPublicInfoAfterDomainExtension(
+    witness: Uint8Array,
+    nonMember: Uint8Array,
+    newElements: Uint8Array[],
+    publicInfo: Uint8Array,
+): Uint8Array;
+
+export function updateKBUniversalNonMembershipWitnessUsingPublicInfoAfterMultipleDomainExtensions(
+    witness: Uint8Array,
+    member: Uint8Array,
+    newElements: Uint8Array[][],
+    publicInfo: Uint8Array[],
+): Uint8Array;

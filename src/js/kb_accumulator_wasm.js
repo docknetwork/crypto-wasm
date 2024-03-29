@@ -136,3 +136,23 @@ module.exports.updateKBUniversalNonMembershipWitnessUsingPublicInfoAfterMultiple
     requireWasmInitialized();
     return wasm.updateKBUniversalNonMembershipWitnessUsingPublicInfoAfterMultipleBatchUpdates(witness, nonMember, additions, removals, publicInfo)
 };
+
+module.exports.kbUpdateNonMembershipWitnessesPostDomainExtension = (witnesses, nonMembers, newElements, oldAccumulator, secretKey) => {
+    requireWasmInitialized();
+    return wasm.kbUpdateNonMembershipWitnessesPostDomainExtension(witnesses, nonMembers, newElements, oldAccumulator, secretKey)
+};
+
+module.exports.publicInfoForKBUniversalNonMemWitnessUpdateOnDomainExtension = (oldAccumulator, newElements, secretKey) => {
+    requireWasmInitialized();
+    return wasm.publicInfoForKBUniversalNonMemWitnessUpdateOnDomainExtension(oldAccumulator, newElements, secretKey)
+};
+
+module.exports.updateKBUniversalNonMembershipWitnessUsingPublicInfoAfterDomainExtension = (witness, nonMember, newElements, publicInfo) => {
+    requireWasmInitialized();
+    return wasm.updateKBUniversalNonMembershipWitnessUsingPublicInfoAfterDomainExtension(witness, nonMember, newElements, publicInfo)
+};
+
+module.exports.updateKBUniversalNonMembershipWitnessUsingPublicInfoAfterMultipleDomainExtensions = (witness, nonMember, newElements, publicInfo) => {
+    requireWasmInitialized();
+    return wasm.updateKBUniversalNonMembershipWitnessUsingPublicInfoAfterMultipleDomainExtensions(witness, nonMember, newElements, publicInfo)
+};

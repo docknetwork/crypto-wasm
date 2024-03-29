@@ -7,6 +7,7 @@ use crate::{
 };
 use ark_bls12_381::Bls12_381;
 use ark_ec::pairing::Pairing;
+use ark_serialize::CanonicalDeserialize;
 use js_sys::Uint8Array;
 use vb_accumulator::kb_universal_accumulator::{
     witness::{
@@ -539,4 +540,129 @@ pub fn update_kb_universal_non_membership_witness_using_public_info_after_multip
     set_panic_hook();
     let witness: KBUniNonMembershipWit = serde_wasm_bindgen::from_value(witness)?;
     crate::update_witness_multiple_batches!(witness, non_member, additions, removals, public_info)
+}
+
+#[wasm_bindgen(js_name = kbUpdateNonMembershipWitnessesPostDomainExtension)]
+pub fn kb_universal_update_non_membership_witnesses_post_domain_extension(
+    witnesses: js_sys::Array,
+    non_members: js_sys::Array,
+    new_elements: js_sys::Array,
+    old_accum: JsValue,
+    secret_key: JsValue,
+) -> Result<js_sys::Array, JsValue> {
+    set_panic_hook();
+    let non_members = js_array_to_fr_vec(&non_members)?;
+    let new_elements = js_array_to_fr_vec(&new_elements)?;
+    let accum: KBUniversalAccum = serde_wasm_bindgen::from_value(old_accum)?;
+    let sk: AccumSk = serde_wasm_bindgen::from_value(secret_key)?;
+    let mut wits = Vec::with_capacity(witnesses.length() as usize);
+    for w in witnesses.values() {
+        wits.push(serde_wasm_bindgen::from_value::<KBUniNonMembershipWit>(
+            w.unwrap(),
+        )?);
+    }
+    let new_wits = accum.update_non_mem_wit_using_secret_key_on_domain_extension(
+        &new_elements,
+        &non_members,
+        &wits,
+        &sk,
+    )
+        .map_err(|e| {
+            JsValue::from(&format!(
+                "Evaluating update_non_mem_wit_using_secret_key_on_domain_extension returned error: {:?}",
+                e
+            ))
+        })?;
+    let result = js_sys::Array::new();
+    for w in new_wits {
+        result.push(&serde_wasm_bindgen::to_value(&w).map_err(JsValue::from)?);
+    }
+    Ok(result)
+}
+
+#[wasm_bindgen(js_name = publicInfoForKBUniversalNonMemWitnessUpdateOnDomainExtension)]
+pub fn public_info_for_kb_universal_non_mem_witness_update_on_domain_extension(
+    old_accum: JsValue,
+    new_elements: js_sys::Array,
+    secret_key: JsValue,
+) -> Result<Uint8Array, JsValue> {
+    set_panic_hook();
+    let accum: KBUniversalAccum = serde_wasm_bindgen::from_value(old_accum)?;
+    let new_elements = js_array_to_fr_vec(&new_elements)?;
+    let sk: AccumSk = serde_wasm_bindgen::from_value(secret_key)?;
+    let omega =
+        accum.generate_omega_for_non_membership_witnesses_on_domain_extension(&new_elements, &sk);
+    Ok(obj_to_uint8array!(&omega, false, "Omega"))
+}
+
+#[wasm_bindgen(js_name = updateKBUniversalNonMembershipWitnessUsingPublicInfoAfterDomainExtension)]
+pub fn update_kb_universal_non_membership_witness_using_public_info_after_domain_extension(
+    witness: JsValue,
+    non_member: Uint8Array,
+    new_elements: js_sys::Array,
+    public_info: Uint8Array,
+) -> Result<JsValue, JsValue> {
+    set_panic_hook();
+    let witness: KBUniNonMembershipWit = serde_wasm_bindgen::from_value(witness)?;
+    let non_member = fr_from_uint8_array(non_member, true)?;
+    let new_elements = js_array_to_fr_vec(&new_elements)?;
+    let public_info: Omega =
+        CanonicalDeserialize::deserialize_compressed(&public_info.to_vec()[..]).map_err(|e| {
+            JsValue::from(&format!(
+                "Failed to deserialize public info from bytes due to error: {:?}",
+                e
+            ))
+        })?;
+    let new_witness = witness
+        .update_using_public_info_after_domain_extension(&new_elements, &public_info, &non_member)
+        .map_err(|e| {
+            JsValue::from(&format!(
+                "Evaluating update_using_public_info_after_domain_extension returned error: {:?}",
+                e
+            ))
+        })?;
+    serde_wasm_bindgen::to_value(&new_witness).map_err(JsValue::from)
+}
+
+#[wasm_bindgen(js_name = updateKBUniversalNonMembershipWitnessUsingPublicInfoAfterMultipleDomainExtensions)]
+pub fn update_kb_universal_non_membership_witness_using_public_info_after_multiple_domain_extensions(
+    witness: JsValue,
+    non_member: Uint8Array,
+    new_elements: js_sys::Array,
+    public_info: js_sys::Array,
+) -> Result<JsValue, JsValue> {
+    set_panic_hook();
+    let witness: KBUniNonMembershipWit = serde_wasm_bindgen::from_value(witness)?;
+    let non_member = fr_from_uint8_array(non_member, true)?;
+    if new_elements.length() == public_info.length() {
+        let size = new_elements.length();
+        let mut updates_and_public_info = Vec::with_capacity(size as usize);
+        for i in 0..size {
+            let new = js_array_to_fr_vec(&js_sys::Array::from(&new_elements.get(i)))?;
+            let bytes: Vec<u8> = serde_wasm_bindgen::from_value(public_info.get(i))?;
+            let p: Omega =
+                CanonicalDeserialize::deserialize_compressed(&bytes[..]).map_err(|e| {
+                    JsValue::from(&format!(
+                        "Failed to deserialize public info from bytes due to error: {:?}",
+                        e
+                    ))
+                })?;
+            updates_and_public_info.push((new, p));
+        }
+        let new_witness = witness.update_using_public_info_after_multiple_domain_extensions(updates_and_public_info.iter().map(|(a, p)| (a.as_slice(), p)).collect::<Vec<_>>(), &non_member)
+            .map_err(|e| {
+                JsValue::from(&format!(
+                    "Evaluating update_using_public_info_after_multiple_domain_extensions returned error: {:?}",
+                    e
+                ))
+            })?;
+        let w = serde_wasm_bindgen::to_value(&new_witness).map_err(JsValue::from)?;
+        Ok(w)
+    } else {
+        Err(JsValue::from(&format!(
+            "Expected same but found different lengths for elements and public info: {} {}",
+            new_elements.length(),
+            public_info.length()
+        )))
+    }
 }
