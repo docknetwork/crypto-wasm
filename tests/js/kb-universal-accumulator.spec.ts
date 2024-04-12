@@ -30,8 +30,13 @@ import {
     updateKBUniversalNonMembershipWitnessUsingPublicInfoAfterBatchUpdate,
     updateKBUniversalMembershipWitnessUsingPublicInfoAfterMultipleBatchUpdates,
     updateKBUniversalNonMembershipWitnessUsingPublicInfoAfterMultipleBatchUpdates,
-    publicInfoForBothKBUniversalWitnessUpdate, kbUpdateNonMembershipWitnessesPostBatchUpdates,
-    kbUpdateBothWitnessesPostBatchUpdates
+    publicInfoForBothKBUniversalWitnessUpdate,
+    kbUpdateNonMembershipWitnessesPostBatchUpdates,
+    kbUpdateBothWitnessesPostBatchUpdates,
+    kbUpdateNonMembershipWitnessesPostDomainExtension,
+    publicInfoForKBUniversalNonMemWitnessUpdateOnDomainExtension,
+    updateKBUniversalNonMembershipWitnessUsingPublicInfoAfterDomainExtension,
+    updateKBUniversalNonMembershipWitnessUsingPublicInfoAfterMultipleDomainExtensions
 } from "../../lib";
 import {areUint8ArraysEqual, stringToBytes} from "./util";
 
@@ -67,17 +72,24 @@ describe("For KB universal accumulator", () => {
             newElements.push(generateFieldElementFromNumber(100 + i));
         }
 
-        accumulator = kbUniversalAccumulatorComputeExtended(accumulator, newElements, sk);
-        expect(accumulator).toBeInstanceOf(Object);
+        const accumulator1 = kbUniversalAccumulatorComputeExtended(accumulator, newElements, sk);
+        expect(accumulator1.mem).toEqual(accumulator.mem);
+        expect(accumulator1.non_mem).not.toEqual(accumulator.non_mem);
 
+        accumulator = accumulator1;
         domain.push(...newElements);
     });
 
     it("add an element", () => {
         let accumulator1 = kbUniversalAccumulatorAdd(accumulator, domain[0], sk);
-        expect(accumulator1).toBeInstanceOf(Object);
+        expect(accumulator1.mem).not.toEqual(accumulator.mem);
+        expect(accumulator1.non_mem).not.toEqual(accumulator.non_mem);
+
         accumulator1 = kbUniversalAccumulatorAdd(accumulator1, domain[1], sk);
-        expect(accumulator1).toBeInstanceOf(Object);
+        expect(accumulator1.mem).not.toEqual(accumulator.mem);
+        expect(accumulator1.non_mem).not.toEqual(accumulator.non_mem);
+
+        accumulator = accumulator1;
     });
 
     it("membership and non-membership after single element updates", () => {
@@ -651,6 +663,8 @@ describe("For KB universal accumulator witness update", () => {
                 params
             )
         ).toBe(true);
+
+        accumulator = accumulator2;
     });
 
     it("by manager after batch updates", () => {
@@ -748,7 +762,48 @@ describe("For KB universal accumulator witness update", () => {
             expect(areUint8ArraysEqual(newNonMemWits[i], newNonMemWits_[i])).toEqual(true);
         }
 
-        accumulator = accumulator1;
+        const newElements = [generateFieldElementFromNumber(200 + 1), generateFieldElementFromNumber(200 + 2), generateFieldElementFromNumber(200 + 3)];
+        const newerNonMemWits = kbUpdateNonMembershipWitnessesPostDomainExtension(newNonMemWits, [nonMember1, nonMember2], newElements, accumulator1, sk);
+        const accumulator2 = kbUniversalAccumulatorComputeExtended(accumulator1, newElements, sk);
+        expect(
+            kbUniversalAccumulatorVerifyNonMembership(
+                accumulator2,
+                nonMember1,
+                newNonMemWits[0],
+                pk,
+                params
+            )
+        ).toBe(false);
+        expect(
+            kbUniversalAccumulatorVerifyNonMembership(
+                accumulator2,
+                nonMember2,
+                newNonMemWits[1],
+                pk,
+                params
+            )
+        ).toBe(false);
+
+        expect(
+            kbUniversalAccumulatorVerifyNonMembership(
+                accumulator2,
+                nonMember1,
+                newerNonMemWits[0],
+                pk,
+                params
+            )
+        ).toBe(true);
+        expect(
+            kbUniversalAccumulatorVerifyNonMembership(
+                accumulator2,
+                nonMember2,
+                newerNonMemWits[1],
+                pk,
+                params
+            )
+        ).toBe(true);
+
+        accumulator = accumulator2;
     });
 
     it("after batch updates", () => {
@@ -1011,6 +1066,62 @@ describe("For KB universal accumulator witness update", () => {
         expect(
             kbUniversalAccumulatorVerifyNonMembership(
                 accumulator,
+                nonMember,
+                nonMemWit,
+                pk,
+                params
+            )
+        ).toBe(true);
+
+        const newElements1 = [generateRandomFieldElement(), generateRandomFieldElement(), generateRandomFieldElement()];
+        const publicInfo1 = publicInfoForKBUniversalNonMemWitnessUpdateOnDomainExtension(accumulator, newElements1, sk);
+        const accumulator1 = kbUniversalAccumulatorComputeExtended(accumulator, newElements1, sk);
+
+        expect(
+            kbUniversalAccumulatorVerifyNonMembership(
+                accumulator1,
+                nonMember,
+                nonMemWit,
+                pk,
+                params
+            )
+        ).toBe(false);
+        nonMemWit = updateKBUniversalNonMembershipWitnessUsingPublicInfoAfterDomainExtension(nonMemWit, nonMember, newElements1, publicInfo1);
+        expect(
+            kbUniversalAccumulatorVerifyNonMembership(
+                accumulator1,
+                nonMember,
+                nonMemWit,
+                pk,
+                params
+            )
+        ).toBe(true);
+
+        const newElements2 = [generateRandomFieldElement(), generateRandomFieldElement(), generateRandomFieldElement()];
+        const publicInfo2 = publicInfoForKBUniversalNonMemWitnessUpdateOnDomainExtension(accumulator1, newElements2, sk);
+        const accumulator2 = kbUniversalAccumulatorComputeExtended(accumulator1, newElements2, sk);
+
+        const newElements3 = [generateRandomFieldElement(), generateRandomFieldElement()];
+        const publicInfo3 = publicInfoForKBUniversalNonMemWitnessUpdateOnDomainExtension(accumulator2, newElements3, sk);
+        const accumulator3 = kbUniversalAccumulatorComputeExtended(accumulator2, newElements3, sk);
+
+        const newElements4 = [generateRandomFieldElement(), generateRandomFieldElement(), generateRandomFieldElement(), generateRandomFieldElement()];
+        const publicInfo4 = publicInfoForKBUniversalNonMemWitnessUpdateOnDomainExtension(accumulator3, newElements4, sk);
+        const accumulator4 = kbUniversalAccumulatorComputeExtended(accumulator3, newElements4, sk);
+
+        expect(
+            kbUniversalAccumulatorVerifyNonMembership(
+                accumulator4,
+                nonMember,
+                nonMemWit,
+                pk,
+                params
+            )
+        ).toBe(false);
+        nonMemWit = updateKBUniversalNonMembershipWitnessUsingPublicInfoAfterMultipleDomainExtensions(nonMemWit, nonMember, [newElements2, newElements3, newElements4], [publicInfo2, publicInfo3, publicInfo4]);
+        expect(
+            kbUniversalAccumulatorVerifyNonMembership(
+                accumulator4,
                 nonMember,
                 nonMemWit,
                 pk,

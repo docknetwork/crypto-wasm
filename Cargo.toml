@@ -25,9 +25,9 @@ dlmalloc = { version = "0.2.6", features = ["global"], optional = true }
 serde_with = { version = "1.10.0", default-features = false, features = ["macros"] }
 
 bbs_plus = { version = "0.19.0", default-features = false }
-vb_accumulator = { version = "0.22.0", default-features = false }
+vb_accumulator = { version = "0.23.0", default-features = false }
 schnorr_pok = { version = "0.17.0", default-features = false }
-proof_system = { version = "0.27.0", default-features = false }
+proof_system = { version = "0.28.0", default-features = false }
 coconut-crypto = { version = "0.8.0", default-features = false }
 dock_crypto_utils = { version = "0.17.0", default-features = false }
 saver = { version = "0.15.0", default-features = false }
