@@ -275,9 +275,9 @@ dependencies = [
 
 [[package]]
 name = "bbs_plus"
-version = "0.19.0"
+version = "0.20.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "977c774c46c02838aebefe543ccea54c8b6ae3281a8217d2bd1093a1e305a367"
+checksum = "0986a5358fafe6ea8d9a33a259ba6f4cec7d243a0b72552823387bbb096ebef2"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -333,9 +333,9 @@ dependencies = [
 
 [[package]]
 name = "bulletproofs_plus_plus"
-version = "0.3.0"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "81fe4d860f844b308a7f0f5d4c908546dd69d84d72d51f25580779ff5d08965f"
+checksum = "cee56cd7d0b32a94d104108c170d0d7dc69ab85741335318f8b4ddfcd676876d"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -438,9 +438,9 @@ dependencies = [
 
 [[package]]
 name = "coconut-crypto"
-version = "0.8.0"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f1c607da724a43b7d6013fbf59e5df2cdee9780534cb4850968856ff3d32a70d"
+checksum = "05a3a387dfcae87bd694ae9ad4495456b36dc1c27538753af8fa2f07ec00c5c9"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -616,9 +616,9 @@ dependencies = [
 
 [[package]]
 name = "dock_crypto_utils"
-version = "0.17.0"
+version = "0.18.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "62b7ba809ca7d0a54ca2533069f56afae4e2592cb6447951c68b8c295107c095"
+checksum = "5b9f2e01550ada8f013c1f76b7b0427bd8281d83690594a2f630e561d2a89bb4"
 dependencies = [
  "aead",
  "ark-ec",
@@ -908,9 +908,9 @@ dependencies = [
 
 [[package]]
 name = "kvac"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "26b58d8e9dd7b65b7a01878a93cbbf1bab6cc2cd5d75bc9e726ba4ffd713829c"
+checksum = "192053f6367764b65fd8130de364bf205e69e485caf6665fe2df7586be67c898"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -939,9 +939,9 @@ checksum = "884e2677b40cc8c339eaefcb701c32ef1fd2493d71118dc0ca4b6a736c93bd67"
 
 [[package]]
 name = "legogroth16"
-version = "0.12.0"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0ce6cf3a3a44b11d85f09ca94cac0e718dc601459ef1e3dbbf6e7b93ab3befe1"
+checksum = "3c750963cb872d147793e4700efd9f9d267d24e65a8ea2033f89ed011d4c0676"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -1121,9 +1121,9 @@ dependencies = [
 
 [[package]]
 name = "oblivious_transfer_protocols"
-version = "0.6.0"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "06321ba0fd3ff539543bd23d701fe7b222c8931a8a643e279a6b1d5e426c0e13"
+checksum = "e84d1f87aeea23677231e450f682849ebb9af70b03db7b739ca8c1c9e436a7ab"
 dependencies = [
  "aes",
  "ark-ec",
@@ -1238,9 +1238,9 @@ dependencies = [
 
 [[package]]
 name = "proof_system"
-version = "0.28.0"
+version = "0.29.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2d04ef3c05513628db1ebe45a57a621435762ef9603eb4d1e450541a38eb6ade"
+checksum = "f7dca9f04d211b66a7abbfc4a9cf112ee12af0440c345efc65efdd1275a46401"
 dependencies = [
  "aead",
  "ark-ec",
@@ -1414,9 +1414,9 @@ checksum = "e86697c916019a8588c99b5fac3cead74ec0b4b819707a682fd4d23fa0ce1ba1"
 
 [[package]]
 name = "saver"
-version = "0.15.0"
+version = "0.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "586c8e1de25ce63154755307e0d1c4201ac4028bcfd7b5f5ea4605edbb7e2d10"
+checksum = "ccb5e2a651a3cdef6996c2f622d4470e1f8a5dda9ebb5ba40430aec08f74d12c"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -1436,9 +1436,9 @@ dependencies = [
 
 [[package]]
 name = "schnorr_pok"
-version = "0.17.0"
+version = "0.18.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a1aab5e6c703f975aad7167e301a00f87815c19cc95dada7da2daddc6aa08583"
+checksum = "19bf7ef558ffa6523dfc14a6d8f60e69cbf150048d488d3691d97cad8f112a8e"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -1471,9 +1471,9 @@ checksum = "1c107b6f4780854c8b126e228ea8869f4d7b71260f962fefb57b996b8959ba6b"
 
 [[package]]
 name = "secret_sharing_and_dkg"
-version = "0.10.0"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9274737001397ca60904de621081e195d0b121f46bfd9174b4be409775464391"
+checksum = "46c0f4d30ac684d0a7bf2e33956f0e76d09e94920ae63efadde35c22f96ff33b"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -1592,9 +1592,9 @@ dependencies = [
 
 [[package]]
 name = "short_group_sig"
-version = "0.1.0"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a5e9548d8d7dd95be7f8ec0fbcb4f5ef8e5af762c6bc6c3169e76809048cd2c9"
+checksum = "947f16eea39b08477d2090a49fde370dd679a264792e05a7d21ee3b395691235"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -1623,9 +1623,9 @@ checksum = "3c5e1a9a646d36c3599cd173a41282daf47c44583ad367b8e6837255952e5c67"
 
 [[package]]
 name = "smc_range_proof"
-version = "0.3.0"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a9115473f7a4098b2eb3fc158f96dc0c991251670f8336c84957f7c686383535"
+checksum = "cf1541eb521b28112ab996572b8467d8168c082bb55fcc9a5f53235f008ce5eb"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -1803,9 +1803,9 @@ checksum = "a183cf7feeba97b4dd1c0d46788634f6221d87fa961b305bed08c851829efcc0"
 
 [[package]]
 name = "vb_accumulator"
-version = "0.23.0"
+version = "0.24.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6cd60574390e62ee5df6a41d349f681b1a6f1cda9561011f25c75f8eee25ba10"
+checksum = "8030d0846e72cd37ac45a6ffd3724f85016107d4467c32e5dee5d39529f71fd7"
 dependencies = [
  "ark-ec",
  "ark-ff",
@@ -1814,6 +1814,7 @@ dependencies = [
  "ark-std",
  "digest",
  "dock_crypto_utils",
+ "kvac",
  "schnorr_pok",
  "serde",
  "serde_with",

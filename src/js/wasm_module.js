@@ -35,6 +35,6 @@ module.exports = {
   ...require('./frost_dkg_wasm'),
   ...require('./threshold_sig_wasm'),
   ...require('./bdd16_kvac_wasm'),
-  ...require('./delegated_proof_wasm'),
+  ...require('./keyed_proof_wasm'),
   ...require('./kb_accumulator_wasm'),
 };

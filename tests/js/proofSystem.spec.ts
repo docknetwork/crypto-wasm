@@ -33,7 +33,6 @@ import {
   bbsPlusGenerateSignatureParamsG1,
   generateWitnessEqualityMetaStatement,
   positiveAccumulatorAdd,
-  positiveAccumulatorGetAccumulated,
   positiveAccumulatorInitialize,
   positiveAccumulatorMembershipWitness,
   universalAccumulatorAdd,
@@ -98,9 +97,9 @@ import {
   generatePoKBBSPlusSignatureProverStatementFromParamRefs,
   generatePoKBBSSignatureProverStatementFromParamRefs,
   generateMembershipProvingKey,
-  getAllDelegatedSubproofsFromProof,
-  verifyBDDT16DelegatedProof,
-  verifyVBAccumMembershipDelegatedProof,
+  getAllKeyedSubproofsFromProof,
+  verifyBDDT16KeyedProof,
+  verifyVBAccumMembershipKeyedProof,
   kbUniversalAccumulatorInitialise,
   kbUniversalAccumulatorAdd,
   kbUniversalAccumulatorMembershipWitness,
@@ -117,8 +116,8 @@ import {
   generateKBUniversalAccumulatorKVFullVerifierNonMembershipStatement,
   generateKBUniversalAccumulatorMembershipVerifierStatementFromParamRefs,
   generateKBUniversalAccumulatorNonMembershipVerifierStatementFromParamRefs,
-  verifyKBUniAccumMembershipDelegatedProof,
-  verifyKBUniAccumNonMembershipDelegatedProof
+  verifyKBUniAccumMembershipKeyedProof,
+  verifyKBUniAccumNonMembershipKeyedProof
 } from "../../lib";
 import { BbsSigParams, PSSigParams } from "../../lib/types";
 import {checkResult, getRevealedUnrevealed, stringToBytes} from "./util";
@@ -1863,7 +1862,7 @@ describe("Proving knowledge of signature and inequality of a signed message with
   });
 });
 
-describe("Delegated proofs", () => {
+describe("Keyed proofs", () => {
   beforeAll(async () => {
     await initializeWasm();
   });
@@ -2015,7 +2014,7 @@ describe("Delegated proofs", () => {
     expect(isProofSpecG1Valid(verifierProofSpec)).toEqual(true);
     checkResult(verifyCompositeProofG1(proof, verifierProofSpec));
 
-    const dps: Map<number, [number, Uint8Array]> = getAllDelegatedSubproofsFromProof(proof);
+    const dps: Map<number, [number, Uint8Array]> = getAllKeyedSubproofsFromProof(proof);
     expect(dps.size).toEqual(4);
     const dp0 = dps.get(1);
     const dp1 = dps.get(3);
@@ -2035,12 +2034,12 @@ describe("Delegated proofs", () => {
     expect(dp3[0]).toEqual(3);
 
     // @ts-ignore
-    checkResult(verifyBDDT16DelegatedProof(dp0[1], bddt16Sk));
+    checkResult(verifyBDDT16KeyedProof(dp0[1], bddt16Sk));
     // @ts-ignore
-    checkResult(verifyVBAccumMembershipDelegatedProof(dp1[1], sk));
+    checkResult(verifyVBAccumMembershipKeyedProof(dp1[1], sk));
     // @ts-ignore
-    checkResult(verifyKBUniAccumMembershipDelegatedProof(dp2[1], sk));
+    checkResult(verifyKBUniAccumMembershipKeyedProof(dp2[1], sk));
     // @ts-ignore
-    checkResult(verifyKBUniAccumNonMembershipDelegatedProof(dp3[1], sk));
+    checkResult(verifyKBUniAccumNonMembershipKeyedProof(dp3[1], sk));
   })
 })

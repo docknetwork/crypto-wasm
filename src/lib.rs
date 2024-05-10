@@ -27,7 +27,7 @@ mod bddt16_kvac;
 pub mod bound_check;
 pub mod common;
 pub mod composite_proof_system;
-pub mod delegated_proof;
+pub mod keyed_proof;
 pub mod frost_dkg;
 pub mod legosnark;
 pub mod ps;
