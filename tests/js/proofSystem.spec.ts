@@ -1,16 +1,12 @@
 import {
   BbsPlusSigParams,
   accumulatorDeriveMembershipProvingKeyFromNonMembershipKey,
-  bbsPlusBlindSignG1,
-  bbsPlusCommitMsgsInG1,
-  encodeMessageForSigning,
-  encodeMessagesForSigning,
+  encodeMessageForSigningInConstantTime,
+  encodeMessagesForSigningInConstantTime,
   bbsPlusGetBasesForCommitmentG1,
   generatePoKPSSignatureStatement,
   bbsPlusSignG1,
-  generatePoKPSSignatureWitness,
   bbsPlusUnblindSigG1,
-  bbsPlusVerifyG1,
   generateAccumulatorMembershipStatement,
   generateAccumulatorMembershipWitness,
   generateAccumulatorNonMembershipStatement,
@@ -25,8 +21,6 @@ import {
   generateNonMembershipProvingKey,
   generatePedersenCommitmentG1Statement,
   generatePedersenCommitmentWitness,
-  generatePoKBBSPlusSignatureVerifierStatement,
-  generatePoKBBSPlusSignatureWitness,
   generateCompositeProofG1,
   generateProofSpecG1,
   generateRandomFieldElement,
@@ -55,7 +49,6 @@ import {
   generateSetupParamForVbAccumulatorPublicKey,
   generateSetupParamForVbAccumulatorMemProvingKey,
   generateSetupParamForVbAccumulatorNonMemProvingKey,
-  generatePoKBBSPlusSignatureVerifierStatementFromParamRefs,
   generateAccumulatorMembershipStatementFromParamRefs,
   generateAccumulatorNonMembershipStatementFromParamRefs,
   IUniversalAccumulator,
@@ -67,35 +60,20 @@ import {
   bbsGenerateSignatureParams,
   bbsGenerateSigningKey,
   bbsGeneratePublicKey,
-  generatePoKBBSSignatureVerifierStatement,
-  bbsSign,
   generatePoKBBSSignatureWitness,
   generateSetupParamForBBSSignatureParameters,
-  generatePoKBBSSignatureVerifierStatementFromParamRefs,
   generatePublicInequalityG1Statement,
   generatePedersenCommKeyG1,
   generatePublicInequalityWitness,
   Bddt16MacParams,
   bddt16GenerateMacParams,
   bddt16MacGenerateSecretKey,
-  bddt16MacGenerate,
-  generatePoKBDDT16MacStatement,
-  generatePoKBDDT16MacWitness,
   generatePoKBDDT16MacFullVerifierStatement,
-  bddt16MacVerify,
-  bddt16BlindMacGenerate,
   bddt16UnblindMac,
-  bddt16MacCommitMsgs,
   bddt16MacGetBasesForCommitment,
   generateAccumulatorKVMembershipStatement,
   generateAccumulatorKVFullVerifierMembershipStatement,
   generateSetupParamForBDDT16MacParameters,
-  generatePoKBDDT16MacStatementFromParamRefs,
-  generatePoKBDDT16MacFullVerifierStatementFromParamRefs,
-  generatePoKBBSSignatureProverStatement,
-  generatePoKBBSPlusSignatureProverStatement,
-  generatePoKBBSPlusSignatureProverStatementFromParamRefs,
-  generatePoKBBSSignatureProverStatementFromParamRefs,
   generateMembershipProvingKey,
   getAllKeyedSubproofsFromProof,
   verifyBDDT16KeyedProof,
@@ -117,7 +95,39 @@ import {
   generateKBUniversalAccumulatorMembershipVerifierStatementFromParamRefs,
   generateKBUniversalAccumulatorNonMembershipVerifierStatementFromParamRefs,
   verifyKBUniAccumMembershipKeyedProof,
-  verifyKBUniAccumNonMembershipKeyedProof
+  verifyKBUniAccumNonMembershipKeyedProof,
+  bbsSignConstantTime,
+  generatePoKBBSSignatureProverStatementConstantTime,
+  generatePoKBBSSignatureVerifierStatementConstantTime,
+  generatePoKBBSSignatureWitnessConstantTime,
+  generatePoKBBSPlusSignatureProverStatementConstantTime,
+  generatePoKBBSPlusSignatureVerifierStatementConstantTime,
+  generatePoKBBSPlusSignatureWitnessConstantTime,
+  generatePoKPSSignatureStatementConstantTime,
+  generatePoKPSSignatureWitnessConstantTime,
+  generatePoKBDDT16MacWitnessConstantTime,
+  generatePoKBDDT16MacStatementConstantTime,
+  bddt16MacGenerateConstantTime,
+  bbsPlusSignG1ConstantTime,
+  bbsPlusBlindSignG1ConstantTime,
+  bbsPlusVerifyG1ConstantTime,
+  bbsPlusCommitMsgsInG1ConstantTime,
+  bddt16MacVerifyConstantTime,
+  bddt16BlindMacGenerateConstantTime,
+  bddt16MacCommitMsgsConstantTime,
+  generatePoKBDDT16MacFullVerifierStatementFromParamRefsConstantTime,
+  generatePoKBBSPlusSignatureProverStatementFromParamRefsConstantTime,
+  generatePoKBBSPlusSignatureVerifierStatementFromParamRefsConstantTime,
+  generatePoKBBSSignatureVerifierStatementFromParamRefsConstantTime,
+  generatePoKBBSSignatureProverStatementFromParamRefsConstantTime,
+  generatePoKBDDT16MacStatementFromParamRefsConstantTime,
+  generatePoKBDDT16MacFullVerifierStatementConstantTime,
+  proofOfValidityOfBDDT16KeyedProof,
+  bddt16MacGeneratePublicKeyG1,
+  verifyProofOfValidityOfBDDT16KeyedProof,
+  generatePoKBBSSignatureProverStatementNew,
+  generatePoKBBSSignatureVerifierStatementNew,
+  generatePoKBBSSignatureProverStatementFromParamRefsNew, generatePoKBBSSignatureVerifierStatementFromParamRefsNew
 } from "../../lib";
 import { BbsSigParams, PSSigParams } from "../../lib/types";
 import {checkResult, getRevealedUnrevealed, stringToBytes} from "./util";
@@ -131,7 +141,7 @@ function setupMessages(
   for (let i = 0; i < messageCount; i++) {
     let m = stringToBytes(`${prefix}-${i + 1}`);
     if (encode) {
-      m = encodeMessageForSigning(m);
+      m = encodeMessageForSigningInConstantTime(m);
     }
     messages.push(m);
   }
@@ -423,19 +433,19 @@ describe("Proving knowledge of many signatures", () => {
 
     if (isKvac) {
       const statements: Uint8Array[] = [];
-      statements.push(generatePoKBDDT16MacFullVerifierStatement(
+      statements.push(generatePoKBDDT16MacFullVerifierStatementConstantTime(
           sigParams1,
           sk1,
           revealedMsgs1,
           encodeWhileSigning
       ));
-      statements.push(generatePoKBDDT16MacFullVerifierStatement(
+      statements.push(generatePoKBDDT16MacFullVerifierStatementConstantTime(
           sigParams2,
           sk2,
           revealedMsgs2,
           encodeWhileSigning
       ));
-      statements.push(generatePoKBDDT16MacFullVerifierStatement(
+      statements.push(generatePoKBDDT16MacFullVerifierStatementConstantTime(
           sigParams3,
           sk3,
           revealedMsgs3,
@@ -463,10 +473,10 @@ describe("Proving knowledge of many signatures", () => {
 
     proveAndVerifySig(
       setupBBS,
-      bbsSign,
-      generatePoKBBSSignatureProverStatement,
-      generatePoKBBSSignatureVerifierStatement,
-      generatePoKBBSSignatureWitness,
+      bbsSignConstantTime,
+      generatePoKBBSSignatureProverStatementConstantTime,
+      generatePoKBBSSignatureVerifierStatementConstantTime,
+      generatePoKBBSSignatureWitnessConstantTime,
       messageCount1,
       messageCount2,
       messageCount3,
@@ -474,14 +484,26 @@ describe("Proving knowledge of many signatures", () => {
     );
     proveAndVerifySig(
       setupBBS,
-      bbsSign,
-      generatePoKBBSSignatureProverStatement,
-      generatePoKBBSSignatureVerifierStatement,
+      bbsSignConstantTime,
+      generatePoKBBSSignatureProverStatementConstantTime,
+      generatePoKBBSSignatureVerifierStatementConstantTime,
       generatePoKBBSSignatureWitness,
       messageCount1,
       messageCount2,
       messageCount3,
       false
+    );
+    // Using the new protocol
+    proveAndVerifySig(
+        setupBBS,
+        bbsSignConstantTime,
+        generatePoKBBSSignatureProverStatementNew,
+        generatePoKBBSSignatureVerifierStatementNew,
+        generatePoKBBSSignatureWitnessConstantTime,
+        messageCount1,
+        messageCount2,
+        messageCount3,
+        false
     );
   });
 
@@ -492,10 +514,10 @@ describe("Proving knowledge of many signatures", () => {
 
     proveAndVerifySig(
       setupBBSPlus,
-      bbsPlusSignG1,
-      generatePoKBBSPlusSignatureProverStatement,
-      generatePoKBBSPlusSignatureVerifierStatement,
-      generatePoKBBSPlusSignatureWitness,
+      bbsPlusSignG1ConstantTime,
+      generatePoKBBSPlusSignatureProverStatementConstantTime,
+      generatePoKBBSPlusSignatureVerifierStatementConstantTime,
+      generatePoKBBSPlusSignatureWitnessConstantTime,
       messageCount1,
       messageCount2,
       messageCount3,
@@ -504,9 +526,9 @@ describe("Proving knowledge of many signatures", () => {
     proveAndVerifySig(
       setupBBSPlus,
       bbsPlusSignG1,
-      generatePoKBBSPlusSignatureProverStatement,
-      generatePoKBBSPlusSignatureVerifierStatement,
-      generatePoKBBSPlusSignatureWitness,
+      generatePoKBBSPlusSignatureProverStatementConstantTime,
+      generatePoKBBSPlusSignatureVerifierStatementConstantTime,
+      generatePoKBBSPlusSignatureWitnessConstantTime,
       messageCount1,
       messageCount2,
       messageCount3,
@@ -522,9 +544,9 @@ describe("Proving knowledge of many signatures", () => {
     proveAndVerifySig(
       setupPS,
       psSign,
-      generatePoKPSSignatureStatement,
-        generatePoKPSSignatureStatement,
-      generatePoKPSSignatureWitness,
+      generatePoKPSSignatureStatementConstantTime,
+        generatePoKPSSignatureStatementConstantTime,
+      generatePoKPSSignatureWitnessConstantTime,
       messageCount1,
       messageCount2,
       messageCount3,
@@ -540,10 +562,10 @@ describe("Proving knowledge of many signatures", () => {
 
     proveAndVerifySig(
         setupBDDT16,
-        bddt16MacGenerate,
-        generatePoKBDDT16MacStatement,
-        generatePoKBDDT16MacStatement,
-        generatePoKBDDT16MacWitness,
+        bddt16MacGenerateConstantTime,
+        generatePoKBDDT16MacStatementConstantTime,
+        generatePoKBDDT16MacStatementConstantTime,
+        generatePoKBDDT16MacWitnessConstantTime,
         messageCount1,
         messageCount2,
         messageCount3,
@@ -553,10 +575,10 @@ describe("Proving knowledge of many signatures", () => {
     );
     proveAndVerifySig(
         setupBDDT16,
-        bddt16MacGenerate,
-        generatePoKBDDT16MacStatement,
-        generatePoKBDDT16MacStatement,
-        generatePoKBDDT16MacWitness,
+        bddt16MacGenerateConstantTime,
+        generatePoKBDDT16MacStatementConstantTime,
+        generatePoKBDDT16MacStatementConstantTime,
+        generatePoKBDDT16MacWitnessConstantTime,
         messageCount1,
         messageCount2,
         messageCount3,
@@ -863,20 +885,30 @@ describe("Proving knowledge of signatures and accumulator membership and non-mem
   it("generate and verify a proof of knowledge of a BBS signature and accumulator membership", () => {
     check(
       setupBBS,
-      bbsSign,
-      generatePoKBBSSignatureProverStatement,
-      generatePoKBBSSignatureVerifierStatement,
-      generatePoKBBSSignatureWitness
+      bbsSignConstantTime,
+      generatePoKBBSSignatureProverStatementConstantTime,
+      generatePoKBBSSignatureVerifierStatementConstantTime,
+      generatePoKBBSSignatureWitnessConstantTime
+    );
+  });
+
+  it("generate and verify a proof of knowledge of a BBS signature using new protocol and accumulator membership", () => {
+    check(
+        setupBBS,
+        bbsSignConstantTime,
+        generatePoKBBSSignatureProverStatementNew,
+        generatePoKBBSSignatureVerifierStatementNew,
+        generatePoKBBSSignatureWitnessConstantTime
     );
   });
 
   it("generate and verify a proof of knowledge of a BBS+ signature and accumulator membership", () => {
     check(
       setupBBSPlus,
-      bbsPlusSignG1,
-      generatePoKBBSPlusSignatureProverStatement,
-      generatePoKBBSPlusSignatureVerifierStatement,
-      generatePoKBBSPlusSignatureWitness
+      bbsPlusSignG1ConstantTime,
+      generatePoKBBSPlusSignatureProverStatementConstantTime,
+      generatePoKBBSPlusSignatureVerifierStatementConstantTime,
+      generatePoKBBSPlusSignatureWitnessConstantTime
     );
   });
 
@@ -884,9 +916,9 @@ describe("Proving knowledge of signatures and accumulator membership and non-mem
     check(
       setupPS,
       psSign,
+      generatePoKPSSignatureStatementConstantTime,
       generatePoKPSSignatureStatement,
-      generatePoKPSSignatureStatement,
-      generatePoKPSSignatureWitness,
+      generatePoKPSSignatureWitnessConstantTime,
       true
     );
   });
@@ -894,10 +926,10 @@ describe("Proving knowledge of signatures and accumulator membership and non-mem
   it("generate and verify a proof of knowledge of a MAC and accumulator membership", () => {
     check(
         setupBDDT16,
-        bddt16MacGenerate,
-        generatePoKBDDT16MacStatement,
-        generatePoKBDDT16MacStatement,
-        generatePoKBDDT16MacWitness,
+        bddt16MacGenerateConstantTime,
+        generatePoKBDDT16MacStatementConstantTime,
+        generatePoKBDDT16MacStatementConstantTime,
+        generatePoKBDDT16MacWitnessConstantTime,
         false,
         true
     );
@@ -927,6 +959,7 @@ describe("Proving knowledge of a signature or MAC while requesting a partially b
     messages2[5] = messages1[4];
 
     const sig1 = sign(messages1, sk1, sigParams1, true);
+    checkResult(isKvac ? verify(messages1, sig1, sk1, sigParams1, true) : verify(messages1, sig1, pk1, sigParams1, true))
 
     const revealedIndices1 = new Set<number>();
     revealedIndices1.add(0);
@@ -985,7 +1018,7 @@ describe("Proving knowledge of a signature or MAC while requesting a partially b
         true
     );
 
-    const pcWits = encodeMessagesForSigning(messages2, indicesToCommit);
+    const pcWits = encodeMessagesForSigningInConstantTime(messages2, indicesToCommit);
     pcWits.splice(0, 0, blinding);
     const witness2 = generatePedersenCommitmentWitness(pcWits);
 
@@ -1030,30 +1063,30 @@ describe("Proving knowledge of a signature or MAC while requesting a partially b
   it("generate and verify a proof of knowledge of a BBS+ signature and request a blind BBS+ signature", () => {
     check(
         setupBBSPlus,
-        bbsPlusSignG1,
-        bbsPlusVerifyG1,
-        bbsPlusBlindSignG1,
+        bbsPlusSignG1ConstantTime,
+        bbsPlusVerifyG1ConstantTime,
+        bbsPlusBlindSignG1ConstantTime,
         bbsPlusUnblindSigG1,
-        bbsPlusCommitMsgsInG1,
+        bbsPlusCommitMsgsInG1ConstantTime,
         bbsPlusGetBasesForCommitmentG1,
-        generatePoKBBSPlusSignatureProverStatement,
-        generatePoKBBSPlusSignatureVerifierStatement,
-        generatePoKBBSPlusSignatureWitness
+        generatePoKBBSPlusSignatureProverStatementConstantTime,
+        generatePoKBBSPlusSignatureVerifierStatementConstantTime,
+        generatePoKBBSPlusSignatureWitnessConstantTime
     )
   });
 
   it("generate and verify a proof of knowledge of a MAC and request a blind MAC", () => {
     check(
         setupBDDT16,
-        bddt16MacGenerate,
-        bddt16MacVerify,
-        bddt16BlindMacGenerate,
+        bddt16MacGenerateConstantTime,
+        bddt16MacVerifyConstantTime,
+        bddt16BlindMacGenerateConstantTime,
         bddt16UnblindMac,
-        bddt16MacCommitMsgs,
+        bddt16MacCommitMsgsConstantTime,
         bddt16MacGetBasesForCommitment,
-        generatePoKBDDT16MacStatement,
-        generatePoKBDDT16MacStatement,
-        generatePoKBDDT16MacWitness,
+        generatePoKBDDT16MacStatementConstantTime,
+        generatePoKBDDT16MacStatementConstantTime,
+        generatePoKBDDT16MacWitnessConstantTime,
         true
     )
   });
@@ -1674,10 +1707,10 @@ describe("Reusing setup params of BBS, BBS+ and accumulator", () => {
 
     if (isKvac) {
       const statements: Uint8Array[] = [];
-      statements.push(generatePoKBDDT16MacFullVerifierStatementFromParamRefs(0, sigSk1,  revealedMsgs1, false));
-      statements.push(generatePoKBDDT16MacFullVerifierStatementFromParamRefs(0, sigSk1,  revealedMsgs2, false));
-      statements.push(generatePoKBDDT16MacFullVerifierStatementFromParamRefs(1, sigSk2,  revealedMsgs3, false));
-      statements.push(generatePoKBDDT16MacFullVerifierStatementFromParamRefs(1, sigSk2,  revealedMsgs4, false));
+      statements.push(generatePoKBDDT16MacFullVerifierStatementFromParamRefsConstantTime(0, sigSk1,  revealedMsgs1, false));
+      statements.push(generatePoKBDDT16MacFullVerifierStatementFromParamRefsConstantTime(0, sigSk1,  revealedMsgs2, false));
+      statements.push(generatePoKBDDT16MacFullVerifierStatementFromParamRefsConstantTime(1, sigSk2,  revealedMsgs3, false));
+      statements.push(generatePoKBDDT16MacFullVerifierStatementFromParamRefsConstantTime(1, sigSk2,  revealedMsgs4, false));
       statements.push(statement5);
       statements.push(statement6);
       statements.push(statement7);
@@ -1698,16 +1731,20 @@ describe("Reusing setup params of BBS, BBS+ and accumulator", () => {
   }
 
   it("generate and verify a proof of knowledge with BBS+ signature and accumulator using setup parameters", () => {
-    check(sigParams1, sigSk1, sigPk1, sigParams2, sigSk2, sigPk2, bbsPlusSignG1, generateSetupParamForBBSPlusSignatureParametersG1, generateSetupParamForBBSPlusPublicKeyG2, generatePoKBBSPlusSignatureProverStatementFromParamRefs, generatePoKBBSPlusSignatureVerifierStatementFromParamRefs, generatePoKBBSPlusSignatureWitness)
+    check(sigParams1, sigSk1, sigPk1, sigParams2, sigSk2, sigPk2, bbsPlusSignG1ConstantTime, generateSetupParamForBBSPlusSignatureParametersG1, generateSetupParamForBBSPlusPublicKeyG2, generatePoKBBSPlusSignatureProverStatementFromParamRefsConstantTime, generatePoKBBSPlusSignatureVerifierStatementFromParamRefsConstantTime, generatePoKBBSPlusSignatureWitnessConstantTime)
   });
 
   it("generate and verify a proof of knowledge with BBS signature and accumulator using setup parameters", () => {
-    check(sigParams1, sigSk1, sigPk1, sigParams2, sigSk2, sigPk2, bbsSign, generateSetupParamForBBSSignatureParameters, generateSetupParamForBBSPlusPublicKeyG2, generatePoKBBSSignatureProverStatementFromParamRefs, generatePoKBBSSignatureVerifierStatementFromParamRefs, generatePoKBBSSignatureWitness)
+    check(sigParams1, sigSk1, sigPk1, sigParams2, sigSk2, sigPk2, bbsSignConstantTime, generateSetupParamForBBSSignatureParameters, generateSetupParamForBBSPlusPublicKeyG2, generatePoKBBSSignatureProverStatementFromParamRefsConstantTime, generatePoKBBSSignatureVerifierStatementFromParamRefsConstantTime, generatePoKBBSSignatureWitnessConstantTime)
+  });
+
+  it("generate and verify a proof of knowledge with BBS signature using new protocol and accumulator using setup parameters", () => {
+    check(sigParams1, sigSk1, sigPk1, sigParams2, sigSk2, sigPk2, bbsSignConstantTime, generateSetupParamForBBSSignatureParameters, generateSetupParamForBBSPlusPublicKeyG2, generatePoKBBSSignatureProverStatementFromParamRefsNew, generatePoKBBSSignatureVerifierStatementFromParamRefsNew, generatePoKBBSSignatureWitnessConstantTime)
   });
 
   it("generate and verify a proof of knowledge with MAC and accumulator using setup parameters", () => {
     check(
-        macParams1, macSk1, undefined, macParams2, macSk2, undefined, bddt16MacGenerate, generateSetupParamForBDDT16MacParameters, undefined, generatePoKBDDT16MacStatementFromParamRefs, generatePoKBDDT16MacStatementFromParamRefs, generatePoKBDDT16MacWitness, true
+        macParams1, macSk1, undefined, macParams2, macSk2, undefined, bddt16MacGenerateConstantTime, generateSetupParamForBDDT16MacParameters, undefined, generatePoKBDDT16MacStatementFromParamRefsConstantTime, generatePoKBDDT16MacStatementFromParamRefsConstantTime, generatePoKBDDT16MacWitnessConstantTime, true
     )
   });
 });
@@ -1821,20 +1858,30 @@ describe("Proving knowledge of signature and inequality of a signed message with
   it("when BBS signatures", () => {
     check(
         setupBBS,
-        bbsSign,
-        generatePoKBBSSignatureProverStatement,
-        generatePoKBBSSignatureVerifierStatement,
-        generatePoKBBSSignatureWitness,
+        bbsSignConstantTime,
+        generatePoKBBSSignatureProverStatementConstantTime,
+        generatePoKBBSSignatureVerifierStatementConstantTime,
+        generatePoKBBSSignatureWitnessConstantTime,
+    );
+  });
+
+  it("when BBS signatures - new protocol", () => {
+    check(
+        setupBBS,
+        bbsSignConstantTime,
+        generatePoKBBSSignatureProverStatementNew,
+        generatePoKBBSSignatureVerifierStatementNew,
+        generatePoKBBSSignatureWitnessConstantTime,
     );
   });
 
   it("when BBS+ signatures", () => {
     check(
         setupBBSPlus,
-        bbsPlusSignG1,
-        generatePoKBBSPlusSignatureProverStatement,
-        generatePoKBBSPlusSignatureVerifierStatement,
-        generatePoKBBSPlusSignatureWitness,
+        bbsPlusSignG1ConstantTime,
+        generatePoKBBSPlusSignatureProverStatementConstantTime,
+        generatePoKBBSPlusSignatureVerifierStatementConstantTime,
+        generatePoKBBSPlusSignatureWitnessConstantTime,
     );
   });
 
@@ -1842,9 +1889,9 @@ describe("Proving knowledge of signature and inequality of a signed message with
     check(
         setupPS,
         psSign,
-        generatePoKPSSignatureStatement,
-        generatePoKPSSignatureStatement,
-        generatePoKPSSignatureWitness,
+        generatePoKPSSignatureStatementConstantTime,
+        generatePoKPSSignatureStatementConstantTime,
+        generatePoKPSSignatureWitnessConstantTime,
         true
     );
   });
@@ -1852,10 +1899,10 @@ describe("Proving knowledge of signature and inequality of a signed message with
   it("when BDDT16 MAC signatures", () => {
     check(
         setupBDDT16,
-        bddt16MacGenerate,
-        generatePoKBDDT16MacStatement,
-        generatePoKBDDT16MacStatement,
-        generatePoKBDDT16MacWitness,
+        bddt16MacGenerateConstantTime,
+        generatePoKBDDT16MacStatementConstantTime,
+        generatePoKBDDT16MacStatementConstantTime,
+        generatePoKBDDT16MacWitnessConstantTime,
         false,
         true
     );
@@ -1887,8 +1934,8 @@ describe("Keyed proofs", () => {
 
     const nonMember = messages1[3];
 
-    const sig1 = bbsSign(messages1, bbsSk, bbsParams, false);
-    const sig2 = bddt16MacGenerate(messages2, bddt16Sk, bddt16Params, false);
+    const sig1 = bbsSignConstantTime(messages1, bbsSk, bbsParams, false);
+    const sig2 = bddt16MacGenerateConstantTime(messages2, bddt16Sk, bddt16Params, false);
 
     const params = generateAccumulatorParams();
     const sk = generateAccumulatorSecretKey();
@@ -1933,8 +1980,8 @@ describe("Keyed proofs", () => {
     );
 
     const proverStatements: Uint8Array[] = [];
-    proverStatements.push(generatePoKBBSSignatureProverStatement(bbsParams, revealedMsgs1, false));
-    proverStatements.push(generatePoKBDDT16MacStatement(bddt16Params, revealedMsgs2, false));
+    proverStatements.push(generatePoKBBSSignatureProverStatementConstantTime(bbsParams, revealedMsgs1, false));
+    proverStatements.push(generatePoKBDDT16MacStatementConstantTime(bddt16Params, revealedMsgs2, false));
 
     proverStatements.push(generateAccumulatorMembershipStatement(
         params,
@@ -1969,8 +2016,8 @@ describe("Keyed proofs", () => {
     const proverProofSpec = generateProofSpecG1(proverStatements, metaStatements, []);
     expect(isProofSpecG1Valid(proverProofSpec)).toEqual(true);
 
-    const witness1 = generatePoKBBSSignatureWitness(sig1, unrevealedMsgs1, false);
-    const witness2 = generatePoKBDDT16MacWitness(sig2, unrevealedMsgs2, false);
+    const witness1 = generatePoKBBSSignatureWitnessConstantTime(sig1, unrevealedMsgs1, false);
+    const witness2 = generatePoKBDDT16MacWitnessConstantTime(sig2, unrevealedMsgs2, false);
     const witness3 = generateAccumulatorMembershipWitness(member, witness);
     const witness4 = generateAccumulatorMembershipWitness(member, witness);
     const witness5 = generateKBUniversalAccumulatorMembershipWitness(member, kbUniMemWitness);
@@ -1991,11 +2038,11 @@ describe("Keyed proofs", () => {
     const proof = generateCompositeProofG1(proverProofSpec, witnesses);
 
     const verifierStatements: Uint8Array[] = [];
-    verifierStatements.push(generatePoKBBSSignatureVerifierStatement(bbsParams,
+    verifierStatements.push(generatePoKBBSSignatureVerifierStatementConstantTime(bbsParams,
         bbsPk,
         revealedMsgs1,
         false));
-    verifierStatements.push(generatePoKBDDT16MacStatement(bddt16Params,
+    verifierStatements.push(generatePoKBDDT16MacStatementConstantTime(bddt16Params,
         revealedMsgs1,
         false));
     verifierStatements.push(generateAccumulatorMembershipStatement(
@@ -2041,5 +2088,11 @@ describe("Keyed proofs", () => {
     checkResult(verifyKBUniAccumMembershipKeyedProof(dp2[1], sk));
     // @ts-ignore
     checkResult(verifyKBUniAccumNonMembershipKeyedProof(dp3[1], sk));
+
+    const pkG1 = bddt16MacGeneratePublicKeyG1(bddt16Sk, bddt16Params);
+    // @ts-ignore
+    const pv = proofOfValidityOfBDDT16KeyedProof(dp0[1], bddt16Sk, pkG1, bddt16Params);
+    // @ts-ignore
+    checkResult(verifyProofOfValidityOfBDDT16KeyedProof(pv, dp0[1], pkG1, bddt16Params));
   })
 })

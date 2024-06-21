@@ -6,7 +6,33 @@ export function generatePoKBBSSignatureProverStatement(
     encodeMessages: boolean
 ): Uint8Array;
 
+export function generatePoKBBSSignatureProverStatementNew(
+    params: BbsSigParams,
+    revealedMessages: Map<number, Uint8Array>,
+    encodeMessages: boolean
+): Uint8Array;
+
+export function generatePoKBBSSignatureProverStatementConstantTime(
+    params: BbsSigParams,
+    revealedMessages: Map<number, Uint8Array>,
+    encodeMessages: boolean
+): Uint8Array;
+
 export function generatePoKBBSSignatureVerifierStatement(
+    params: BbsSigParams,
+    publicKey: Uint8Array,
+    revealedMessages: Map<number, Uint8Array>,
+    encodeMessages: boolean
+): Uint8Array;
+
+export function generatePoKBBSSignatureVerifierStatementNew(
+    params: BbsSigParams,
+    publicKey: Uint8Array,
+    revealedMessages: Map<number, Uint8Array>,
+    encodeMessages: boolean
+): Uint8Array;
+
+export function generatePoKBBSSignatureVerifierStatementConstantTime(
     params: BbsSigParams,
     publicKey: Uint8Array,
     revealedMessages: Map<number, Uint8Array>,
@@ -19,7 +45,20 @@ export function generatePoKBBSPlusSignatureProverStatement(
     encodeMessages: boolean
 ): Uint8Array;
 
+export function generatePoKBBSPlusSignatureProverStatementConstantTime(
+    params: BbsPlusSigParams,
+    revealedMessages: Map<number, Uint8Array>,
+    encodeMessages: boolean
+): Uint8Array;
+
 export function generatePoKBBSPlusSignatureVerifierStatement(
+    params: BbsPlusSigParams,
+    publicKey: Uint8Array,
+    revealedMessages: Map<number, Uint8Array>,
+    encodeMessages: boolean
+): Uint8Array;
+
+export function generatePoKBBSPlusSignatureVerifierStatementConstantTime(
     params: BbsPlusSigParams,
     publicKey: Uint8Array,
     revealedMessages: Map<number, Uint8Array>,
@@ -32,7 +71,33 @@ export function generatePoKBBSSignatureProverStatementFromParamRefs(
     encodeMessages: boolean
 ): Uint8Array;
 
+export function generatePoKBBSSignatureProverStatementFromParamRefsNew(
+    params: number,
+    revealedMessages: Map<number, Uint8Array>,
+    encodeMessages: boolean
+): Uint8Array;
+
+export function generatePoKBBSSignatureProverStatementFromParamRefsConstantTime(
+    params: number,
+    revealedMessages: Map<number, Uint8Array>,
+    encodeMessages: boolean
+): Uint8Array;
+
 export function generatePoKBBSSignatureVerifierStatementFromParamRefs(
+    params: number,
+    publicKey: number,
+    revealedMessages: Map<number, Uint8Array>,
+    encodeMessages: boolean
+): Uint8Array;
+
+export function generatePoKBBSSignatureVerifierStatementFromParamRefsNew(
+    params: number,
+    publicKey: number,
+    revealedMessages: Map<number, Uint8Array>,
+    encodeMessages: boolean
+): Uint8Array;
+
+export function generatePoKBBSSignatureVerifierStatementFromParamRefsConstantTime(
     params: number,
     publicKey: number,
     revealedMessages: Map<number, Uint8Array>,
@@ -45,7 +110,20 @@ export function generatePoKBBSPlusSignatureProverStatementFromParamRefs(
     encodeMessages: boolean
 ): Uint8Array;
 
+export function generatePoKBBSPlusSignatureProverStatementFromParamRefsConstantTime(
+    params: number,
+    revealedMessages: Map<number, Uint8Array>,
+    encodeMessages: boolean
+): Uint8Array;
+
 export function generatePoKBBSPlusSignatureVerifierStatementFromParamRefs(
+    params: number,
+    publicKey: number,
+    revealedMessages: Map<number, Uint8Array>,
+    encodeMessages: boolean
+): Uint8Array;
+
+export function generatePoKBBSPlusSignatureVerifierStatementFromParamRefsConstantTime(
     params: number,
     publicKey: number,
     revealedMessages: Map<number, Uint8Array>,
@@ -58,7 +136,19 @@ export function generatePoKPSSignatureStatement(
     revealedMessages: Map<number, Uint8Array>
 ): Uint8Array;
 
+export function generatePoKPSSignatureStatementConstantTime(
+    params: PSSigParams,
+    publicKey: Uint8Array,
+    revealedMessages: Map<number, Uint8Array>
+): Uint8Array;
+
 export function generatePoKPSSignatureStatementFromParamRefs(
+    params: number,
+    publicKey: number,
+    revealedMessages: Map<number, Uint8Array>
+): Uint8Array;
+
+export function generatePoKPSSignatureStatementFromParamRefsConstantTime(
     params: number,
     publicKey: number,
     revealedMessages: Map<number, Uint8Array>
@@ -304,13 +394,30 @@ export function generatePoKBBSSignatureWitness(
     encodeMessages: boolean
 ): Uint8Array;
 
+export function generatePoKBBSSignatureWitnessConstantTime(
+    signature: Uint8Array,
+    unrevealedMessages: Map<number, Uint8Array>,
+    encodeMessages: boolean
+): Uint8Array;
+
 export function generatePoKBBSPlusSignatureWitness(
     signature: Uint8Array,
     unrevealedMessages: Map<number, Uint8Array>,
     encodeMessages: boolean
 ): Uint8Array;
 
+export function generatePoKBBSPlusSignatureWitnessConstantTime(
+    signature: Uint8Array,
+    unrevealedMessages: Map<number, Uint8Array>,
+    encodeMessages: boolean
+): Uint8Array;
+
 export function generatePoKPSSignatureWitness(
+    signature: Uint8Array,
+    unrevealedMessages: Map<number, Uint8Array>
+): Uint8Array;
+
+export function generatePoKPSSignatureWitnessConstantTime(
     signature: Uint8Array,
     unrevealedMessages: Map<number, Uint8Array>
 ): Uint8Array;
@@ -426,13 +533,32 @@ export function generatePoKBDDT16MacStatement(
     encodeMessages: boolean
 ): Uint8Array;
 
+export function generatePoKBDDT16MacStatementConstantTime(
+    params: Bddt16MacParams,
+    revealedMessages: Map<number, Uint8Array>,
+    encodeMessages: boolean
+): Uint8Array;
+
 export function generatePoKBDDT16MacStatementFromParamRefs(
     params: number,
     revealedMessages: Map<number, Uint8Array>,
     encodeMessages: boolean
 ): Uint8Array;
 
+export function generatePoKBDDT16MacStatementFromParamRefsConstantTime(
+    params: number,
+    revealedMessages: Map<number, Uint8Array>,
+    encodeMessages: boolean
+): Uint8Array;
+
 export function generatePoKBDDT16MacFullVerifierStatement(
+    params: Bddt16MacParams,
+    secretKey: Uint8Array,
+    revealedMessages: Map<number, Uint8Array>,
+    encodeMessages: boolean
+): Uint8Array;
+
+export function generatePoKBDDT16MacFullVerifierStatementConstantTime(
     params: Bddt16MacParams,
     secretKey: Uint8Array,
     revealedMessages: Map<number, Uint8Array>,
@@ -446,7 +572,20 @@ export function generatePoKBDDT16MacFullVerifierStatementFromParamRefs(
     encodeMessages: boolean
 ): Uint8Array;
 
+export function generatePoKBDDT16MacFullVerifierStatementFromParamRefsConstantTime(
+    params: number,
+    secretKey: Uint8Array,
+    revealedMessages: Map<number, Uint8Array>,
+    encodeMessages: boolean
+): Uint8Array;
+
 export function generatePoKBDDT16MacWitness(
+    mac: Uint8Array,
+    unrevealedMessages: Map<number, Uint8Array>,
+    encodeMessages: boolean
+): Uint8Array;
+
+export function generatePoKBDDT16MacWitnessConstantTime(
     mac: Uint8Array,
     unrevealedMessages: Map<number, Uint8Array>,
     encodeMessages: boolean

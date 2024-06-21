@@ -278,9 +278,9 @@ pub fn ps_sign(
 #[wasm_bindgen(js_name = psBlindSign)]
 pub fn ps_blind_sign(
     messages: JsValue,
-    secret_key: js_sys::Uint8Array,
-    h: js_sys::Uint8Array,
-) -> Result<js_sys::Uint8Array, JsValue> {
+    secret_key: Uint8Array,
+    h: Uint8Array,
+) -> Result<Uint8Array, JsValue> {
     set_panic_hook();
 
     let messages = js_sys::try_iter(&messages)?
@@ -298,10 +298,11 @@ pub fn ps_blind_sign(
 
 #[wasm_bindgen(js_name = psUnblindSignature)]
 pub fn ps_unblind_sig(
-    blind_signature: js_sys::Uint8Array,
+    blind_signature: Uint8Array,
     indexed_blindings: js_sys::Map,
     public_key: Uint8Array,
-) -> Result<js_sys::Uint8Array, JsValue> {
+    h: Uint8Array,
+) -> Result<Uint8Array, JsValue> {
     set_panic_hook();
 
     let signature = obj_from_uint8array!(PSBlindSignature, blind_signature, false);
@@ -311,10 +312,11 @@ pub fn ps_unblind_sig(
         .iter()
         .map(|(&idx, message)| (idx, message));
     let pk = obj_from_uint8array!(PSPublicKey, public_key, false, "PSPublicKey");
+    let h = obj_from_uint8array!(G1Affine, h, false);
 
     Ok(obj_to_uint8array!(
         &signature
-            .unblind(sorted_indexed_blindigns, &pk)
+            .unblind(sorted_indexed_blindigns, &pk, &h)
             .map_err(debug_to_js_value)?,
         true,
         "PSSignature"

@@ -19,7 +19,7 @@ use ark_std::{
 };
 use blake2::Blake2b512;
 use dock_crypto_utils::concat_slices;
-use serde_wasm_bindgen::from_value;
+use serde_wasm_bindgen::{from_value, to_value};
 use wasm_bindgen::prelude::*;
 use zeroize::Zeroize;
 
@@ -67,11 +67,11 @@ pub fn fr_to_jsvalue(elem: &Fr) -> Result<JsValue, JsValue> {
         ))
     })?;
     // Following unwrap won't fail as its serializing only bytes
-    Ok(serde_wasm_bindgen::to_value(&bytes).unwrap())
+    Ok(to_value(&bytes).unwrap())
 }
 
 pub fn fr_from_jsvalue(value: JsValue) -> Result<Fr, JsValue> {
-    let bytes: Vec<u8> = serde_wasm_bindgen::from_value(value)?;
+    let bytes: Vec<u8> = from_value(value)?;
     let elem = Fr::deserialize_compressed(&bytes[..]).map_err(|e| {
         JsValue::from(&format!(
             "Cannot deserialize {:?} to Fr due to error: {:?}",
@@ -115,7 +115,7 @@ pub fn fr_from_uint8_array(
 }
 
 pub fn frs_from_jsvalue(value: JsValue) -> Result<Vec<Fr>, JsValue> {
-    let bytes: Vec<u8> = serde_wasm_bindgen::from_value(value)?;
+    let bytes: Vec<u8> = from_value(value)?;
     let elem = <Vec<Fr>>::deserialize_compressed(&bytes[..]).map_err(|e| {
         JsValue::from(&format!(
             "Cannot deserialize to Fr vector due to error: {:?}",
@@ -131,7 +131,7 @@ pub fn frs_to_jsvalue(elems: &[Fr]) -> Result<JsValue, JsValue> {
         .serialize_compressed(&mut bytes)
         .map_err(|e| JsValue::from(&format!("Cannot serialize Fr vector due to error: {:?}", e)))?;
     // Following unwrap won't fail as its serializing only bytes
-    Ok(serde_wasm_bindgen::to_value(&bytes).unwrap())
+    Ok(to_value(&bytes).unwrap())
 }
 
 pub fn g1_affine_to_jsvalue(elem: &G1Affine) -> Result<JsValue, JsValue> {
@@ -139,11 +139,11 @@ pub fn g1_affine_to_jsvalue(elem: &G1Affine) -> Result<JsValue, JsValue> {
     elem.serialize_compressed(&mut bytes)
         .map_err(|e| JsValue::from(&format!("Cannot serialize G1Affine due to error: {:?}", e)))?;
     // Following unwrap won't fail as its serializing only bytes
-    Ok(serde_wasm_bindgen::to_value(&bytes).unwrap())
+    Ok(to_value(&bytes).unwrap())
 }
 
 pub fn g1_affine_from_jsvalue(value: JsValue) -> Result<G1Affine, JsValue> {
-    let bytes: Vec<u8> = serde_wasm_bindgen::from_value(value)?;
+    let bytes: Vec<u8> = from_value(value)?;
     let elem = G1Affine::deserialize_compressed(&bytes[..]).map_err(|e| {
         JsValue::from(&format!(
             "Cannot deserialize to G1Affine due to error: {:?}",
@@ -177,11 +177,11 @@ pub fn g2_affine_to_jsvalue(elem: &G2Affine) -> Result<JsValue, JsValue> {
     elem.serialize_compressed(&mut bytes)
         .map_err(|e| JsValue::from(&format!("Cannot serialize G2Affine due to error: {:?}", e)))?;
     // Following unwrap won't fail as its serializing only bytes
-    Ok(serde_wasm_bindgen::to_value(&bytes).unwrap())
+    Ok(to_value(&bytes).unwrap())
 }
 
 pub fn g2_affine_from_jsvalue(value: JsValue) -> Result<G2Affine, JsValue> {
-    let bytes: Vec<u8> = serde_wasm_bindgen::from_value(value)?;
+    let bytes: Vec<u8> = from_value(value)?;
     let elem = G2Affine::deserialize_compressed(&bytes[..]).map_err(|e| {
         JsValue::from(&format!(
             "Cannot deserialize to G2Affine due to error: {:?}",
@@ -217,32 +217,77 @@ pub fn js_array_to_fr_vec(array: &js_sys::Array) -> Result<Vec<Fr>, JsValue> {
     Ok(frs)
 }
 
+macro_rules! messages_as_bytes_to_fr_vec {
+    ($messages_as_bytes: ident, $encode_messages: ident, $fn_name: ident) => {{
+        let mut result = vec![];
+        for m in $messages_as_bytes {
+            result.push({
+                if $encode_messages {
+                    $fn_name(m)
+                } else {
+                    Fr::deserialize_compressed(m.as_slice()).map_err(|e| {
+                        JsValue::from(&format!("Cannot deserialize to Fr due to error: {:?}", e))
+                    })?
+                }
+            });
+        }
+        Ok(result)
+    }};
+}
+
+macro_rules! encode_messages_as_js_map_to_fr_btreemap {
+    ($messages: ident, $encode_messages: ident, $fn_name: ident) => {{
+        let mut msgs = BTreeMap::new();
+        for e in $messages.entries() {
+            let arr = js_sys::Array::from(&e.unwrap());
+            let index: usize = from_value(arr.get(0))?;
+            let msg: Vec<u8> = from_value(arr.get(1))?;
+            let m = if $encode_messages {
+                $fn_name(&msg)
+            } else {
+                Fr::deserialize_compressed(msg.as_slice()).map_err(|e| {
+                    JsValue::from(&format!("Cannot deserialize to Fr due to error: {:?}", e))
+                })?
+            };
+            msgs.insert(index, m);
+        }
+        Ok(msgs)
+    }};
+}
+
 /// This is to convert a message to field element. This encoding needs to be collision resistant but
-/// not preimage-resistant and thus use of hash function is not necessary. However, the encoding must
-/// be constant time
+/// not preimage-resistant and thus use of hash function is not necessary.
 pub fn encode_message_for_signing(msg: &[u8]) -> Fr {
     dock_crypto_utils::hashing_utils::field_elem_from_try_and_incr::<Fr, Blake2b512>(
         &concat_slices!(msg, b"message to sign"),
     )
 }
 
+/// Constant time encoding arbitrary byte message to field element
+pub fn encode_message_for_signing_in_constant_time(msg: &[u8]) -> Fr {
+    dock_crypto_utils::hashing_utils::hash_to_field::<Fr, Blake2b512>(b"message to sign", msg)
+}
+
 pub fn messages_as_bytes_to_fr_vec(
     messages_as_bytes: &[Vec<u8>],
     encode_messages: bool,
 ) -> Result<Vec<Fr>, JsValue> {
-    let mut result = vec![];
-    for m in messages_as_bytes {
-        result.push({
-            if encode_messages {
-                encode_message_for_signing(m)
-            } else {
-                Fr::deserialize_compressed(m.as_slice()).map_err(|e| {
-                    JsValue::from(&format!("Cannot deserialize to Fr due to error: {:?}", e))
-                })?
-            }
-        });
-    }
-    Ok(result)
+    messages_as_bytes_to_fr_vec!(
+        messages_as_bytes,
+        encode_messages,
+        encode_message_for_signing
+    )
+}
+
+pub fn messages_as_bytes_to_fr_vec_in_constant_time(
+    messages_as_bytes: &[Vec<u8>],
+    encode_messages: bool,
+) -> Result<Vec<Fr>, JsValue> {
+    messages_as_bytes_to_fr_vec!(
+        messages_as_bytes,
+        encode_messages,
+        encode_message_for_signing_in_constant_time
+    )
 }
 
 pub fn encode_messages_as_js_array_to_fr_vec(
@@ -253,25 +298,30 @@ pub fn encode_messages_as_js_array_to_fr_vec(
     messages_as_bytes_to_fr_vec(&messages_as_bytes, encode_messages)
 }
 
+pub fn encode_messages_as_js_array_to_fr_vec_in_constant_time(
+    messages: &js_sys::Array,
+    encode_messages: bool,
+) -> Result<Vec<Fr>, JsValue> {
+    let messages_as_bytes = js_array_of_bytearrays_to_vector_of_bytevectors(messages)?;
+    messages_as_bytes_to_fr_vec_in_constant_time(&messages_as_bytes, encode_messages)
+}
+
 pub fn encode_messages_as_js_map_to_fr_btreemap(
     messages: &js_sys::Map,
     encode_messages: bool,
 ) -> Result<BTreeMap<usize, Fr>, JsValue> {
-    let mut msgs = BTreeMap::new();
-    for e in messages.entries() {
-        let arr = js_sys::Array::from(&e.unwrap());
-        let index: usize = serde_wasm_bindgen::from_value(arr.get(0))?;
-        let msg: Vec<u8> = serde_wasm_bindgen::from_value(arr.get(1))?;
-        let m = if encode_messages {
-            encode_message_for_signing(&msg)
-        } else {
-            Fr::deserialize_compressed(msg.as_slice()).map_err(|e| {
-                JsValue::from(&format!("Cannot deserialize to Fr due to error: {:?}", e))
-            })?
-        };
-        msgs.insert(index, m);
-    }
-    Ok(msgs)
+    encode_messages_as_js_map_to_fr_btreemap!(messages, encode_messages, encode_message_for_signing)
+}
+
+pub fn encode_messages_as_js_map_to_fr_btreemap_in_constant_time(
+    messages: &js_sys::Map,
+    encode_messages: bool,
+) -> Result<BTreeMap<usize, Fr>, JsValue> {
+    encode_messages_as_js_map_to_fr_btreemap!(
+        messages,
+        encode_messages,
+        encode_message_for_signing_in_constant_time
+    )
 }
 
 pub fn js_array_from_frs(frs: &[Fr]) -> Result<js_sys::Array, JsValue> {
@@ -357,7 +407,7 @@ pub fn js_set_to_btree_set<T: Ord + serde::de::DeserializeOwned>(
     let set: BTreeSet<T> = js_set
         .values()
         .into_iter()
-        .map(|i| serde_wasm_bindgen::from_value(i.unwrap()).unwrap())
+        .map(|i| from_value(i.unwrap()).unwrap())
         .collect();
     set
 }

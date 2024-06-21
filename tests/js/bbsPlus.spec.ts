@@ -37,6 +37,17 @@ import {
   bbsPlusSignatureParamsG2ToBytes,
   BbsPlusSigParams,
   initializeWasm,
+  bbsPlusSignG1ConstantTime,
+  bbsPlusVerifyG1ConstantTime,
+  bbsPlusSignG2ConstantTime,
+  bbsPlusVerifyG2ConstantTime,
+  bbsPlusCommitMsgsInG1ConstantTime,
+  bbsPlusBlindSignG1ConstantTime,
+  bbsPlusBlindSignG2ConstantTime,
+  bbsPlusCommitMsgsInG2ConstantTime,
+  bbsPlusInitializeProofOfKnowledgeOfSignatureConstantTime,
+  bbsPlusVerifyProofOfKnowledgeOfSignatureConstantTime,
+  bbsPlusChallengeContributionFromProofConstantTime, bbsPlusChallengeContributionFromProtocolConstantTime,
 } from "../../lib";
 
 
@@ -164,9 +175,21 @@ describe("For BBS+ signatures", () => {
     expect(res.verified).toBe(true);
   });
 
+  it("generate and verify signature in G1 with constant time encoding", () => {
+    const sig = bbsPlusSignG1ConstantTime(messages, sk, sigParamsG1, true);
+    const res = bbsPlusVerifyG1ConstantTime(messages, sig, pkG2, sigParamsG1, true);
+    expect(res.verified).toBe(true);
+  });
+
   it("generate and verify signature in G2", () => {
     const sig = bbsPlusSignG2(messages, sk, sigParamsG2, true);
     const res = bbsPlusVerifyG2(messages, sig, pkG1, sigParamsG2, true);
+    expect(res.verified).toBe(true);
+  });
+
+  it("generate and verify signature in G2 with constant time encoding", () => {
+    const sig = bbsPlusSignG2ConstantTime(messages, sk, sigParamsG2, true);
+    const res = bbsPlusVerifyG2ConstantTime(messages, sig, pkG1, sigParamsG2, true);
     expect(res.verified).toBe(true);
   });
 
@@ -204,7 +227,7 @@ describe("For BBS+ signatures", () => {
     expect(params1.h[1]).toEqual(params2.h[1]);
   });
 
-  it("generate and verify a blind signature in G1", () => {
+  function checkBlind(commitFunc, signFunc, unblindFunc, verifyFunc, pk, params) {
     // Commit to message indices 1 and 5
     const msgsToCommit = new Map();
     msgsToCommit.set(1, messages[1]);
@@ -217,58 +240,43 @@ describe("For BBS+ signatures", () => {
     msgsNotToCommit.set(4, messages[4]);
 
     const blinding = generateRandomFieldElement();
-    const commitment = bbsPlusCommitMsgsInG1(
-      msgsToCommit,
-      blinding,
-      sigParamsG1,
-      true
+    const commitment = commitFunc(
+        msgsToCommit,
+        blinding,
+        params,
+        true
     );
-    const blindSig = bbsPlusBlindSignG1(
-      commitment,
-      msgsNotToCommit,
-      sk,
-      sigParamsG1,
-      true
+    const blindSig = signFunc(
+        commitment,
+        msgsNotToCommit,
+        sk,
+        params,
+        true
     );
-    const sig = bbsPlusUnblindSigG1(blindSig, blinding);
-    const res = bbsPlusVerifyG1(messages, sig, pkG2, sigParamsG1, true);
+    const sig = unblindFunc(blindSig, blinding);
+    const res = verifyFunc(messages, sig, pk, params, true);
     expect(res.verified).toBe(true);
+  }
+
+  it("generate and verify a blind signature in G1", () => {
+    checkBlind(bbsPlusCommitMsgsInG1, bbsPlusBlindSignG1, bbsPlusUnblindSigG1, bbsPlusVerifyG1, pkG2, sigParamsG1)
+  });
+
+  it("generate and verify a blind signature in G1 with constant time encoding", () => {
+    checkBlind(bbsPlusCommitMsgsInG1ConstantTime, bbsPlusBlindSignG1ConstantTime, bbsPlusUnblindSigG1, bbsPlusVerifyG1ConstantTime, pkG2, sigParamsG1)
   });
 
   it("generate and verify a blind signature in G2", () => {
-    // Commit to message indices 1 and 5
-    const msgsToCommit = new Map();
-    msgsToCommit.set(1, messages[1]);
-    msgsToCommit.set(5, messages[5]);
-
-    const msgsNotToCommit = new Map();
-    msgsNotToCommit.set(0, messages[0]);
-    msgsNotToCommit.set(2, messages[2]);
-    msgsNotToCommit.set(3, messages[3]);
-    msgsNotToCommit.set(4, messages[4]);
-
-    const blinding = generateRandomFieldElement();
-    const commitment = bbsPlusCommitMsgsInG2(
-      msgsToCommit,
-      blinding,
-      sigParamsG2,
-      true
-    );
-    const blindSig = bbsPlusBlindSignG2(
-      commitment,
-      msgsNotToCommit,
-      sk,
-      sigParamsG2,
-      true
-    );
-    const sig = bbsPlusUnblindSigG2(blindSig, blinding);
-    const res = bbsPlusVerifyG2(messages, sig, pkG1, sigParamsG2, true);
-    expect(res.verified).toBe(true);
+    checkBlind(bbsPlusCommitMsgsInG2, bbsPlusBlindSignG2, bbsPlusUnblindSigG2, bbsPlusVerifyG2, pkG1, sigParamsG2)
   });
 
-  it("generate a proof of knowledge of signature in G1", () => {
-    const sig = bbsPlusSignG1(messages, sk, sigParamsG1, true);
-    const res = bbsPlusVerifyG1(messages, sig, pkG2, sigParamsG1, true);
+  it("generate and verify a blind signature in G2 with constant time encoding", () => {
+    checkBlind(bbsPlusCommitMsgsInG2ConstantTime, bbsPlusBlindSignG2ConstantTime, bbsPlusUnblindSigG2, bbsPlusVerifyG2ConstantTime, pkG1, sigParamsG2)
+  });
+
+  function checkPoK(signFunc, verifyFunc, initPoKFunc, chalPrtFunc, chalPrfFunc, verifyPoKFunc) {
+    const sig = signFunc(messages, sk, sigParamsG1, true);
+    const res = verifyFunc(messages, sig, pkG2, sigParamsG1, true);
     expect(res.verified).toBe(true);
 
     // Prover reveals message indices 0 and 2 and supplies blindings for message indices 1, 4 and 5
@@ -284,42 +292,50 @@ describe("For BBS+ signatures", () => {
     revealedMsgs.set(0, messages[0]);
     revealedMsgs.set(2, messages[2]);
 
-    const protocol = bbsPlusInitializeProofOfKnowledgeOfSignature(
-      sig,
-      sigParamsG1,
-      messages,
-      blindings,
-      revealed,
-      true
+    const protocol = initPoKFunc(
+        sig,
+        sigParamsG1,
+        messages,
+        blindings,
+        revealed,
+        true
     );
-    const pBytes = bbsPlusChallengeContributionFromProtocol(
-      protocol,
-      revealedMsgs,
-      sigParamsG1,
-      true
+    const pBytes = chalPrtFunc(
+        protocol,
+        revealedMsgs,
+        sigParamsG1,
+        true
     );
     expect(pBytes).toBeInstanceOf(Uint8Array);
     const proverChallenge = generateChallengeFromBytes(pBytes);
     const proof = bbsPlusGenProofOfKnowledgeOfSignature(protocol, proverChallenge);
 
-    const vBytes = bbsPlusChallengeContributionFromProof(
-      proof,
-      revealedMsgs,
-      sigParamsG1,
-      true
+    const vBytes = chalPrfFunc(
+        proof,
+        revealedMsgs,
+        sigParamsG1,
+        true
     );
     expect(vBytes).toBeInstanceOf(Uint8Array);
     expect(pBytes).toEqual(vBytes);
     const verifierChallenge = generateChallengeFromBytes(vBytes);
     expect(proverChallenge).toEqual(verifierChallenge);
-    const result = bbsPlusVerifyProofOfKnowledgeOfSignature(
-      proof,
-      revealedMsgs,
-      verifierChallenge,
-      pkG2,
-      sigParamsG1,
-      true
+    const result = verifyPoKFunc(
+        proof,
+        revealedMsgs,
+        verifierChallenge,
+        pkG2,
+        sigParamsG1,
+        true
     );
     expect(result.verified).toBe(true);
+  }
+
+  it("generate a proof of knowledge of signature in G1", () => {
+    checkPoK(bbsPlusSignG1, bbsPlusVerifyG1, bbsPlusInitializeProofOfKnowledgeOfSignature, bbsPlusChallengeContributionFromProtocol, bbsPlusChallengeContributionFromProof, bbsPlusVerifyProofOfKnowledgeOfSignature)
+  });
+
+  it("generate a proof of knowledge of signature in G1 with constant time encoding", () => {
+    checkPoK(bbsPlusSignG1ConstantTime, bbsPlusVerifyG1ConstantTime, bbsPlusInitializeProofOfKnowledgeOfSignatureConstantTime, bbsPlusChallengeContributionFromProtocolConstantTime, bbsPlusChallengeContributionFromProofConstantTime, bbsPlusVerifyProofOfKnowledgeOfSignatureConstantTime)
   });
 });

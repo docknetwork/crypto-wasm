@@ -7,9 +7,29 @@ module.exports.generatePoKBBSSignatureProverStatement = (params, revealedMessage
     return wasm.generatePoKBBSSignatureProverStatement(params, revealedMessages, encodeMessages);
 };
 
+module.exports.generatePoKBBSSignatureProverStatementNew = (params, revealedMessages, encodeMessages) => {
+    requireWasmInitialized();
+    return wasm.generatePoKBBSSignatureProverStatementNew(params, revealedMessages, encodeMessages);
+};
+
+module.exports.generatePoKBBSSignatureProverStatementConstantTime = (params, revealedMessages, encodeMessages) => {
+    requireWasmInitialized();
+    return wasm.generatePoKBBSSignatureProverStatementConstantTime(params, revealedMessages, encodeMessages);
+};
+
 module.exports.generatePoKBBSSignatureVerifierStatement = (params, publicKey, revealedMessages, encodeMessages) => {
     requireWasmInitialized();
     return wasm.generatePoKBBSSignatureVerifierStatement(params, publicKey, revealedMessages, encodeMessages);
+};
+
+module.exports.generatePoKBBSSignatureVerifierStatementNew = (params, publicKey, revealedMessages, encodeMessages) => {
+    requireWasmInitialized();
+    return wasm.generatePoKBBSSignatureVerifierStatementNew(params, publicKey, revealedMessages, encodeMessages);
+};
+
+module.exports.generatePoKBBSSignatureVerifierStatementConstantTime = (params, publicKey, revealedMessages, encodeMessages) => {
+    requireWasmInitialized();
+    return wasm.generatePoKBBSSignatureVerifierStatementConstantTime(params, publicKey, revealedMessages, encodeMessages);
 };
 
 module.exports.generatePoKBBSPlusSignatureProverStatement = (params, revealedMessages, encodeMessages) => {
@@ -17,9 +37,19 @@ module.exports.generatePoKBBSPlusSignatureProverStatement = (params, revealedMes
     return wasm.generatePoKBBSPlusSignatureProverStatement(params, revealedMessages, encodeMessages);
 };
 
+module.exports.generatePoKBBSPlusSignatureProverStatementConstantTime = (params, revealedMessages, encodeMessages) => {
+    requireWasmInitialized();
+    return wasm.generatePoKBBSPlusSignatureProverStatementConstantTime(params, revealedMessages, encodeMessages);
+};
+
 module.exports.generatePoKBBSPlusSignatureVerifierStatement = (params, publicKey, revealedMessages, encodeMessages) => {
     requireWasmInitialized();
     return wasm.generatePoKBBSPlusSignatureVerifierStatement(params, publicKey, revealedMessages, encodeMessages);
+};
+
+module.exports.generatePoKBBSPlusSignatureVerifierStatementConstantTime = (params, publicKey, revealedMessages, encodeMessages) => {
+    requireWasmInitialized();
+    return wasm.generatePoKBBSPlusSignatureVerifierStatementConstantTime(params, publicKey, revealedMessages, encodeMessages);
 };
 
 module.exports.generatePoKBBSSignatureProverStatementFromParamRefs = (params, revealedMessages, encodeMessages) => {
@@ -27,9 +57,29 @@ module.exports.generatePoKBBSSignatureProverStatementFromParamRefs = (params, re
     return wasm.generatePoKBBSSignatureProverStatementFromParamRefs(params, revealedMessages, encodeMessages);
 };
 
+module.exports.generatePoKBBSSignatureProverStatementFromParamRefsNew = (params, revealedMessages, encodeMessages) => {
+    requireWasmInitialized();
+    return wasm.generatePoKBBSSignatureProverStatementFromParamRefsNew(params, revealedMessages, encodeMessages);
+};
+
+module.exports.generatePoKBBSSignatureProverStatementFromParamRefsConstantTime = (params, revealedMessages, encodeMessages) => {
+    requireWasmInitialized();
+    return wasm.generatePoKBBSSignatureProverStatementFromParamRefsConstantTime(params, revealedMessages, encodeMessages);
+};
+
 module.exports.generatePoKBBSSignatureVerifierStatementFromParamRefs = (params, publicKey, revealedMessages, encodeMessages) => {
     requireWasmInitialized();
     return wasm.generatePoKBBSSignatureVerifierStatementFromParamRefs(params, publicKey, revealedMessages, encodeMessages);
+};
+
+module.exports.generatePoKBBSSignatureVerifierStatementFromParamRefsNew = (params, publicKey, revealedMessages, encodeMessages) => {
+    requireWasmInitialized();
+    return wasm.generatePoKBBSSignatureVerifierStatementFromParamRefsNew(params, publicKey, revealedMessages, encodeMessages);
+};
+
+module.exports.generatePoKBBSSignatureVerifierStatementFromParamRefsConstantTime = (params, publicKey, revealedMessages, encodeMessages) => {
+    requireWasmInitialized();
+    return wasm.generatePoKBBSSignatureVerifierStatementFromParamRefsConstantTime(params, publicKey, revealedMessages, encodeMessages);
 };
 
 module.exports.generatePoKBBSPlusSignatureProverStatementFromParamRefs = (params, revealedMessages, encodeMessages) => {
@@ -37,9 +87,19 @@ module.exports.generatePoKBBSPlusSignatureProverStatementFromParamRefs = (params
     return wasm.generatePoKBBSPlusSignatureProverStatementFromParamRefs(params, revealedMessages, encodeMessages);
 };
 
+module.exports.generatePoKBBSPlusSignatureProverStatementFromParamRefsConstantTime = (params, revealedMessages, encodeMessages) => {
+    requireWasmInitialized();
+    return wasm.generatePoKBBSPlusSignatureProverStatementFromParamRefsConstantTime(params, revealedMessages, encodeMessages);
+};
+
 module.exports.generatePoKBBSPlusSignatureVerifierStatementFromParamRefs = (params, publicKey, revealedMessages, encodeMessages) => {
     requireWasmInitialized();
     return wasm.generatePoKBBSPlusSignatureVerifierStatementFromParamRefs(params, publicKey, revealedMessages, encodeMessages);
+};
+
+module.exports.generatePoKBBSPlusSignatureVerifierStatementFromParamRefsConstantTime = (params, publicKey, revealedMessages, encodeMessages) => {
+    requireWasmInitialized();
+    return wasm.generatePoKBBSPlusSignatureVerifierStatementFromParamRefsConstantTime(params, publicKey, revealedMessages, encodeMessages);
 };
 
 module.exports.generatePoKPSSignatureStatement = (params, publicKey, revealedMessages) => {
@@ -47,9 +107,19 @@ module.exports.generatePoKPSSignatureStatement = (params, publicKey, revealedMes
     return wasm.generatePoKPSSignatureStatement(params, publicKey, revealedMessages);
 };
 
+module.exports.generatePoKPSSignatureStatementConstantTime = (params, publicKey, revealedMessages) => {
+    requireWasmInitialized();
+    return wasm.generatePoKPSSignatureStatementConstantTime(params, publicKey, revealedMessages);
+};
+
 module.exports.generatePoKPSSignatureStatementFromParamRefs = (params, publicKey, revealedMessages) => {
     requireWasmInitialized();
     return wasm.generatePoKPSSignatureStatementFromParamRefs(params, publicKey, revealedMessages);
+};
+
+module.exports.generatePoKPSSignatureStatementFromParamRefsConstantTime = (params, publicKey, revealedMessages) => {
+    requireWasmInitialized();
+    return wasm.generatePoKPSSignatureStatementFromParamRefsConstantTime(params, publicKey, revealedMessages);
 };
 
 module.exports.generateAccumulatorMembershipStatement = (params, publicKey, provingKey, accumulated) => {
@@ -242,14 +312,29 @@ module.exports.generatePoKBBSSignatureWitness = (signature, unrevealedMessages, 
     return wasm.generatePoKBBSSignatureWitness(signature, unrevealedMessages, encodeMessages);
 };
 
+module.exports.generatePoKBBSSignatureWitnessConstantTime = (signature, unrevealedMessages, encodeMessages) => {
+    requireWasmInitialized();
+    return wasm.generatePoKBBSSignatureWitnessConstantTime(signature, unrevealedMessages, encodeMessages);
+};
+
 module.exports.generatePoKBBSPlusSignatureWitness = (signature, unrevealedMessages, encodeMessages) => {
     requireWasmInitialized();
     return wasm.generatePoKBBSPlusSignatureWitness(signature, unrevealedMessages, encodeMessages);
 };
 
+module.exports.generatePoKBBSPlusSignatureWitnessConstantTime = (signature, unrevealedMessages, encodeMessages) => {
+    requireWasmInitialized();
+    return wasm.generatePoKBBSPlusSignatureWitnessConstantTime(signature, unrevealedMessages, encodeMessages);
+};
+
 module.exports.generatePoKPSSignatureWitness = (signature, unrevealedMessages) => {
     requireWasmInitialized();
     return wasm.generatePoKPSSignatureWitness(signature, unrevealedMessages);
+};
+
+module.exports.generatePoKPSSignatureWitnessConstantTime = (signature, unrevealedMessages) => {
+    requireWasmInitialized();
+    return wasm.generatePoKPSSignatureWitnessConstantTime(signature, unrevealedMessages);
 };
 
 module.exports.generateAccumulatorMembershipWitness = (element, witness) => {
@@ -357,9 +442,19 @@ module.exports.generatePoKBDDT16MacStatement = (params, revealedMessages, encode
     return wasm.generatePoKBDDT16MacStatement(params, revealedMessages, encodeMessages);
 };
 
+module.exports.generatePoKBDDT16MacStatementConstantTime = (params, revealedMessages, encodeMessages) => {
+    requireWasmInitialized();
+    return wasm.generatePoKBDDT16MacStatementConstantTime(params, revealedMessages, encodeMessages);
+};
+
 module.exports.generatePoKBDDT16MacStatementFromParamRefs = (params, revealedMessages, encodeMessages) => {
     requireWasmInitialized();
     return wasm.generatePoKBDDT16MacStatementFromParamRefs(params, revealedMessages, encodeMessages);
+};
+
+module.exports.generatePoKBDDT16MacStatementFromParamRefsConstantTime = (params, revealedMessages, encodeMessages) => {
+    requireWasmInitialized();
+    return wasm.generatePoKBDDT16MacStatementFromParamRefsConstantTime(params, revealedMessages, encodeMessages);
 };
 
 module.exports.generatePoKBDDT16MacFullVerifierStatement = (params, secretKey, revealedMessages, encodeMessages) => {
@@ -367,14 +462,29 @@ module.exports.generatePoKBDDT16MacFullVerifierStatement = (params, secretKey, r
     return wasm.generatePoKBDDT16MacFullVerifierStatement(params, secretKey, revealedMessages, encodeMessages);
 };
 
+module.exports.generatePoKBDDT16MacFullVerifierStatementConstantTime = (params, secretKey, revealedMessages, encodeMessages) => {
+    requireWasmInitialized();
+    return wasm.generatePoKBDDT16MacFullVerifierStatementConstantTime(params, secretKey, revealedMessages, encodeMessages);
+};
+
 module.exports.generatePoKBDDT16MacFullVerifierStatementFromParamRefs = (params, secretKey, revealedMessages, encodeMessages) => {
     requireWasmInitialized();
     return wasm.generatePoKBDDT16MacFullVerifierStatementFromParamRefs(params, secretKey, revealedMessages, encodeMessages);
 };
 
+module.exports.generatePoKBDDT16MacFullVerifierStatementFromParamRefsConstantTime = (params, secretKey, revealedMessages, encodeMessages) => {
+    requireWasmInitialized();
+    return wasm.generatePoKBDDT16MacFullVerifierStatementFromParamRefsConstantTime(params, secretKey, revealedMessages, encodeMessages);
+};
+
 module.exports.generatePoKBDDT16MacWitness = (mac, unrevealedMessages, encodeMessages) => {
     requireWasmInitialized();
     return wasm.generatePoKBDDT16MacWitness(mac, unrevealedMessages, encodeMessages);
+};
+
+module.exports.generatePoKBDDT16MacWitnessConstantTime = (mac, unrevealedMessages, encodeMessages) => {
+    requireWasmInitialized();
+    return wasm.generatePoKBDDT16MacWitnessConstantTime(mac, unrevealedMessages, encodeMessages);
 };
 
 module.exports.generateAccumulatorKVMembershipStatement = (accumulated) => {

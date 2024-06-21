@@ -10,17 +10,21 @@ use crate::{
 };
 use ark_bls12_381::Bls12_381;
 use bbs_plus::threshold::{
-    base_ot_phase::BaseOTPhaseOutput,
-    cointoss::Commitments,
-    multiplication_phase::{Message1, Message2, Phase2, Phase2Output},
+    multiplication_phase::{Phase2, Phase2Output},
     randomness_generation_phase::Phase1,
     threshold_bbs::{BBSSignatureShare, Phase1Output as BbsPhase1Output},
     threshold_bbs_plus::{BBSPlusSignatureShare, Phase1Output as BbsPlusPhase1Output},
 };
 use blake2::Blake2b512;
 use js_sys::{Array, Map, Set, Uint8Array};
-use oblivious_transfer_protocols::ot_based_multiplication::{
-    dkls18_mul_2p::MultiplicationOTEParams, dkls19_batch_mul_2p::GadgetVector,
+use oblivious_transfer_protocols::{
+    cointoss::Commitments,
+    ot_based_multiplication::{
+        base_ot_multi_party_pairwise::BaseOTOutput,
+        batch_mul_multi_party::{Message1, Message2},
+        dkls18_mul_2p::MultiplicationOTEParams,
+        dkls19_batch_mul_2p::GadgetVector,
+    },
 };
 use secret_sharing_and_dkg::common::ParticipantId;
 use wasm_bindgen::prelude::*;
@@ -73,7 +77,7 @@ macro_rules! start_phase2 {
     let mut rng = get_seeded_rng();
     let others = js_set_to_btree_set(&$others);
     let phase1_output = obj_from_uint8array!($phase1_output_type<Fr>, $phase1_output, true, "Phase1Output");
-    let base_ot_output = obj_from_uint8array!(BaseOTPhaseOutput, $base_ot_output, true, "BaseOTOutput");
+    let base_ot_output = obj_from_uint8array!(BaseOTOutput, $base_ot_output, true, "BaseOTOutput");
     let gadget_vector = obj_from_uint8array!(GadgetVector<Fr, KAPPA, STATISTICAL_SECURITY_PARAMETER>, $gadget_vector, false, "GadgetVector");
     let ote_params = MultiplicationOTEParams::<KAPPA, STATISTICAL_SECURITY_PARAMETER> {};
 

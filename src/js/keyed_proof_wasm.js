@@ -12,6 +12,26 @@ module.exports.verifyBDDT16KeyedProof = (proof, secretKey) => {
     return wasm.verifyBDDT16KeyedProof(proof, secretKey);
 };
 
+module.exports.proofOfValidityOfBDDT16KeyedProof = (proof, secretKey, publicKey, params) => {
+    requireWasmInitialized();
+    return wasm.proofOfValidityOfBDDT16KeyedProof(proof, secretKey, publicKey, params);
+};
+
+module.exports.verifyProofOfValidityOfBDDT16KeyedProof = (proofOfValidity, keyedProof, publicKey, params) => {
+    requireWasmInitialized();
+    return wasm.verifyProofOfValidityOfBDDT16KeyedProof(proofOfValidity, keyedProof, publicKey, params);
+};
+
+module.exports.proofOfInvalidityOfBDDT16KeyedProof = (proof, secretKey, publicKey, params) => {
+    requireWasmInitialized();
+    return wasm.proofOfInvalidityOfBDDT16KeyedProof(proof, secretKey, publicKey, params);
+};
+
+module.exports.verifyProofOfInvalidityOfBDDT16KeyedProof = (proofOfInvalidity, keyedProof, publicKey, params) => {
+    requireWasmInitialized();
+    return wasm.verifyProofOfInvalidityOfBDDT16KeyedProof(proofOfInvalidity, keyedProof, publicKey, params);
+};
+
 module.exports.verifyVBAccumMembershipKeyedProof = (proof, secretKey) => {
     requireWasmInitialized();
     return wasm.verifyVBAccumMembershipKeyedProof(proof, secretKey);

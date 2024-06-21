@@ -141,11 +141,11 @@ module.exports.psVerify = (messages, signature, publicKey, params) => {
 module.exports.psMessageCommitment = (
   messages,
   blinding,
-  params,
-  encodeMessages
+  h,
+  g
 ) => {
   requireWasmInitialized();
-  return wasm.psMessageCommitment(messages, blinding, params, encodeMessages);
+  return wasm.psMessageCommitment(messages, blinding, h, g);
 };
 
 module.exports.psMultiMessageCommitment = (messages, h, g, blinding) => {
@@ -154,47 +154,40 @@ module.exports.psMultiMessageCommitment = (messages, h, g, blinding) => {
 };
 
 module.exports.psBlindSign = (
-  commitment,
-  uncommittedMessages,
+  messages,
   secretKey,
-  params,
-  encodeMessages
+  h
 ) => {
   requireWasmInitialized();
   return wasm.psBlindSign(
-    commitment,
-    uncommittedMessages,
-    secretKey,
-    params,
-    encodeMessages
+      messages,
+      secretKey,
+      h
   );
 };
 
 module.exports.psUnblindSignature = (
   blind_signature,
   indexed_blindings,
-  pk
+  pk,
+  h
 ) => {
   requireWasmInitialized();
-  return wasm.psUnblindSignature(blind_signature, indexed_blindings, pk);
+  return wasm.psUnblindSignature(blind_signature, indexed_blindings, pk, h);
 };
 
 module.exports.psInitializeSignaturePoK = (
   signature,
   params,
+  publicKey,
   messages,
-  blindings,
-  revealedIndices,
-  encodeMessages
 ) => {
   requireWasmInitialized();
   return wasm.psInitializeSignaturePoK(
     signature,
     params,
-    messages,
-    blindings,
-    revealedIndices,
-    encodeMessages
+      publicKey,
+      messages,
   );
 };
 

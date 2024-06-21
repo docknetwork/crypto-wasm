@@ -14,8 +14,9 @@ use crate::{
     ps::PSSignature,
     to_verify_response,
     utils::{
-        encode_messages_as_js_map_to_fr_btreemap, fr_from_uint8_array, get_seeded_rng,
-        js_array_to_fr_vec, set_panic_hook,
+        encode_messages_as_js_map_to_fr_btreemap,
+        encode_messages_as_js_map_to_fr_btreemap_in_constant_time, fr_from_uint8_array,
+        get_seeded_rng, js_array_to_fr_vec, set_panic_hook,
     },
     G1Affine,
 };
@@ -44,17 +45,46 @@ pub(crate) type Proof = proof::Proof<Bls12_381>;
 pub(crate) type StatementProof = proof_system::prelude::StatementProof<Bls12_381>;
 pub(crate) type PoKOfBDDT16MACWit = witness::PoKOfBDDT16MAC<G1Affine>;
 
+macro_rules! witness {
+    ($signature: ident, $unrevealed_msgs: ident, $encode_messages: expr, $sig_type: ident, $wit_type: path, $fn_name: ident) => {{
+        set_panic_hook();
+        let signature = obj_from_uint8array!($sig_type, $signature, true);
+        let msgs = $fn_name(&$unrevealed_msgs, $encode_messages)?;
+        let witness = $wit_type(signature, msgs);
+        serde_wasm_bindgen::to_value(&witness).map_err(JsValue::from)
+    }};
+}
+
 #[wasm_bindgen(js_name = generatePoKBBSSignatureWitness)]
 pub fn generate_pok_bbs_sig_witness(
     signature: Uint8Array,
     unrevealed_msgs: js_sys::Map,
     encode_messages: bool,
 ) -> Result<JsValue, JsValue> {
-    set_panic_hook();
-    let signature = obj_from_uint8array!(BBSSignature, signature, true);
-    let msgs = encode_messages_as_js_map_to_fr_btreemap(&unrevealed_msgs, encode_messages)?;
-    let witness = PoKBBSSigWit::new_as_witness(signature, msgs);
-    serde_wasm_bindgen::to_value(&witness).map_err(JsValue::from)
+    witness!(
+        signature,
+        unrevealed_msgs,
+        encode_messages,
+        BBSSignature,
+        PoKBBSSigWit::new_as_witness,
+        encode_messages_as_js_map_to_fr_btreemap
+    )
+}
+
+#[wasm_bindgen(js_name = generatePoKBBSSignatureWitnessConstantTime)]
+pub fn generate_pok_bbs_sig_witness_constant_time(
+    signature: Uint8Array,
+    unrevealed_msgs: js_sys::Map,
+    encode_messages: bool,
+) -> Result<JsValue, JsValue> {
+    witness!(
+        signature,
+        unrevealed_msgs,
+        encode_messages,
+        BBSSignature,
+        PoKBBSSigWit::new_as_witness,
+        encode_messages_as_js_map_to_fr_btreemap_in_constant_time
+    )
 }
 
 #[wasm_bindgen(js_name = generatePoKBBSPlusSignatureWitness)]
@@ -63,11 +93,30 @@ pub fn generate_pok_bbs_plus_sig_witness(
     unrevealed_msgs: js_sys::Map,
     encode_messages: bool,
 ) -> Result<JsValue, JsValue> {
-    set_panic_hook();
-    let signature = obj_from_uint8array!(BBSPlusSigG1, signature, true);
-    let msgs = encode_messages_as_js_map_to_fr_btreemap(&unrevealed_msgs, encode_messages)?;
-    let witness = PoKBBSPlusSigWit::new_as_witness(signature, msgs);
-    serde_wasm_bindgen::to_value(&witness).map_err(JsValue::from)
+    witness!(
+        signature,
+        unrevealed_msgs,
+        encode_messages,
+        BBSPlusSigG1,
+        PoKBBSPlusSigWit::new_as_witness,
+        encode_messages_as_js_map_to_fr_btreemap
+    )
+}
+
+#[wasm_bindgen(js_name = generatePoKBBSPlusSignatureWitnessConstantTime)]
+pub fn generate_pok_bbs_plus_sig_witness_constant_time(
+    signature: Uint8Array,
+    unrevealed_msgs: js_sys::Map,
+    encode_messages: bool,
+) -> Result<JsValue, JsValue> {
+    witness!(
+        signature,
+        unrevealed_msgs,
+        encode_messages,
+        BBSPlusSigG1,
+        PoKBBSPlusSigWit::new_as_witness,
+        encode_messages_as_js_map_to_fr_btreemap_in_constant_time
+    )
 }
 
 #[wasm_bindgen(js_name = generatePoKPSSignatureWitness)]
@@ -75,12 +124,29 @@ pub fn generate_pok_ps_sig_witness(
     signature: Uint8Array,
     unrevealed_msgs: js_sys::Map,
 ) -> Result<JsValue, JsValue> {
-    set_panic_hook();
-    let signature = obj_from_uint8array!(PSSignature, signature, true);
-    let msgs = encode_messages_as_js_map_to_fr_btreemap(&unrevealed_msgs, false)?;
-    let witness = PokPSSigWit::new_as_witness(signature, msgs);
+    witness!(
+        signature,
+        unrevealed_msgs,
+        false,
+        PSSignature,
+        PokPSSigWit::new_as_witness,
+        encode_messages_as_js_map_to_fr_btreemap
+    )
+}
 
-    serde_wasm_bindgen::to_value(&witness).map_err(JsValue::from)
+#[wasm_bindgen(js_name = generatePoKPSSignatureWitnessConstantTime)]
+pub fn generate_pok_ps_sig_witness_constant_time(
+    signature: Uint8Array,
+    unrevealed_msgs: js_sys::Map,
+) -> Result<JsValue, JsValue> {
+    witness!(
+        signature,
+        unrevealed_msgs,
+        false,
+        PSSignature,
+        PokPSSigWit::new_as_witness,
+        encode_messages_as_js_map_to_fr_btreemap_in_constant_time
+    )
 }
 
 #[wasm_bindgen(js_name = generateAccumulatorMembershipWitness)]
@@ -328,11 +394,30 @@ pub fn generate_pok_bddt16_mac_witness(
     unrevealed_msgs: js_sys::Map,
     encode_messages: bool,
 ) -> Result<JsValue, JsValue> {
-    set_panic_hook();
-    let mac = obj_from_uint8array!(BDDT16MAC, mac, true);
-    let msgs = encode_messages_as_js_map_to_fr_btreemap(&unrevealed_msgs, encode_messages)?;
-    let witness = PoKOfBDDT16MACWit::new_as_witness::<Bls12_381>(mac, msgs);
-    serde_wasm_bindgen::to_value(&witness).map_err(JsValue::from)
+    witness!(
+        mac,
+        unrevealed_msgs,
+        encode_messages,
+        BDDT16MAC,
+        PoKOfBDDT16MACWit::new_as_witness::<Bls12_381>,
+        encode_messages_as_js_map_to_fr_btreemap
+    )
+}
+
+#[wasm_bindgen(js_name = generatePoKBDDT16MacWitnessConstantTime)]
+pub fn generate_pok_bddt16_mac_witness_constant_time(
+    mac: Uint8Array,
+    unrevealed_msgs: js_sys::Map,
+    encode_messages: bool,
+) -> Result<JsValue, JsValue> {
+    witness!(
+        mac,
+        unrevealed_msgs,
+        encode_messages,
+        BDDT16MAC,
+        PoKOfBDDT16MACWit::new_as_witness::<Bls12_381>,
+        encode_messages_as_js_map_to_fr_btreemap_in_constant_time
+    )
 }
 
 pub fn parse_statements_meta_statements_and_setup_params(

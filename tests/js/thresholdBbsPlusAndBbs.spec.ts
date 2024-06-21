@@ -107,8 +107,6 @@ describe("For threshold BBS+ and BBS", () => {
         }
 
         gadgetVector = generateGadgetVectorForThresholdSig(stringToBytes("test"));
-        console.log(gadgetVector.length);
-        console.log(gadgetVector);
     });
 
     it("run base OT phase", () => {
@@ -262,7 +260,7 @@ describe("For threshold BBS+ and BBS", () => {
         checkThresholdSig(protocolId, paramsBbsPlus, thresholdPubkeyBbsPlus, secretKeysBbsPlus, thresholdBbsPlusStartPhase1, thresholdBbsPlusPhase1ProcessCommitments, thresholdBbsPlusPhase1GetSharesForOther, thresholdBbsPlusPhase1ProcessShares, thresholdBbsPlusPhase1Finish, thresholdBbsPlusPhase2Start, thresholdBbsPlusPhase2ReceiveMessage1, thresholdBbsPlusPhase2ReceiveMessage2, thresholdBbsPlusPhase2Finish, thresholdBbsPlusCreateSignatureShare, thresholdBbsPlusAggregateSignatureShares, bbsPlusVerifyG1)
     })
 
-    it("create a threshold BBS+ signature", () => {
+    it("create a threshold BBS signature", () => {
         const protocolId = stringToBytes("test BBS");
         checkThresholdSig(protocolId, paramsBbs, thresholdPubkeyBbs, secretKeysBbs, thresholdBbsStartPhase1, thresholdBbsPhase1ProcessCommitments, thresholdBbsPhase1GetSharesForOther, thresholdBbsPhase1ProcessShares, thresholdBbsPhase1Finish, thresholdBbsPhase2Start, thresholdBbsPhase2ReceiveMessage1, thresholdBbsPhase2ReceiveMessage2, thresholdBbsPhase2Finish, thresholdBbsCreateSignatureShare, thresholdBbsAggregateSignatureShares, bbsVerify)
     })

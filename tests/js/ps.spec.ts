@@ -226,7 +226,7 @@ describe("For PS signatures", () => {
     }
 
     const blindSig = psBlindSign(msgOrComs, sk, h);
-    const sig = psUnblindSignature(blindSig, usedBlindings, pk);
+    const sig = psUnblindSignature(blindSig, usedBlindings, pk, h);
     const res = psVerify(messages, sig, pk, sigParams);
     expect(res.verified).toBe(true);
   });

@@ -64,7 +64,22 @@ export function bbsSign(
     encodeMessages: boolean
 ): Uint8Array;
 
+export function bbsSignConstantTime(
+    messages: Uint8Array[],
+    secretKey: Uint8Array,
+    params: BbsSigParams,
+    encodeMessages: boolean
+): Uint8Array;
+
 export function bbsVerify(
+    messages: Uint8Array[],
+    signature: Uint8Array,
+    publicKey: Uint8Array,
+    params: BbsSigParams,
+    encodeMessages: boolean
+): Required<VerifyResult>;
+
+export function bbsVerifyConstantTime(
     messages: Uint8Array[],
     signature: Uint8Array,
     publicKey: Uint8Array,
@@ -78,7 +93,21 @@ export function bbsCommitMsgs(
     encodeMessages: boolean
 ): Uint8Array;
 
+export function bbsCommitMsgsConstantTime(
+    messages: Map<number, Uint8Array>,
+    params: BbsSigParams,
+    encodeMessages: boolean
+): Uint8Array;
+
 export function bbsBlindSign(
+    commitment: Uint8Array,
+    uncommittedMessages: Map<number, Uint8Array>,
+    secretKey: Uint8Array,
+    params: BbsSigParams,
+    encodeMessages: boolean
+): Uint8Array;
+
+export function bbsBlindSignConstantTime(
     commitment: Uint8Array,
     uncommittedMessages: Map<number, Uint8Array>,
     secretKey: Uint8Array,
@@ -95,12 +124,53 @@ export function bbsInitializeProofOfKnowledgeOfSignature(
     encodeMessages: boolean
 ): BbsPoKSigProtocol;
 
+export function bbsInitializeProofOfKnowledgeOfSignatureNew(
+    signature: Uint8Array,
+    params: BbsSigParams,
+    messages: Uint8Array[],
+    blindings: Map<number, Uint8Array>,
+    revealedIndices: Set<number>,
+    encodeMessages: boolean
+): BbsPoKSigProtocol;
+
+export function bbsInitializeProofOfKnowledgeOfSignatureConstantTime(
+    signature: Uint8Array,
+    params: BbsSigParams,
+    messages: Uint8Array[],
+    blindings: Map<number, Uint8Array>,
+    revealedIndices: Set<number>,
+    encodeMessages: boolean
+): BbsPoKSigProtocol;
+
 export function bbsGenProofOfKnowledgeOfSignature(
     protocol: BbsPoKSigProtocol,
     challenge: Uint8Array
 ): Uint8Array;
 
+export function bbsGenProofOfKnowledgeOfSignatureNew(
+    protocol: BbsPoKSigProtocol,
+    challenge: Uint8Array
+): Uint8Array;
+
 export function bbsVerifyProofOfKnowledgeOfSignature(
+    proof: Uint8Array,
+    revealedMessages: Map<number, Uint8Array>,
+    challenge: Uint8Array,
+    publicKey: Uint8Array,
+    params: BbsSigParams,
+    encodeMessages: boolean
+): Required<VerifyResult>;
+
+export function bbsVerifyProofOfKnowledgeOfSignatureNew(
+    proof: Uint8Array,
+    revealedMessages: Map<number, Uint8Array>,
+    challenge: Uint8Array,
+    publicKey: Uint8Array,
+    params: BbsSigParams,
+    encodeMessages: boolean
+): Required<VerifyResult>;
+
+export function bbsVerifyProofOfKnowledgeOfSignatureConstantTime(
     proof: Uint8Array,
     revealedMessages: Map<number, Uint8Array>,
     challenge: Uint8Array,
@@ -116,7 +186,35 @@ export function bbsChallengeContributionFromProtocol(
     encodeMessages: boolean
 ): Uint8Array;
 
+export function bbsChallengeContributionFromProtocolNew(
+    protocol: BbsPoKSigProtocol,
+    revealedMessages: Map<number, Uint8Array>,
+    params: BbsSigParams,
+    encodeMessages: boolean
+): Uint8Array;
+
+export function bbsChallengeContributionFromProtocolConstantTime(
+    protocol: BbsPoKSigProtocol,
+    revealedMessages: Map<number, Uint8Array>,
+    params: BbsSigParams,
+    encodeMessages: boolean
+): Uint8Array;
+
 export function bbsChallengeContributionFromProof(
+    proof: Uint8Array,
+    revealedMessages: Map<number, Uint8Array>,
+    params: BbsSigParams,
+    encodeMessages: boolean
+): Uint8Array;
+
+export function bbsChallengeContributionFromProofNew(
+    proof: Uint8Array,
+    revealedMessages: Map<number, Uint8Array>,
+    params: BbsSigParams,
+    encodeMessages: boolean
+): Uint8Array;
+
+export function bbsChallengeContributionFromProofConstantTime(
     proof: Uint8Array,
     revealedMessages: Map<number, Uint8Array>,
     params: BbsSigParams,

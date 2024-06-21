@@ -25,6 +25,16 @@ module.exports.encodeMessagesForSigning = (messages, indicesToEncode) => {
     return wasm.encodeMessagesForSigning(messages, indicesToEncode);
 };
 
+module.exports.encodeMessageForSigningInConstantTime = (message) => {
+    requireWasmInitialized();
+    return wasm.encodeMessageForSigningInConstantTime(message);
+};
+
+module.exports.encodeMessagesForSigningInConstantTime = (messages, indicesToEncode) => {
+    requireWasmInitialized();
+    return wasm.encodeMessagesForSigningInConstantTime(messages, indicesToEncode);
+};
+
 module.exports.generateRandomG2Element = (seed) => {
     requireWasmInitialized();
     return wasm.generateRandomG2Element(seed);

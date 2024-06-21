@@ -16,10 +16,52 @@ use zeroize::Zeroize;
 
 use wasm_bindgen::prelude::*;
 
+macro_rules! encode_messages_for_signing {
+    ($messages: ident, $indices_to_encode: ident, $fn_name: ident) => {{
+        use serde_wasm_bindgen::from_value;
+
+        set_panic_hook();
+        let encoded = js_sys::Array::new();
+
+        if let Some(indices_to_encode) = $indices_to_encode {
+            for i in indices_to_encode.values() {
+                let index: u32 = from_value(i.unwrap())?;
+                if index >= $messages.length() {
+                    return Err(JsValue::from(&format!(
+                        "Invalid index {:?} to get message",
+                        index
+                    )));
+                }
+                let msg: Vec<u8> = from_value($messages.get(index))?;
+                let fr = utils::$fn_name(&msg);
+                encoded.push(&fr_to_jsvalue(&fr)?);
+            }
+        } else {
+            for value in $messages.values() {
+                let msg: Vec<u8> = from_value(value?)?;
+                let fr = utils::$fn_name(&msg);
+
+                encoded.push(&fr_to_jsvalue(&fr)?);
+            }
+        }
+
+        Ok(encoded)
+    }};
+}
+
 #[wasm_bindgen(js_name = encodeMessageForSigning)]
 pub fn encode_message_for_signing(message: Vec<u8>) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let fr = utils::encode_message_for_signing(&message);
+    fr_to_uint8_array(&fr)
+}
+
+#[wasm_bindgen(js_name = encodeMessageForSigningInConstantTime)]
+pub fn encode_message_for_signing_in_constant_time(
+    message: Vec<u8>,
+) -> Result<js_sys::Uint8Array, JsValue> {
+    set_panic_hook();
+    let fr = utils::encode_message_for_signing_in_constant_time(&message);
     fr_to_uint8_array(&fr)
 }
 
@@ -28,34 +70,19 @@ pub fn encode_messages_for_signing(
     messages: js_sys::Array,
     indices_to_encode: Option<js_sys::Array>,
 ) -> Result<js_sys::Array, JsValue> {
-    use serde_wasm_bindgen::from_value;
+    encode_messages_for_signing!(messages, indices_to_encode, encode_message_for_signing)
+}
 
-    set_panic_hook();
-    let encoded = js_sys::Array::new();
-
-    if let Some(indices_to_encode) = indices_to_encode {
-        for i in indices_to_encode.values() {
-            let index: u32 = from_value(i.unwrap())?;
-            if index >= messages.length() {
-                return Err(JsValue::from(&format!(
-                    "Invalid index {:?} to get message",
-                    index
-                )));
-            }
-            let msg: Vec<u8> = from_value(messages.get(index))?;
-            let fr = utils::encode_message_for_signing(&msg);
-            encoded.push(&fr_to_jsvalue(&fr)?);
-        }
-    } else {
-        for value in messages.values() {
-            let msg: Vec<u8> = from_value(value?)?;
-            let fr = utils::encode_message_for_signing(&msg);
-
-            encoded.push(&fr_to_jsvalue(&fr)?);
-        }
-    }
-
-    Ok(encoded)
+#[wasm_bindgen(js_name = encodeMessagesForSigningInConstantTime)]
+pub fn encode_messages_for_signing_in_constant_time(
+    messages: js_sys::Array,
+    indices_to_encode: Option<js_sys::Array>,
+) -> Result<js_sys::Array, JsValue> {
+    encode_messages_for_signing!(
+        messages,
+        indices_to_encode,
+        encode_message_for_signing_in_constant_time
+    )
 }
 
 #[wasm_bindgen(js_name = generateRandomG1Element)]

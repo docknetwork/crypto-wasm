@@ -3,12 +3,14 @@ use crate::{
     utils::{get_seeded_rng, js_array_to_iter, js_set_to_btree_set, set_panic_hook},
     G1Affine,
 };
-use bbs_plus::threshold::base_ot_phase::{BaseOTPhase, BaseOTPhaseOutput, SenderPubKeyAndProof};
 use blake2::Blake2b512;
 use js_sys::{Array, Map, Set, Uint8Array};
 use oblivious_transfer_protocols::{
     base_ot::simplest_ot::{Challenges, HashedKey, ReceiverPubKeys, Responses},
-    ot_based_multiplication::dkls18_mul_2p::MultiplicationOTEParams,
+    ot_based_multiplication::{
+        base_ot_multi_party_pairwise::{BaseOTOutput, Participant, SenderPubKeyAndProof},
+        dkls18_mul_2p::MultiplicationOTEParams,
+    },
     ParticipantId,
 };
 use secret_sharing_and_dkg::common::PublicKeyBase;
@@ -34,7 +36,7 @@ pub fn start_base_ot_phase(
         ote_params.num_base_ot()
     });
     let others = js_set_to_btree_set(&others);
-    let (base_ot, sender_pk_and_proof) = BaseOTPhase::init::<_, Blake2b512>(
+    let (base_ot, sender_pk_and_proof) = Participant::init::<_, Blake2b512>(
         &mut rng,
         participant_id,
         others,
@@ -63,7 +65,7 @@ pub fn base_ot_phase_process_sender_pubkey(
 ) -> Result<Array, JsValue> {
     set_panic_hook();
     let mut rng = get_seeded_rng();
-    let mut base_ot = obj_from_uint8array!(BaseOTPhase<G1Affine>, base_ot_phase, true);
+    let mut base_ot = obj_from_uint8array!(Participant<G1Affine>, base_ot_phase, true);
     let pub_key_proof = obj_from_uint8array!(SenderPubKeyAndProof<G1Affine>, pub_key_proof, false);
     let recv_pk = base_ot
         .receive_sender_pubkey::<_, Blake2b512, BASE_OT_KEY_SIZE>(
@@ -93,7 +95,7 @@ pub fn base_ot_phase_process_receiver_pubkey(
     public_key: Uint8Array,
 ) -> Result<Array, JsValue> {
     set_panic_hook();
-    let mut base_ot = obj_from_uint8array!(BaseOTPhase<G1Affine>, base_ot_phase, true);
+    let mut base_ot = obj_from_uint8array!(Participant<G1Affine>, base_ot_phase, true);
     let pk = obj_from_uint8array!(ReceiverPubKeys<G1Affine>, public_key, false);
     let challenges = base_ot
         .receive_receiver_pubkey::<BASE_OT_KEY_SIZE>(receiver_id, pk)
@@ -118,7 +120,7 @@ pub fn base_ot_phase_process_receiver_challenges(
     challenges: Uint8Array,
 ) -> Result<Array, JsValue> {
     set_panic_hook();
-    let mut base_ot = obj_from_uint8array!(BaseOTPhase<G1Affine>, base_ot_phase, true);
+    let mut base_ot = obj_from_uint8array!(Participant<G1Affine>, base_ot_phase, true);
     let challenges = obj_from_uint8array!(Challenges, challenges, false);
     let resp = base_ot
         .receive_challenges(sender_id, challenges)
@@ -143,7 +145,7 @@ pub fn base_ot_phase_process_sender_responses(
     responses: Uint8Array,
 ) -> Result<Array, JsValue> {
     set_panic_hook();
-    let mut base_ot = obj_from_uint8array!(BaseOTPhase<G1Affine>, base_ot_phase, true);
+    let mut base_ot = obj_from_uint8array!(Participant<G1Affine>, base_ot_phase, true);
     let responses = obj_from_uint8array!(Responses, responses, false);
     let hk = base_ot
         .receive_responses(sender_id, responses)
@@ -168,7 +170,7 @@ pub fn base_ot_phase_process_hashed_keys(
     hashed_keys: Uint8Array,
 ) -> Result<Uint8Array, JsValue> {
     set_panic_hook();
-    let mut base_ot = obj_from_uint8array!(BaseOTPhase<G1Affine>, base_ot_phase, true);
+    let mut base_ot = obj_from_uint8array!(Participant<G1Affine>, base_ot_phase, true);
     let hk = obj_from_uint8array!(Vec<(HashedKey, HashedKey)>, hashed_keys, false);
     base_ot.receive_hashed_keys(sender_id, hk).map_err(|e| {
         JsValue::from(&format!(
@@ -183,9 +185,9 @@ pub fn base_ot_phase_process_hashed_keys(
 #[wasm_bindgen(js_name = baseOTPhaseFinish)]
 pub fn base_ot_phase_finish(base_ot_phase: Uint8Array) -> Result<Uint8Array, JsValue> {
     set_panic_hook();
-    let base_ot = obj_from_uint8array!(BaseOTPhase<G1Affine>, base_ot_phase, true);
+    let base_ot = obj_from_uint8array!(Participant<G1Affine>, base_ot_phase, true);
     let out = base_ot.finish();
-    let out = obj_to_uint8array!(&out, true, "BaseOTPhaseOutput");
+    let out = obj_to_uint8array!(&out, true, "BaseOTOutput");
     Ok(out)
 }
 
@@ -193,7 +195,7 @@ pub fn base_ot_phase_finish(base_ot_phase: Uint8Array) -> Result<Uint8Array, JsV
 #[wasm_bindgen(js_name = baseOTOutputCheck)]
 pub fn base_ot_output_check(base_ot_outputs: Array) -> Result<(), JsValue> {
     set_panic_hook();
-    let outs = js_array_to_iter(&base_ot_outputs).collect::<Result<Vec<BaseOTPhaseOutput>, _>>()?;
+    let outs = js_array_to_iter(&base_ot_outputs).collect::<Result<Vec<BaseOTOutput>, _>>()?;
 
     for base_ot in &outs {
         for (other, sender_keys) in &base_ot.sender_keys {

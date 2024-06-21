@@ -3,8 +3,9 @@ import {
   fieldElementAsBytes,
   initializeWasm,
   isWasmInitialized,
-  requireWasmInitialized,
+  requireWasmInitialized, encodeMessageForSigning, encodeMessageForSigningInConstantTime,
 } from "../../lib";
+import {stringToBytes} from "./util";
 
 describe("For WASM initialization", () => {
   it("returns false when not initialized", () => {
@@ -60,5 +61,22 @@ describe("For utils", () => {
     [1, 2, 255, 256, 512, 1000].forEach((i) => {
       expect(bytearrayToNumber(generateFieldElementFromNumber(i))).toEqual(i);
     })
+  })
+
+  it("message encoding timings", () => {
+    const count = 500;
+    console.time('Variable time encoding');
+    for (let i = 0; i < count; i++) {
+      let m = stringToBytes(`message no-${i + 1}`);
+      m = encodeMessageForSigning(m)
+    }
+    console.timeEnd('Variable time encoding');
+
+    console.time('Constant time encoding');
+    for (let i = 0; i < count; i++) {
+      let m = stringToBytes(`message no-${i + 1}`);
+      m = encodeMessageForSigningInConstantTime(m)
+    }
+    console.timeEnd('Constant time encoding');
   })
 });

@@ -67,6 +67,16 @@ module.exports.bddt16MacGenerate = (
     return wasm.bddt16MacGenerate(messages, secretKey, params, encodeMessages);
 };
 
+module.exports.bddt16MacGenerateConstantTime = (
+    messages,
+    secretKey,
+    params,
+    encodeMessages
+) => {
+    requireWasmInitialized();
+    return wasm.bddt16MacGenerateConstantTime(messages, secretKey, params, encodeMessages);
+};
+
 module.exports.bddt16MacVerify = (
     messages,
     mac,
@@ -76,6 +86,17 @@ module.exports.bddt16MacVerify = (
 ) => {
     requireWasmInitialized();
     return wasm.bddt16MacVerify(messages, mac, secretKey, params, encodeMessages);
+};
+
+module.exports.bddt16MacVerifyConstantTime = (
+    messages,
+    mac,
+    secretKey,
+    params,
+    encodeMessages
+) => {
+    requireWasmInitialized();
+    return wasm.bddt16MacVerifyConstantTime(messages, mac, secretKey, params, encodeMessages);
 };
 
 module.exports.bddt16MacProofOfValidity = (
@@ -110,6 +131,16 @@ module.exports.bddt16MacCommitMsgs = (
     return wasm.bddt16MacCommitMsgs(messages, blinding, params, encodeMessages);
 };
 
+module.exports.bddt16MacCommitMsgsConstantTime = (
+    messages,
+    blinding,
+    params,
+    encodeMessages
+) => {
+    requireWasmInitialized();
+    return wasm.bddt16MacCommitMsgsConstantTime(messages, blinding, params, encodeMessages);
+};
+
 module.exports.bddt16BlindMacGenerate = (
     commitment,
     uncommittedMessages,
@@ -119,6 +150,17 @@ module.exports.bddt16BlindMacGenerate = (
 ) => {
     requireWasmInitialized();
     return wasm.bddt16BlindMacGenerate(commitment, uncommittedMessages, secretKey, params, encodeMessages);
+};
+
+module.exports.bddt16BlindMacGenerateConstantTime = (
+    commitment,
+    uncommittedMessages,
+    secretKey,
+    params,
+    encodeMessages
+) => {
+    requireWasmInitialized();
+    return wasm.bddt16BlindMacGenerateConstantTime(commitment, uncommittedMessages, secretKey, params, encodeMessages);
 };
 
 module.exports.bddt16UnblindMac = (

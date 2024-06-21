@@ -19,6 +19,15 @@ export function encodeMessagesForSigning(
     indicesToEncode?: number[]
 ): Uint8Array[];
 
+export function encodeMessageForSigningInConstantTime(
+    message: Uint8Array
+): Uint8Array;
+
+export function encodeMessagesForSigningInConstantTime(
+    messages: Uint8Array[],
+    indicesToEncode?: number[]
+): Uint8Array[];
+
 export function fieldElementAsBytes(
     element: Uint8Array,
     elementIsSecure: boolean

@@ -1,15 +1,18 @@
 use crate::utils::{
-    fr_from_uint8_array, g1_affine_from_uint8_array, g1_affine_to_jsvalue,
-    g1_affine_to_uint8_array, get_seeded_rng, js_set_to_btree_set, random_bytes, set_panic_hook,
+    encode_messages_as_js_array_to_fr_vec_in_constant_time,
+    encode_messages_as_js_map_to_fr_btreemap_in_constant_time, fr_from_uint8_array,
+    g1_affine_from_uint8_array, g1_affine_to_jsvalue, g1_affine_to_uint8_array, get_seeded_rng,
+    js_set_to_btree_set, random_bytes, set_panic_hook,
 };
 
 use wasm_bindgen::prelude::*;
 
 use crate::{
+    blind_sign, challenge_contribution_from_proof, challenge_contribution_from_protocol,
     common::VerifyResponse,
-    to_verify_response,
+    init_pok, sign, to_verify_response,
     utils::{encode_messages_as_js_array_to_fr_vec, encode_messages_as_js_map_to_fr_btreemap},
-    Fr, G1Affine,
+    verify, verify_pok, Fr, G1Affine,
 };
 use ark_bls12_381::Bls12_381;
 use ark_std::collections::BTreeMap;
@@ -31,6 +34,10 @@ pub type BBSPublicKey = PublicKeyG2<Bls12_381>;
 pub(crate) type BBSSignature = Signature23G1<Bls12_381>;
 pub(crate) type BBSPoKOfSigProtocol = PoKOfSignature23G1Protocol<Bls12_381>;
 pub(crate) type BBSPoKOfSigProof = PoKOfSignature23G1Proof<Bls12_381>;
+
+pub(crate) type BBSPoKOfSigProtocolNew =
+    bbs_plus::proof_23_ietf::PoKOfSignature23G1Protocol<Bls12_381>;
+pub(crate) type BBSPoKOfSigProofNew = bbs_plus::proof_23_ietf::PoKOfSignature23G1Proof<Bls12_381>;
 
 #[wasm_bindgen(js_name = bbsGenerateSignatureParams)]
 pub fn bbs_generate_params(message_count: u32, label: Option<Vec<u8>>) -> Result<JsValue, JsValue> {
@@ -146,6 +153,29 @@ pub fn bbs_commit_to_message(
     }
 }
 
+#[wasm_bindgen(js_name = bbsCommitMsgsConstantTime)]
+pub fn bbs_commit_to_message_constant_time(
+    messages_to_commit: js_sys::Map,
+    params: JsValue,
+    encode_messages: bool,
+) -> Result<js_sys::Uint8Array, JsValue> {
+    set_panic_hook();
+    let msgs = encode_messages_as_js_map_to_fr_btreemap_in_constant_time(
+        &messages_to_commit,
+        encode_messages,
+    )?;
+    let msgs_ref = msgs
+        .iter()
+        .map(|(i, m)| (*i, m))
+        .collect::<BTreeMap<_, _>>();
+
+    let params: BBSSigParams = serde_wasm_bindgen::from_value(params)?;
+    match params.commit_to_messages(msgs_ref) {
+        Ok(comm) => g1_affine_to_uint8_array(&comm),
+        Err(e) => Err(JsValue::from(&format!("{:?}", e))),
+    }
+}
+
 #[wasm_bindgen(js_name = bbsSign)]
 pub fn bbs_sign(
     messages: js_sys::Array,
@@ -153,16 +183,39 @@ pub fn bbs_sign(
     params: JsValue,
     encode_messages: bool,
 ) -> Result<js_sys::Uint8Array, JsValue> {
-    set_panic_hook();
-    let sk = obj_from_uint8array!(BBSSecretKey, secret_key, true, "BBSSecretKey");
-    let params: BBSSigParams = serde_wasm_bindgen::from_value(params)?;
-    let messages = encode_messages_as_js_array_to_fr_vec(&messages, encode_messages)?;
+    sign!(
+        messages,
+        secret_key,
+        params,
+        encode_messages,
+        BBSSecretKey,
+        "BBSSecretKey",
+        BBSSigParams,
+        BBSSignature,
+        "BBSSignature",
+        encode_messages_as_js_array_to_fr_vec
+    )
+}
 
-    let mut rng = get_seeded_rng();
-    match BBSSignature::new(&mut rng, &messages, &sk, &params) {
-        Ok(sig) => Ok(obj_to_uint8array!(&sig, true, "BBSSignature")),
-        Err(e) => Err(JsValue::from(&format!("{:?}", e))),
-    }
+#[wasm_bindgen(js_name = bbsSignConstantTime)]
+pub fn bbs_sign_constant_time(
+    messages: js_sys::Array,
+    secret_key: js_sys::Uint8Array,
+    params: JsValue,
+    encode_messages: bool,
+) -> Result<js_sys::Uint8Array, JsValue> {
+    sign!(
+        messages,
+        secret_key,
+        params,
+        encode_messages,
+        BBSSecretKey,
+        "BBSSecretKey",
+        BBSSigParams,
+        BBSSignature,
+        "BBSSignature",
+        encode_messages_as_js_array_to_fr_vec_in_constant_time
+    )
 }
 
 #[wasm_bindgen(js_name = bbsBlindSign)]
@@ -173,21 +226,44 @@ pub fn bbs_blind_sign(
     params: JsValue,
     encode_messages: bool,
 ) -> Result<js_sys::Uint8Array, JsValue> {
-    set_panic_hook();
-    let commitment = g1_affine_from_uint8_array(commitment)?;
-    let msgs = encode_messages_as_js_map_to_fr_btreemap(&uncommitted_messages, encode_messages)?;
-    let msgs_ref = msgs
-        .iter()
-        .map(|(i, m)| (*i, m))
-        .collect::<BTreeMap<_, _>>();
-    let sk = obj_from_uint8array!(BBSSecretKey, secret_key, true, "BBSSecretKey");
-    let params: BBSSigParams = serde_wasm_bindgen::from_value(params)?;
+    blind_sign!(
+        commitment,
+        uncommitted_messages,
+        secret_key,
+        params,
+        encode_messages,
+        BBSSecretKey,
+        "BBSSecretKey",
+        BBSSigParams,
+        BBSSignature,
+        "BBSSignature",
+        encode_messages_as_js_map_to_fr_btreemap,
+        g1_affine_from_uint8_array
+    )
+}
 
-    let mut rng = get_seeded_rng();
-    match BBSSignature::new_with_committed_messages(&mut rng, &commitment, msgs_ref, &sk, &params) {
-        Ok(sig) => Ok(obj_to_uint8array!(&sig, true, "BBSSignature")),
-        Err(e) => Err(JsValue::from(&format!("{:?}", e))),
-    }
+#[wasm_bindgen(js_name = bbsBlindSignConstantTime)]
+pub fn bbs_blind_sign_constant_time(
+    commitment: js_sys::Uint8Array,
+    uncommitted_messages: js_sys::Map,
+    secret_key: js_sys::Uint8Array,
+    params: JsValue,
+    encode_messages: bool,
+) -> Result<js_sys::Uint8Array, JsValue> {
+    blind_sign!(
+        commitment,
+        uncommitted_messages,
+        secret_key,
+        params,
+        encode_messages,
+        BBSSecretKey,
+        "BBSSecretKey",
+        BBSSigParams,
+        BBSSignature,
+        "BBSSignature",
+        encode_messages_as_js_map_to_fr_btreemap_in_constant_time,
+        g1_affine_from_uint8_array
+    )
 }
 
 #[wasm_bindgen(js_name = bbsVerify)]
@@ -198,12 +274,42 @@ pub fn bbs_verify(
     params: JsValue,
     encode_messages: bool,
 ) -> Result<JsValue, JsValue> {
-    set_panic_hook();
-    let signature = obj_from_uint8array!(BBSSignature, signature, true);
-    let pk = obj_from_uint8array!(BBSPublicKey, public_key, false, "BBSPublicKey");
-    let params: BBSSigParams = serde_wasm_bindgen::from_value(params)?;
-    let messages = encode_messages_as_js_array_to_fr_vec(&messages, encode_messages)?;
-    to_verify_response!(signature.verify(messages.as_slice(), pk, params))
+    verify!(
+        messages,
+        signature,
+        public_key,
+        params,
+        encode_messages,
+        BBSSignature,
+        "BBSSignature",
+        BBSPublicKey,
+        "BBSPublicKey",
+        BBSSigParams,
+        encode_messages_as_js_array_to_fr_vec
+    )
+}
+
+#[wasm_bindgen(js_name = bbsVerifyConstantTime)]
+pub fn bbs_verify_constant_time(
+    messages: js_sys::Array,
+    signature: js_sys::Uint8Array,
+    public_key: js_sys::Uint8Array,
+    params: JsValue,
+    encode_messages: bool,
+) -> Result<JsValue, JsValue> {
+    verify!(
+        messages,
+        signature,
+        public_key,
+        params,
+        encode_messages,
+        BBSSignature,
+        "BBSSignature",
+        BBSPublicKey,
+        "BBSPublicKey",
+        BBSSigParams,
+        encode_messages_as_js_array_to_fr_vec_in_constant_time
+    )
 }
 
 #[wasm_bindgen(js_name = bbsInitializeProofOfKnowledgeOfSignature)]
@@ -215,31 +321,64 @@ pub fn bbs_initialize_proof_of_knowledge_of_signature(
     revealed_indices: js_sys::Set,
     encode_messages: bool,
 ) -> Result<JsValue, JsValue> {
-    set_panic_hook();
+    init_pok!(
+        signature,
+        params,
+        messages,
+        blindings,
+        revealed_indices,
+        encode_messages,
+        BBSSignature,
+        BBSSigParams,
+        BBSPoKOfSigProtocol,
+        encode_messages_as_js_array_to_fr_vec
+    )
+}
 
-    let signature = obj_from_uint8array!(BBSSignature, signature, true);
-    let params: BBSSigParams = serde_wasm_bindgen::from_value(params)?;
-    // TODO: Avoid this hack of passing false, create separate method to parse
-    let mut blindings = encode_messages_as_js_map_to_fr_btreemap(&blindings, false)?;
-    let messages = encode_messages_as_js_array_to_fr_vec(&messages, encode_messages)?;
-    let revealed_indices = js_set_to_btree_set::<usize>(&revealed_indices);
-    let msg_iter = messages.iter().enumerate().map(|(idx, message)| {
-        if revealed_indices.contains(&idx) {
-            MessageOrBlinding::RevealMessage(message)
-        } else if let Some(blinding) = blindings.remove(&idx) {
-            MessageOrBlinding::BlindMessageWithConcreteBlinding { message, blinding }
-        } else {
-            MessageOrBlinding::BlindMessageRandomly(message)
-        }
-    });
+#[wasm_bindgen(js_name = bbsInitializeProofOfKnowledgeOfSignatureNew)]
+pub fn bbs_initialize_proof_of_knowledge_of_signature_new(
+    signature: js_sys::Uint8Array,
+    params: JsValue,
+    messages: js_sys::Array,
+    blindings: js_sys::Map,
+    revealed_indices: js_sys::Set,
+    encode_messages: bool,
+) -> Result<JsValue, JsValue> {
+    init_pok!(
+        signature,
+        params,
+        messages,
+        blindings,
+        revealed_indices,
+        encode_messages,
+        BBSSignature,
+        BBSSigParams,
+        BBSPoKOfSigProtocolNew,
+        encode_messages_as_js_array_to_fr_vec_in_constant_time
+    )
+}
 
-    let mut rng = get_seeded_rng();
-    match BBSPoKOfSigProtocol::init(&mut rng, &signature, &params, msg_iter) {
-        Ok(sig) => Ok(serde_wasm_bindgen::to_value(&sig)
-            .map_err(JsValue::from)
-            .unwrap()),
-        Err(e) => Err(JsValue::from(&format!("{:?}", e))),
-    }
+#[wasm_bindgen(js_name = bbsInitializeProofOfKnowledgeOfSignatureConstantTime)]
+pub fn bbs_initialize_proof_of_knowledge_of_signature_constant_time(
+    signature: js_sys::Uint8Array,
+    params: JsValue,
+    messages: js_sys::Array,
+    blindings: js_sys::Map,
+    revealed_indices: js_sys::Set,
+    encode_messages: bool,
+) -> Result<JsValue, JsValue> {
+    init_pok!(
+        signature,
+        params,
+        messages,
+        blindings,
+        revealed_indices,
+        encode_messages,
+        BBSSignature,
+        BBSSigParams,
+        BBSPoKOfSigProtocol,
+        encode_messages_as_js_array_to_fr_vec_in_constant_time
+    )
 }
 
 #[wasm_bindgen(js_name = bbsGenProofOfKnowledgeOfSignature)]
@@ -251,7 +390,21 @@ pub fn bbs_gen_proof(
     let protocol: BBSPoKOfSigProtocol = serde_wasm_bindgen::from_value(protocol)?;
     let challenge = fr_from_uint8_array(challenge, false)?;
     match protocol.gen_proof(&challenge) {
-        Ok(proof) => Ok(obj_to_uint8array!(&proof, false, "BBS+ProofG1")),
+        Ok(proof) => Ok(obj_to_uint8array!(&proof, false, "BBSProof")),
+        Err(e) => Err(JsValue::from(&format!("{:?}", e))),
+    }
+}
+
+#[wasm_bindgen(js_name = bbsGenProofOfKnowledgeOfSignatureNew)]
+pub fn bbs_gen_proof_new(
+    protocol: JsValue,
+    challenge: js_sys::Uint8Array,
+) -> Result<js_sys::Uint8Array, JsValue> {
+    set_panic_hook();
+    let protocol: BBSPoKOfSigProtocolNew = serde_wasm_bindgen::from_value(protocol)?;
+    let challenge = fr_from_uint8_array(challenge, false)?;
+    match protocol.gen_proof(&challenge) {
+        Ok(proof) => Ok(obj_to_uint8array!(&proof, false, "BBSProofNew")),
         Err(e) => Err(JsValue::from(&format!("{:?}", e))),
     }
 }
@@ -265,14 +418,67 @@ pub fn bbs_verify_proof(
     params: JsValue,
     encode_messages: bool,
 ) -> Result<JsValue, JsValue> {
-    set_panic_hook();
-    let proof: BBSPoKOfSigProof = obj_from_uint8array!(BBSPoKOfSigProof, proof, false);
-    let params: BBSSigParams = serde_wasm_bindgen::from_value(params)?;
-    let public_key = obj_from_uint8array!(BBSPublicKey, public_key, false, "BBSPublicKey");
-    let challenge = fr_from_uint8_array(challenge, false)?;
+    verify_pok!(
+        proof,
+        revealed_msgs,
+        challenge,
+        public_key,
+        params,
+        encode_messages,
+        BBSPoKOfSigProof,
+        BBSSigParams,
+        BBSPublicKey,
+        "BBSPublicKey",
+        encode_messages_as_js_map_to_fr_btreemap
+    )
+}
 
-    let msgs = encode_messages_as_js_map_to_fr_btreemap(&revealed_msgs, encode_messages)?;
-    to_verify_response!(proof.verify(&msgs, &challenge, public_key, params))
+#[wasm_bindgen(js_name = bbsVerifyProofOfKnowledgeOfSignatureNew)]
+pub fn bbs_verify_proof_new(
+    proof: js_sys::Uint8Array,
+    revealed_msgs: js_sys::Map,
+    challenge: js_sys::Uint8Array,
+    public_key: js_sys::Uint8Array,
+    params: JsValue,
+    encode_messages: bool,
+) -> Result<JsValue, JsValue> {
+    verify_pok!(
+        proof,
+        revealed_msgs,
+        challenge,
+        public_key,
+        params,
+        encode_messages,
+        BBSPoKOfSigProofNew,
+        BBSSigParams,
+        BBSPublicKey,
+        "BBSPublicKey",
+        encode_messages_as_js_map_to_fr_btreemap_in_constant_time
+    )
+}
+
+#[wasm_bindgen(js_name = bbsVerifyProofOfKnowledgeOfSignatureConstantTime)]
+pub fn bbs_verify_proof_constant_time(
+    proof: js_sys::Uint8Array,
+    revealed_msgs: js_sys::Map,
+    challenge: js_sys::Uint8Array,
+    public_key: js_sys::Uint8Array,
+    params: JsValue,
+    encode_messages: bool,
+) -> Result<JsValue, JsValue> {
+    verify_pok!(
+        proof,
+        revealed_msgs,
+        challenge,
+        public_key,
+        params,
+        encode_messages,
+        BBSPoKOfSigProof,
+        BBSSigParams,
+        BBSPublicKey,
+        "BBSPublicKey",
+        encode_messages_as_js_map_to_fr_btreemap_in_constant_time
+    )
 }
 
 #[wasm_bindgen(js_name = bbsChallengeContributionFromProtocol)]
@@ -282,20 +488,51 @@ pub fn bbs_challenge_contribution_from_protocol(
     params: JsValue,
     encode_messages: bool,
 ) -> Result<js_sys::Uint8Array, JsValue> {
-    set_panic_hook();
-    let protocol: BBSPoKOfSigProtocol = serde_wasm_bindgen::from_value(protocol)?;
-    let msgs = encode_messages_as_js_map_to_fr_btreemap(&revealed_msgs, encode_messages)?;
-    let params: BBSSigParams = serde_wasm_bindgen::from_value(params)?;
-    let mut bytes = vec![];
-    protocol
-        .challenge_contribution(&msgs, &params, &mut bytes)
-        .map_err(|e| {
-            JsValue::from(&format!(
-                "Evaluating challenge_contribution returned error: {:?}",
-                e
-            ))
-        })?;
-    Ok(js_sys::Uint8Array::from(bytes.as_slice()))
+    challenge_contribution_from_protocol!(
+        protocol,
+        revealed_msgs,
+        params,
+        encode_messages,
+        BBSPoKOfSigProtocol,
+        BBSSigParams,
+        encode_messages_as_js_map_to_fr_btreemap
+    )
+}
+
+#[wasm_bindgen(js_name = bbsChallengeContributionFromProtocolNew)]
+pub fn bbs_challenge_contribution_from_protocol_new(
+    protocol: JsValue,
+    revealed_msgs: js_sys::Map,
+    params: JsValue,
+    encode_messages: bool,
+) -> Result<js_sys::Uint8Array, JsValue> {
+    challenge_contribution_from_protocol!(
+        protocol,
+        revealed_msgs,
+        params,
+        encode_messages,
+        BBSPoKOfSigProtocolNew,
+        BBSSigParams,
+        encode_messages_as_js_map_to_fr_btreemap_in_constant_time
+    )
+}
+
+#[wasm_bindgen(js_name = bbsChallengeContributionFromProtocolConstantTime)]
+pub fn bbs_challenge_contribution_from_protocol_constant_time(
+    protocol: JsValue,
+    revealed_msgs: js_sys::Map,
+    params: JsValue,
+    encode_messages: bool,
+) -> Result<js_sys::Uint8Array, JsValue> {
+    challenge_contribution_from_protocol!(
+        protocol,
+        revealed_msgs,
+        params,
+        encode_messages,
+        BBSPoKOfSigProtocol,
+        BBSSigParams,
+        encode_messages_as_js_map_to_fr_btreemap_in_constant_time
+    )
 }
 
 #[wasm_bindgen(js_name = bbsChallengeContributionFromProof)]
@@ -305,20 +542,51 @@ pub fn bbs_challenge_contribution_from_proof(
     params: JsValue,
     encode_messages: bool,
 ) -> Result<js_sys::Uint8Array, JsValue> {
-    set_panic_hook();
-    let proof: BBSPoKOfSigProof = obj_from_uint8array!(BBSPoKOfSigProof, proof, false);
-    let msgs = encode_messages_as_js_map_to_fr_btreemap(&revealed_msgs, encode_messages)?;
-    let params: BBSSigParams = serde_wasm_bindgen::from_value(params)?;
-    let mut bytes = vec![];
-    proof
-        .challenge_contribution(&msgs, &params, &mut bytes)
-        .map_err(|e| {
-            JsValue::from(&format!(
-                "Evaluating challenge_contribution returned error: {:?}",
-                e
-            ))
-        })?;
-    Ok(js_sys::Uint8Array::from(bytes.as_slice()))
+    challenge_contribution_from_proof!(
+        proof,
+        revealed_msgs,
+        params,
+        encode_messages,
+        BBSPoKOfSigProof,
+        BBSSigParams,
+        encode_messages_as_js_map_to_fr_btreemap
+    )
+}
+
+#[wasm_bindgen(js_name = bbsChallengeContributionFromProofNew)]
+pub fn bbs_challenge_contribution_from_proof_new(
+    proof: js_sys::Uint8Array,
+    revealed_msgs: js_sys::Map,
+    params: JsValue,
+    encode_messages: bool,
+) -> Result<js_sys::Uint8Array, JsValue> {
+    challenge_contribution_from_proof!(
+        proof,
+        revealed_msgs,
+        params,
+        encode_messages,
+        BBSPoKOfSigProofNew,
+        BBSSigParams,
+        encode_messages_as_js_map_to_fr_btreemap_in_constant_time
+    )
+}
+
+#[wasm_bindgen(js_name = bbsChallengeContributionFromProofConstantTime)]
+pub fn bbs_challenge_contribution_from_proof_constant_time(
+    proof: js_sys::Uint8Array,
+    revealed_msgs: js_sys::Map,
+    params: JsValue,
+    encode_messages: bool,
+) -> Result<js_sys::Uint8Array, JsValue> {
+    challenge_contribution_from_proof!(
+        proof,
+        revealed_msgs,
+        params,
+        encode_messages,
+        BBSPoKOfSigProof,
+        BBSSigParams,
+        encode_messages_as_js_map_to_fr_btreemap_in_constant_time
+    )
 }
 
 #[wasm_bindgen(js_name = bbsAdaptSigParamsForMsgCount)]

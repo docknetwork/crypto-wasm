@@ -68,6 +68,16 @@ module.exports.bbsSign = (
     return wasm.bbsSign(messages, secretKey, params, encodeMessages);
 };
 
+module.exports.bbsSignConstantTime = (
+    messages,
+    secretKey,
+    params,
+    encodeMessages
+) => {
+    requireWasmInitialized();
+    return wasm.bbsSignConstantTime(messages, secretKey, params, encodeMessages);
+};
+
 module.exports.bbsVerify = (
     messages,
     signature,
@@ -79,6 +89,17 @@ module.exports.bbsVerify = (
     return wasm.bbsVerify(messages, signature, publicKey, params, encodeMessages);
 };
 
+module.exports.bbsVerifyConstantTime = (
+    messages,
+    signature,
+    publicKey,
+    params,
+    encodeMessages
+) => {
+    requireWasmInitialized();
+    return wasm.bbsVerifyConstantTime(messages, signature, publicKey, params, encodeMessages);
+};
+
 module.exports.bbsCommitMsgs = (
     messages,
     params,
@@ -86,6 +107,15 @@ module.exports.bbsCommitMsgs = (
 ) => {
     requireWasmInitialized();
     return wasm.bbsCommitMsgs(messages, params, encodeMessages);
+};
+
+module.exports.bbsCommitMsgsConstantTime = (
+    messages,
+    params,
+    encodeMessages
+) => {
+    requireWasmInitialized();
+    return wasm.bbsCommitMsgsConstantTime(messages, params, encodeMessages);
 };
 
 module.exports.bbsBlindSign = (
@@ -97,6 +127,17 @@ module.exports.bbsBlindSign = (
 ) => {
     requireWasmInitialized();
     return wasm.bbsBlindSign(commitment, uncommittedMessages, secretKey, params, encodeMessages);
+};
+
+module.exports.bbsBlindSignConstantTime = (
+    commitment,
+    uncommittedMessages,
+    secretKey,
+    params,
+    encodeMessages
+) => {
+    requireWasmInitialized();
+    return wasm.bbsBlindSignConstantTime(commitment, uncommittedMessages, secretKey, params, encodeMessages);
 };
 
 module.exports.bbsInitializeProofOfKnowledgeOfSignature = (
@@ -111,12 +152,44 @@ module.exports.bbsInitializeProofOfKnowledgeOfSignature = (
     return wasm.bbsInitializeProofOfKnowledgeOfSignature(signature, params, messages, blindings, revealedIndices, encodeMessages);
 };
 
+module.exports.bbsInitializeProofOfKnowledgeOfSignatureNew = (
+    signature,
+    params,
+    messages,
+    blindings,
+    revealedIndices,
+    encodeMessages
+) => {
+    requireWasmInitialized();
+    return wasm.bbsInitializeProofOfKnowledgeOfSignatureNew(signature, params, messages, blindings, revealedIndices, encodeMessages);
+};
+
+module.exports.bbsInitializeProofOfKnowledgeOfSignatureConstantTime = (
+    signature,
+    params,
+    messages,
+    blindings,
+    revealedIndices,
+    encodeMessages
+) => {
+    requireWasmInitialized();
+    return wasm.bbsInitializeProofOfKnowledgeOfSignatureConstantTime(signature, params, messages, blindings, revealedIndices, encodeMessages);
+};
+
 module.exports.bbsGenProofOfKnowledgeOfSignature = (
     protocol,
     challenge
 ) => {
     requireWasmInitialized();
     return wasm.bbsGenProofOfKnowledgeOfSignature(protocol, challenge);
+};
+
+module.exports.bbsGenProofOfKnowledgeOfSignatureNew = (
+    protocol,
+    challenge
+) => {
+    requireWasmInitialized();
+    return wasm.bbsGenProofOfKnowledgeOfSignatureNew(protocol, challenge);
 };
 
 module.exports.bbsVerifyProofOfKnowledgeOfSignature = (
@@ -131,6 +204,30 @@ module.exports.bbsVerifyProofOfKnowledgeOfSignature = (
     return wasm.bbsVerifyProofOfKnowledgeOfSignature(proof, revealedMessages, challenge, publicKey, params, encodeMessages);
 };
 
+module.exports.bbsVerifyProofOfKnowledgeOfSignatureNew = (
+    proof,
+    revealedMessages,
+    challenge,
+    publicKey,
+    params,
+    encodeMessages
+) => {
+    requireWasmInitialized();
+    return wasm.bbsVerifyProofOfKnowledgeOfSignatureNew(proof, revealedMessages, challenge, publicKey, params, encodeMessages);
+};
+
+module.exports.bbsVerifyProofOfKnowledgeOfSignatureConstantTime = (
+    proof,
+    revealedMessages,
+    challenge,
+    publicKey,
+    params,
+    encodeMessages
+) => {
+    requireWasmInitialized();
+    return wasm.bbsVerifyProofOfKnowledgeOfSignatureConstantTime(proof, revealedMessages, challenge, publicKey, params, encodeMessages);
+};
+
 module.exports.bbsChallengeContributionFromProtocol = (
     protocol,
     revealedMessages,
@@ -141,6 +238,26 @@ module.exports.bbsChallengeContributionFromProtocol = (
     return wasm.bbsChallengeContributionFromProtocol(protocol, revealedMessages, params, encodeMessages);
 };
 
+module.exports.bbsChallengeContributionFromProtocolNew = (
+    protocol,
+    revealedMessages,
+    params,
+    encodeMessages
+) => {
+    requireWasmInitialized();
+    return wasm.bbsChallengeContributionFromProtocolNew(protocol, revealedMessages, params, encodeMessages);
+};
+
+module.exports.bbsChallengeContributionFromProtocolConstantTime = (
+    protocol,
+    revealedMessages,
+    params,
+    encodeMessages
+) => {
+    requireWasmInitialized();
+    return wasm.bbsChallengeContributionFromProtocolConstantTime(protocol, revealedMessages, params, encodeMessages);
+};
+
 module.exports.bbsChallengeContributionFromProof = (
     proof,
     revealedMessages,
@@ -149,6 +266,26 @@ module.exports.bbsChallengeContributionFromProof = (
 ) => {
     requireWasmInitialized();
     return wasm.bbsChallengeContributionFromProof(proof, revealedMessages, params, encodeMessages);
+};
+
+module.exports.bbsChallengeContributionFromProofNew = (
+    proof,
+    revealedMessages,
+    params,
+    encodeMessages
+) => {
+    requireWasmInitialized();
+    return wasm.bbsChallengeContributionFromProofNew(proof, revealedMessages, params, encodeMessages);
+};
+
+module.exports.bbsChallengeContributionFromProofConstantTime = (
+    proof,
+    revealedMessages,
+    params,
+    encodeMessages
+) => {
+    requireWasmInitialized();
+    return wasm.bbsChallengeContributionFromProofConstantTime(proof, revealedMessages, params, encodeMessages);
 };
 
 module.exports.bbsAdaptSigParamsForMsgCount = (params, generating_label, new_count) => {

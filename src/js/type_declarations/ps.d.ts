@@ -118,6 +118,7 @@ export function psUnblindSignature(
     blind_signature: Uint8Array,
     indexed_blindings: Map<number, Uint8Array>,
     pk: Uint8Array,
+    h: Uint8Array,
 ): Uint8Array;
 
 export function psInitializeSignaturePoK(

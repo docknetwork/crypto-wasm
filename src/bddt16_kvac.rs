@@ -1,12 +1,16 @@
 use crate::{
+    blind_sign, commit_to_messages,
     common::VerifyResponse,
-    to_verify_response,
+    sign, to_verify_response,
     utils::{
-        encode_messages_as_js_array_to_fr_vec, encode_messages_as_js_map_to_fr_btreemap,
-        fr_from_uint8_array, g1_affine_from_uint8_array, g1_affine_to_jsvalue,
-        g1_affine_to_uint8_array, get_seeded_rng, random_bytes, set_panic_hook,
+        encode_messages_as_js_array_to_fr_vec,
+        encode_messages_as_js_array_to_fr_vec_in_constant_time,
+        encode_messages_as_js_map_to_fr_btreemap,
+        encode_messages_as_js_map_to_fr_btreemap_in_constant_time, fr_from_uint8_array,
+        g1_affine_from_uint8_array, g1_affine_to_jsvalue, g1_affine_to_uint8_array, get_seeded_rng,
+        random_bytes, set_panic_hook,
     },
-    Fr, G1Affine,
+    verify, Fr, G1Affine,
 };
 use ark_ec::AffineRepr;
 use blake2::Blake2b512;
@@ -148,19 +152,33 @@ pub fn bddt16_mac_commit_to_message(
     params: JsValue,
     encode_messages: bool,
 ) -> Result<js_sys::Uint8Array, JsValue> {
-    set_panic_hook();
-    let msgs = encode_messages_as_js_map_to_fr_btreemap(&messages_to_commit, encode_messages)?;
-    let msgs_ref = msgs
-        .iter()
-        .map(|(i, m)| (*i, m))
-        .collect::<BTreeMap<_, _>>();
+    commit_to_messages!(
+        messages_to_commit,
+        blinding,
+        params,
+        encode_messages,
+        BDDT16MACParams,
+        encode_messages_as_js_map_to_fr_btreemap,
+        g1_affine_to_uint8_array
+    )
+}
 
-    let params: BDDT16MACParams = serde_wasm_bindgen::from_value(params)?;
-    let blinding = fr_from_uint8_array(blinding, true)?;
-    match params.commit_to_messages(msgs_ref, &blinding) {
-        Ok(comm) => g1_affine_to_uint8_array(&comm),
-        Err(e) => Err(JsValue::from(&format!("{:?}", e))),
-    }
+#[wasm_bindgen(js_name = bddt16MacCommitMsgsConstantTime)]
+pub fn bddt16_mac_commit_to_message_constant_time(
+    messages_to_commit: js_sys::Map,
+    blinding: js_sys::Uint8Array,
+    params: JsValue,
+    encode_messages: bool,
+) -> Result<js_sys::Uint8Array, JsValue> {
+    commit_to_messages!(
+        messages_to_commit,
+        blinding,
+        params,
+        encode_messages,
+        BDDT16MACParams,
+        encode_messages_as_js_map_to_fr_btreemap_in_constant_time,
+        g1_affine_to_uint8_array
+    )
 }
 
 #[wasm_bindgen(js_name = bddt16MacGenerate)]
@@ -170,16 +188,39 @@ pub fn bddt16_mac_generate(
     params: JsValue,
     encode_messages: bool,
 ) -> Result<js_sys::Uint8Array, JsValue> {
-    set_panic_hook();
-    let sk = obj_from_uint8array!(BDDT16MACSecretKey, secret_key, true, "BDDT16MACSecretKey");
-    let params: BDDT16MACParams = serde_wasm_bindgen::from_value(params)?;
-    let messages = encode_messages_as_js_array_to_fr_vec(&messages, encode_messages)?;
+    sign!(
+        messages,
+        secret_key,
+        params,
+        encode_messages,
+        BDDT16MACSecretKey,
+        "BDDT16MACSecretKey",
+        BDDT16MACParams,
+        BDDT16MAC,
+        "BDDT16MAC",
+        encode_messages_as_js_array_to_fr_vec
+    )
+}
 
-    let mut rng = get_seeded_rng();
-    match BDDT16MAC::new(&mut rng, &messages, &sk, &params) {
-        Ok(mac) => Ok(obj_to_uint8array!(&mac, true, "BDDT16MAC")),
-        Err(e) => Err(JsValue::from(&format!("{:?}", e))),
-    }
+#[wasm_bindgen(js_name = bddt16MacGenerateConstantTime)]
+pub fn bddt16_mac_generate_constant_time(
+    messages: js_sys::Array,
+    secret_key: js_sys::Uint8Array,
+    params: JsValue,
+    encode_messages: bool,
+) -> Result<js_sys::Uint8Array, JsValue> {
+    sign!(
+        messages,
+        secret_key,
+        params,
+        encode_messages,
+        BDDT16MACSecretKey,
+        "BDDT16MACSecretKey",
+        BDDT16MACParams,
+        BDDT16MAC,
+        "BDDT16MAC",
+        encode_messages_as_js_array_to_fr_vec_in_constant_time
+    )
 }
 
 #[wasm_bindgen(js_name = bddt16BlindMacGenerate)]
@@ -190,21 +231,44 @@ pub fn bddt16_blind_mac_generate(
     params: JsValue,
     encode_messages: bool,
 ) -> Result<js_sys::Uint8Array, JsValue> {
-    set_panic_hook();
-    let commitment = g1_affine_from_uint8_array(commitment)?;
-    let msgs = encode_messages_as_js_map_to_fr_btreemap(&uncommitted_messages, encode_messages)?;
-    let msgs_ref = msgs
-        .iter()
-        .map(|(i, m)| (*i, m))
-        .collect::<BTreeMap<_, _>>();
-    let sk = obj_from_uint8array!(BDDT16MACSecretKey, secret_key, true, "BDDT16MACSecretKey");
-    let params: BDDT16MACParams = serde_wasm_bindgen::from_value(params)?;
+    blind_sign!(
+        commitment,
+        uncommitted_messages,
+        secret_key,
+        params,
+        encode_messages,
+        BDDT16MACSecretKey,
+        "BDDT16MACSecretKey",
+        BDDT16MACParams,
+        BDDT16MAC,
+        "BDDT16MAC",
+        encode_messages_as_js_map_to_fr_btreemap,
+        g1_affine_from_uint8_array
+    )
+}
 
-    let mut rng = get_seeded_rng();
-    match BDDT16MAC::new_with_committed_messages(&mut rng, &commitment, msgs_ref, &sk, &params) {
-        Ok(sig) => Ok(obj_to_uint8array!(&sig, true, "BDDT16MAC")),
-        Err(e) => Err(JsValue::from(&format!("{:?}", e))),
-    }
+#[wasm_bindgen(js_name = bddt16BlindMacGenerateConstantTime)]
+pub fn bddt16_blind_mac_generate_constant_time(
+    commitment: js_sys::Uint8Array,
+    uncommitted_messages: js_sys::Map,
+    secret_key: js_sys::Uint8Array,
+    params: JsValue,
+    encode_messages: bool,
+) -> Result<js_sys::Uint8Array, JsValue> {
+    blind_sign!(
+        commitment,
+        uncommitted_messages,
+        secret_key,
+        params,
+        encode_messages,
+        BDDT16MACSecretKey,
+        "BDDT16MACSecretKey",
+        BDDT16MACParams,
+        BDDT16MAC,
+        "BDDT16MAC",
+        encode_messages_as_js_map_to_fr_btreemap_in_constant_time,
+        g1_affine_from_uint8_array
+    )
 }
 
 #[wasm_bindgen(js_name = bddt16UnblindMac)]
@@ -255,7 +319,8 @@ pub fn bddt16_mac_verify_proof_of_validity(
 ) -> Result<JsValue, JsValue> {
     let proof = obj_from_uint8array!(ProofOfValidityOfMACG1, proof, false);
     let mac = obj_from_uint8array!(BDDT16MAC, mac, true);
-    let messages = encode_messages_as_js_array_to_fr_vec(&messages, encode_messages)?;
+    let messages =
+        encode_messages_as_js_array_to_fr_vec_in_constant_time(&messages, encode_messages)?;
     let pk = obj_from_uint8array!(
         BDDT16MACPublicKeyG1,
         public_key,
@@ -274,10 +339,40 @@ pub fn bddt16_mac_verify(
     params: JsValue,
     encode_messages: bool,
 ) -> Result<JsValue, JsValue> {
-    set_panic_hook();
-    let mac = obj_from_uint8array!(BDDT16MAC, mac, true);
-    let sk = obj_from_uint8array!(BDDT16MACSecretKey, secret_key, true, "BDDT16MACSecretKey");
-    let params: BDDT16MACParams = serde_wasm_bindgen::from_value(params)?;
-    let messages = encode_messages_as_js_array_to_fr_vec(&messages, encode_messages)?;
-    to_verify_response!(mac.verify(messages.as_slice(), &sk, &params))
+    verify!(
+        messages,
+        mac,
+        secret_key,
+        params,
+        encode_messages,
+        BDDT16MAC,
+        "BDDT16MAC",
+        BDDT16MACSecretKey,
+        "BDDT16MACSecretKey",
+        BDDT16MACParams,
+        encode_messages_as_js_array_to_fr_vec
+    )
+}
+
+#[wasm_bindgen(js_name = bddt16MacVerifyConstantTime)]
+pub fn bddt16_mac_verify_constant_time(
+    messages: js_sys::Array,
+    mac: js_sys::Uint8Array,
+    secret_key: js_sys::Uint8Array,
+    params: JsValue,
+    encode_messages: bool,
+) -> Result<JsValue, JsValue> {
+    verify!(
+        messages,
+        mac,
+        secret_key,
+        params,
+        encode_messages,
+        BDDT16MAC,
+        "BDDT16MAC",
+        BDDT16MACSecretKey,
+        "BDDT16MACSecretKey",
+        BDDT16MACParams,
+        encode_messages_as_js_array_to_fr_vec_in_constant_time
+    )
 }

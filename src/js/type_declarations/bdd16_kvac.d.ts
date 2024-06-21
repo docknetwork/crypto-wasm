@@ -1,4 +1,5 @@
 import {Bddt16MacParams, VerifyResult} from "../types";
+import {bbsPlusChallengeContributionFromProofConstantTime} from "./bbs_plus";
 
 export function bddt16MacGenerateSecretKey(seed?: Uint8Array): Uint8Array;
 
@@ -45,7 +46,22 @@ export function bddt16MacGenerate(
     encodeMessages: boolean
 ): Uint8Array;
 
+export function bddt16MacGenerateConstantTime(
+    messages: Uint8Array[],
+    secretKey: Uint8Array,
+    params: Bddt16MacParams,
+    encodeMessages: boolean
+): Uint8Array;
+
 export function bddt16MacVerify(
+    messages: Uint8Array[],
+    mac: Uint8Array,
+    secretKey: Uint8Array,
+    params: Bddt16MacParams,
+    encodeMessages: boolean
+): Required<VerifyResult>;
+
+export function bddt16MacVerifyConstantTime(
     messages: Uint8Array[],
     mac: Uint8Array,
     secretKey: Uint8Array,
@@ -76,7 +92,22 @@ export function bddt16MacCommitMsgs(
     encodeMessages: boolean
 ): Uint8Array;
 
+export function bddt16MacCommitMsgsConstantTime(
+    messages: Map<number, Uint8Array>,
+    blinding: Uint8Array,
+    params: Bddt16MacParams,
+    encodeMessages: boolean
+): Uint8Array;
+
 export function bddt16BlindMacGenerate(
+    commitment: Uint8Array,
+    uncommittedMessages: Map<number, Uint8Array>,
+    secretKey: Uint8Array,
+    params: Bddt16MacParams,
+    encodeMessages: boolean
+): Uint8Array;
+
+export function bddt16BlindMacGenerateConstantTime(
     commitment: Uint8Array,
     uncommittedMessages: Map<number, Uint8Array>,
     secretKey: Uint8Array,

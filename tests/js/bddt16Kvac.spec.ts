@@ -17,11 +17,14 @@ import {
     bddt16MacGeneratePublicKeyG1,
     bddt16MacIsPublicKeyG1Valid,
     bddt16MacProofOfValidity,
-    bddt16MacVerifyProofOfValidity
+    bddt16MacVerifyProofOfValidity,
+    bddt16MacGenerateConstantTime,
+    bddt16MacVerifyConstantTime,
+    bddt16MacCommitMsgsConstantTime, bddt16BlindMacGenerateConstantTime
 } from "../../lib";
 import {checkResult, stringToBytes} from "./util";
 
-describe("For BBS+ signatures", () => {
+describe("For BDDT16 MAC", () => {
     let macParams: Bddt16MacParams, sk: Uint8Array, pkG1: Uint8Array;
     const seed = new Uint8Array([0, 2, 3, 4, 5]);
     const messages = [
@@ -82,9 +85,15 @@ describe("For BBS+ signatures", () => {
         expect(bddt16MacIsPublicKeyG1Valid(pkG1)).toBe(true);
     });
 
-    it("generate and verify MAC and its proof of validity", () => {
+    it("generate and verify MAC", () => {
         const mac = bddt16MacGenerate(messages, sk, macParams, true);
         const res = bddt16MacVerify(messages, mac, sk, macParams, true);
+        checkResult(res);
+    });
+
+    it("generate and verify MAC and its proof of validity with constant time encoding", () => {
+        const mac = bddt16MacGenerateConstantTime(messages, sk, macParams, true);
+        const res = bddt16MacVerifyConstantTime(messages, mac, sk, macParams, true);
         checkResult(res);
 
         let proofOfValidity = bddt16MacProofOfValidity(mac, sk, pkG1, macParams);
@@ -108,7 +117,7 @@ describe("For BBS+ signatures", () => {
         expect(params1.g_vec[1]).toEqual(params2.g_vec[1]);
     });
 
-    it("generate and verify a blind MAC", () => {
+    function checkBlind(commitFunc, signFunc, verifyFunc) {
         // Commit to message indices 1 and 5
         const msgsToCommit = new Map();
         msgsToCommit.set(1, messages[1]);
@@ -121,13 +130,13 @@ describe("For BBS+ signatures", () => {
         msgsNotToCommit.set(4, messages[4]);
 
         const blinding = generateRandomFieldElement();
-        const commitment = bddt16MacCommitMsgs(
+        const commitment = commitFunc(
             msgsToCommit,
             blinding,
             macParams,
             true
         );
-        const blindMac = bddt16BlindMacGenerate(
+        const blindMac = signFunc(
             commitment,
             msgsNotToCommit,
             sk,
@@ -135,7 +144,15 @@ describe("For BBS+ signatures", () => {
             true
         );
         const mac = bddt16UnblindMac(blindMac, blinding);
-        const res = bddt16MacVerify(messages, mac, sk, macParams, true);
+        const res = verifyFunc(messages, mac, sk, macParams, true);
         expect(res.verified).toBe(true);
+    }
+
+    it("generate and verify a blind MAC", () => {
+        checkBlind(bddt16MacCommitMsgs, bddt16BlindMacGenerate, bddt16MacVerify)
+    });
+
+    it("generate and verify a blind MAC with constant time encoding", () => {
+        checkBlind(bddt16MacCommitMsgsConstantTime, bddt16BlindMacGenerateConstantTime, bddt16MacVerifyConstantTime)
     });
 })
