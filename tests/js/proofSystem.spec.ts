@@ -127,7 +127,15 @@ import {
   verifyProofOfValidityOfBDDT16KeyedProof,
   generatePoKBBSSignatureProverStatementNew,
   generatePoKBBSSignatureVerifierStatementNew,
-  generatePoKBBSSignatureProverStatementFromParamRefsNew, generatePoKBBSSignatureVerifierStatementFromParamRefsNew
+  generatePoKBBSSignatureProverStatementFromParamRefsNew,
+  generatePoKBBSSignatureVerifierStatementFromParamRefsNew,
+  generateAccumulatorPublicKeyForKeyedVerification,
+  generateAccumulatorParamsForKeyedVerification,
+  proofOfValidityOfVBAccumMembershipKeyedProof,
+  verifyProofOfValidityOfVBAccumMembershipKeyedProof,
+  proofOfValidityOfKBUniAccumMembershipKeyedProof,
+  verifyProofOfValidityOfKBUniAccumMembershipKeyedProof,
+  proofOfValidityOfKBUniAccumNonMembershipKeyedProof, verifyProofOfValidityOfKBUniAccumNonMembershipKeyedProof
 } from "../../lib";
 import { BbsSigParams, PSSigParams } from "../../lib/types";
 import {checkResult, getRevealedUnrevealed, stringToBytes} from "./util";
@@ -2089,10 +2097,27 @@ describe("Keyed proofs", () => {
     // @ts-ignore
     checkResult(verifyKBUniAccumNonMembershipKeyedProof(dp3[1], sk));
 
-    const pkG1 = bddt16MacGeneratePublicKeyG1(bddt16Sk, bddt16Params);
+    const macPkG1 = bddt16MacGeneratePublicKeyG1(bddt16Sk, bddt16Params);
     // @ts-ignore
-    const pv = proofOfValidityOfBDDT16KeyedProof(dp0[1], bddt16Sk, pkG1, bddt16Params);
+    const pv1 = proofOfValidityOfBDDT16KeyedProof(dp0[1], bddt16Sk, macPkG1, bddt16Params);
     // @ts-ignore
-    checkResult(verifyProofOfValidityOfBDDT16KeyedProof(pv, dp0[1], pkG1, bddt16Params));
+    checkResult(verifyProofOfValidityOfBDDT16KeyedProof(pv1, dp0[1], macPkG1, bddt16Params));
+
+    const accumParamsKv = generateAccumulatorParamsForKeyedVerification();
+    const accumPkG1 = generateAccumulatorPublicKeyForKeyedVerification(sk, accumParamsKv);
+    // @ts-ignore
+    const pv2 = proofOfValidityOfVBAccumMembershipKeyedProof(dp1[1], sk, accumPkG1, accumParamsKv);
+    // @ts-ignore
+    checkResult(verifyProofOfValidityOfVBAccumMembershipKeyedProof(pv2, dp1[1], accumPkG1, accumParamsKv));
+
+    // @ts-ignore
+    const pv3 = proofOfValidityOfKBUniAccumMembershipKeyedProof(dp2[1], sk, accumPkG1, accumParamsKv);
+    // @ts-ignore
+    checkResult(verifyProofOfValidityOfKBUniAccumMembershipKeyedProof(pv3, dp2[1], accumPkG1, accumParamsKv));
+
+    // @ts-ignore
+    const pv4 = proofOfValidityOfKBUniAccumNonMembershipKeyedProof(dp3[1], sk, accumPkG1, accumParamsKv);
+    // @ts-ignore
+    checkResult(verifyProofOfValidityOfKBUniAccumNonMembershipKeyedProof(pv4, dp3[1], accumPkG1, accumParamsKv));
   })
 })

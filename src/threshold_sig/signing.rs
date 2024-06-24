@@ -3,7 +3,7 @@ use crate::{
     bbs_plus::BBSPlusSigParamsG1,
     threshold_sig::{KAPPA, SALT_SIZE, STATISTICAL_SECURITY_PARAMETER},
     utils::{
-        encode_messages_as_js_array_to_fr_vec, fr_from_uint8_array, get_seeded_rng,
+        encode_messages_as_js_array_to_fr_vec_in_constant_time, fr_from_uint8_array, get_seeded_rng,
         js_array_to_iter, js_set_to_btree_set, set_panic_hook,
     },
     Fr,
@@ -109,7 +109,7 @@ macro_rules! create_signature_share {
     ($messages: ident, $index_in_output: ident, $phase1_output: ident, $phase2_output: ident, $params: ident, $encode_messages: ident, $params_type: ident, $phase1_output_type: ident, $share_type: ident, $sig_name: expr) => {{
         set_panic_hook();
         let params: $params_type = serde_wasm_bindgen::from_value($params)?;
-        let messages = encode_messages_as_js_array_to_fr_vec(&$messages, $encode_messages)?;
+        let messages = encode_messages_as_js_array_to_fr_vec_in_constant_time(&$messages, $encode_messages)?;
         let phase1_output = obj_from_uint8array!($phase1_output_type<Fr>, $phase1_output, true);
         let phase2_output = obj_from_uint8array!(Phase2Output<Fr>, $phase2_output, true);
         let share = $share_type::new(

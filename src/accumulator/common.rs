@@ -1,7 +1,4 @@
-use crate::{
-    utils::{fr_to_jsvalue, random_bytes, set_panic_hook},
-    Fr,
-};
+use crate::{utils::{fr_to_jsvalue, random_bytes, set_panic_hook}, Fr, G1Affine};
 use ark_bls12_381::Bls12_381;
 use ark_serialize::CanonicalDeserialize;
 use blake2::Blake2b512;
@@ -15,6 +12,8 @@ pub(crate) type AccumSk = SecretKey<Fr>;
 pub type AccumPk = PublicKey<Bls12_381>;
 pub type AccumSetupParams = SetupParams<Bls12_381>;
 pub(crate) type AccumKeypair = Keypair<Bls12_381>;
+pub type AccumSetupParamsKV = vb_accumulator::setup_keyed_verification::SetupParams<G1Affine>;
+pub type AccumPkKV = vb_accumulator::setup_keyed_verification::PublicKey<G1Affine>;
 
 /// Generate accumulator parameters. They are needed to generate public key and initialize the accumulator.
 /// Pass the `label` argument to generate parameters deterministically.
@@ -24,6 +23,15 @@ pub fn generate_accumulator_params(label: Option<Vec<u8>>) -> Result<js_sys::Uin
     let label = label.unwrap_or_else(random_bytes);
     let params = AccumSetupParams::new::<Blake2b512>(&label);
     Ok(obj_to_uint8array!(&params, false, "SetupParams"))
+}
+
+/// Generate accumulator parameters for keyed-verification. Pass the `label` argument to generate parameters deterministically.
+#[wasm_bindgen(js_name = generateAccumulatorParamsForKeyedVerification)]
+pub fn generate_accumulator_params_for_keyed_verification(label: Option<Vec<u8>>) -> Result<js_sys::Uint8Array, JsValue> {
+    set_panic_hook();
+    let label = label.unwrap_or_else(random_bytes);
+    let params = AccumSetupParamsKV::new::<Blake2b512>(&label);
+    Ok(obj_to_uint8array!(&params, false, "SetupParamsKV"))
 }
 
 /// Check if parameters are valid. Before verifying witness or using for proof verification,
@@ -58,6 +66,19 @@ pub fn accumulator_generate_public_key(
     let params = deserialize_params(params)?;
     let pk = AccumKeypair::public_key_from_secret_key(&sk, &params);
     Ok(obj_to_uint8array!(&pk, false, "PublicKeyG2"))
+}
+
+/// Generate public key from given params and secret key.
+#[wasm_bindgen(js_name = generateAccumulatorPublicKeyForKeyedVerification)]
+pub fn accumulator_generate_public_key_for_keyed_verification(
+    secret_key: JsValue,
+    params: js_sys::Uint8Array,
+) -> Result<js_sys::Uint8Array, JsValue> {
+    set_panic_hook();
+    let sk: AccumSk = serde_wasm_bindgen::from_value(secret_key)?;
+    let params = obj_from_uint8array!(AccumSetupParamsKV, params, false);
+    let pk = AccumPkKV::new_from_secret_key(&sk, &params);
+    Ok(obj_to_uint8array!(&pk, false, "PublicKeyG1"))
 }
 
 /// Check if public key is valid. Before verifying witness or using for proof verification,

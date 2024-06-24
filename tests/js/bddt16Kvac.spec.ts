@@ -20,7 +20,9 @@ import {
     bddt16MacVerifyProofOfValidity,
     bddt16MacGenerateConstantTime,
     bddt16MacVerifyConstantTime,
-    bddt16MacCommitMsgsConstantTime, bddt16BlindMacGenerateConstantTime
+    bddt16MacCommitMsgsConstantTime,
+    bddt16BlindMacGenerateConstantTime,
+    encodeMessageForSigningInConstantTime,
 } from "../../lib";
 import {checkResult, stringToBytes} from "./util";
 
@@ -99,6 +101,18 @@ describe("For BDDT16 MAC", () => {
         let proofOfValidity = bddt16MacProofOfValidity(mac, sk, pkG1, macParams);
         checkResult(bddt16MacVerifyProofOfValidity(proofOfValidity, mac, messages, pkG1, macParams, true));
     });
+
+    it("generate and verify signature in G1 with encoded messages", () => {
+        const encMsgs = messages.map((m) => encodeMessageForSigningInConstantTime(m));
+
+        const sig1 = bddt16MacGenerateConstantTime(encMsgs, sk, macParams, false);
+        const res1 = bddt16MacVerify(encMsgs, sig1, sk, macParams, false);
+        expect(res1.verified).toBe(true);
+
+        const sig2 = bddt16MacGenerate(encMsgs, sk, macParams, false);
+        const res2 = bddt16MacVerifyConstantTime(encMsgs, sig2, sk, macParams, false);
+        expect(res2.verified).toBe(true);
+    })
 
     it("extend MAC params", () => {
         const label = stringToBytes("MAC param");

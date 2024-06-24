@@ -20,6 +20,11 @@ module.exports.isAccumulatorParamsValid = (params) => {
     return wasm.isAccumulatorParamsValid(params)
 };
 
+module.exports.generateAccumulatorParamsForKeyedVerification = (label) => {
+    requireWasmInitialized();
+    return wasm.generateAccumulatorParamsForKeyedVerification(label)
+};
+
 module.exports.generateAccumulatorPublicKey = (secretKey, params) => {
     requireWasmInitialized();
     return wasm.generateAccumulatorPublicKey(secretKey, params)
@@ -33,6 +38,11 @@ module.exports.isAccumulatorPublicKeyValid = (publicKey) => {
 module.exports.generateAccumulatorKeyPair = (params, seed) => {
     requireWasmInitialized();
     return wasm.generateAccumulatorKeyPair(params, seed)
+};
+
+module.exports.generateAccumulatorPublicKeyForKeyedVerification = (secretKey, params) => {
+    requireWasmInitialized();
+    return wasm.generateAccumulatorPublicKeyForKeyedVerification(secretKey, params)
 };
 
 module.exports.accumulatorGetElementFromBytes = (bytes) => {

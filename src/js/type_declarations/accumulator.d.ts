@@ -8,6 +8,10 @@ export function isAccumulatorParamsValid(
     params: Uint8Array
 ): boolean;
 
+export function generateAccumulatorParamsForKeyedVerification(
+    label?: Uint8Array
+): Uint8Array;
+
 export function generateAccumulatorSecretKey(seed?: Uint8Array): Uint8Array;
 
 export function generateAccumulatorPublicKey(
@@ -23,6 +27,11 @@ export function generateAccumulatorKeyPair(
     params: Uint8Array,
     seed?: Uint8Array
 ): Required<IKeypair>;
+
+export function generateAccumulatorPublicKeyForKeyedVerification(
+    secretKey: Uint8Array,
+    params: Uint8Array
+): Uint8Array;
 
 export function accumulatorGetElementFromBytes(
     bytes: Uint8Array,

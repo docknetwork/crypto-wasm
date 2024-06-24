@@ -32,7 +32,10 @@ import {
   bbsChallengeContributionFromProofConstantTime,
   bbsInitializeProofOfKnowledgeOfSignatureNew,
   bbsVerifyProofOfKnowledgeOfSignatureNew,
-  bbsChallengeContributionFromProofNew, bbsChallengeContributionFromProtocolNew, bbsGenProofOfKnowledgeOfSignatureNew,
+  bbsChallengeContributionFromProofNew,
+  bbsChallengeContributionFromProtocolNew,
+  bbsGenProofOfKnowledgeOfSignatureNew,
+  encodeMessageForSigningInConstantTime,
 } from "../../lib";
 
 
@@ -121,6 +124,18 @@ describe("For BBS signatures", () => {
     const res = bbsVerifyConstantTime(messages, sig, pkG2, sigParamsG1, true);
     expect(res.verified).toBe(true);
   });
+
+  it("generate and verify signature in G1 with encoded messages", () => {
+    const encMsgs = messages.map((m) => encodeMessageForSigningInConstantTime(m));
+
+    const sig1 = bbsSignConstantTime(encMsgs, sk, sigParamsG1, false);
+    const res1 = bbsVerify(encMsgs, sig1, pkG2, sigParamsG1, false);
+    expect(res1.verified).toBe(true);
+
+    const sig2 = bbsSign(encMsgs, sk, sigParamsG1, false);
+    const res2 = bbsVerifyConstantTime(encMsgs, sig2, pkG2, sigParamsG1, false);
+    expect(res2.verified).toBe(true);
+  })
 
   it("extend signature params in G1", () => {
     const label = stringToBytes("Sig params g1");

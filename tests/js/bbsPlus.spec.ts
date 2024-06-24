@@ -47,7 +47,9 @@ import {
   bbsPlusCommitMsgsInG2ConstantTime,
   bbsPlusInitializeProofOfKnowledgeOfSignatureConstantTime,
   bbsPlusVerifyProofOfKnowledgeOfSignatureConstantTime,
-  bbsPlusChallengeContributionFromProofConstantTime, bbsPlusChallengeContributionFromProtocolConstantTime,
+  bbsPlusChallengeContributionFromProofConstantTime,
+  bbsPlusChallengeContributionFromProtocolConstantTime,
+  encodeMessageForSigningInConstantTime,
 } from "../../lib";
 
 
@@ -180,6 +182,18 @@ describe("For BBS+ signatures", () => {
     const res = bbsPlusVerifyG1ConstantTime(messages, sig, pkG2, sigParamsG1, true);
     expect(res.verified).toBe(true);
   });
+
+  it("generate and verify signature in G1 with encoded messages", () => {
+    const encMsgs = messages.map((m) => encodeMessageForSigningInConstantTime(m));
+
+    const sig1 = bbsPlusSignG1ConstantTime(encMsgs, sk, sigParamsG1, false);
+    const res1 = bbsPlusVerifyG1(encMsgs, sig1, pkG2, sigParamsG1, false);
+    expect(res1.verified).toBe(true);
+
+    const sig2 = bbsPlusSignG1(encMsgs, sk, sigParamsG1, false);
+    const res2 = bbsPlusVerifyG1ConstantTime(encMsgs, sig2, pkG2, sigParamsG1, false);
+    expect(res2.verified).toBe(true);
+  })
 
   it("generate and verify signature in G2", () => {
     const sig = bbsPlusSignG2(messages, sk, sigParamsG2, true);
