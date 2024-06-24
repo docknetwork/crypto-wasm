@@ -1,5 +1,5 @@
 use crate::{
-    accumulator::common::AccumSk,
+    accumulator::common::{AccumPkKV, AccumSetupParamsKV, AccumSk},
     bddt16_kvac::{BDDT16MACParams, BDDT16MACPublicKeyG1, BDDT16MACSecretKey},
     common::VerifyResponse,
     composite_proof_system::Proof,
@@ -16,18 +16,20 @@ use kvac::bddt_2016::keyed_proof::{
 use proof_system::prelude::StatementProof;
 use vb_accumulator::{
     kb_universal_accumulator::proofs_keyed_verification::{
-        KBUniversalAccumulatorKeyedMembershipProof as KBUniMemKp, KBUniversalAccumulatorProofOfValidityOfKeyedMembershipProof as KBUniMemPvkp,
+        KBUniversalAccumulatorKeyedMembershipProof as KBUniMemKp,
+        KBUniversalAccumulatorKeyedNonMembershipProof as KBUniNonMemKp,
         KBUniversalAccumulatorProofOfInvalidityOfKeyedMembershipProof as KBUniMemPivkp,
-        KBUniversalAccumulatorKeyedNonMembershipProof as KBUniNonMemKp, KBUniversalAccumulatorProofOfValidityOfKeyedNonMembershipProof as KBUniNonMemPvkp,
-        KBUniversalAccumulatorProofOfInvalidityOfKeyedNonMembershipProof as KBUniNonMemPivkp
+        KBUniversalAccumulatorProofOfInvalidityOfKeyedNonMembershipProof as KBUniNonMemPivkp,
+        KBUniversalAccumulatorProofOfValidityOfKeyedMembershipProof as KBUniMemPvkp,
+        KBUniversalAccumulatorProofOfValidityOfKeyedNonMembershipProof as KBUniNonMemPvkp,
     },
     proofs_keyed_verification::{
-        KeyedMembershipProof as VBMemKp, ProofOfValidityOfKeyedMembershipProof as VbMemPvkp, ProofOfInvalidityOfKeyedMembershipProof as VbMemPivkp
+        KeyedMembershipProof as VBMemKp, ProofOfInvalidityOfKeyedMembershipProof as VbMemPivkp,
+        ProofOfValidityOfKeyedMembershipProof as VbMemPvkp,
     },
 };
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 use zeroize::Zeroize;
-use crate::accumulator::common::{AccumPkKV, AccumSetupParamsKV};
 
 #[wasm_bindgen(js_name = getAllKeyedSubproofsFromProof)]
 pub fn get_all_keyed_subproofs_from_proof(proof: Uint8Array) -> Result<js_sys::Map, JsValue> {
@@ -233,7 +235,12 @@ pub fn verify_proof_of_validity_of_vb_accum_membership_keyed_proof(
         false,
         "ProofOfValidityOfVBAccumMembershipKeyedProof"
     );
-    let keyed_proof = obj_from_uint8array!(VBMemKp<G1Affine>, keyed_proof, false, "VBMembershipKeyedProof");
+    let keyed_proof = obj_from_uint8array!(
+        VBMemKp<G1Affine>,
+        keyed_proof,
+        false,
+        "VBMembershipKeyedProof"
+    );
     let pk = obj_from_uint8array!(AccumPkKV, public_key, false, "VBAccumulatorPkG1");
     let params = obj_from_uint8array!(AccumSetupParamsKV, params, false);
     to_verify_response!(proof_of_validity.verify::<Blake2b512>(&keyed_proof, &pk, &params))
@@ -276,7 +283,12 @@ pub fn verify_proof_of_invalidity_of_vb_accum_membership_keyed_proof(
         false,
         "ProofOfInvalidityOfVBAccumMembershipKeyedProof"
     );
-    let keyed_proof = obj_from_uint8array!(VBMemKp<G1Affine>, keyed_proof, false, "VBMembershipKeyedProof");
+    let keyed_proof = obj_from_uint8array!(
+        VBMemKp<G1Affine>,
+        keyed_proof,
+        false,
+        "VBMembershipKeyedProof"
+    );
     let pk = obj_from_uint8array!(AccumPkKV, public_key, false, "VBAccumulatorPkG1");
     let params = obj_from_uint8array!(AccumSetupParamsKV, params, false);
     to_verify_response!(proof_of_invalidity.verify::<Blake2b512>(&keyed_proof, &pk, &params))
@@ -306,7 +318,12 @@ pub fn proof_of_validity_of_kb_uni_accum_membership_keyed_proof(
     params: Uint8Array,
 ) -> Result<Uint8Array, JsValue> {
     set_panic_hook();
-    let proof = obj_from_uint8array!(KBUniMemKp<G1Affine>, proof, false, "KBUniMembershipKeyedProof");
+    let proof = obj_from_uint8array!(
+        KBUniMemKp<G1Affine>,
+        proof,
+        false,
+        "KBUniMembershipKeyedProof"
+    );
     let sk = obj_from_uint8array!(AccumSk, secret_key, true, "VBAccumulatorSk");
     let pk = obj_from_uint8array!(AccumPkKV, public_key, false, "VBAccumulatorPkG1");
     let params = obj_from_uint8array!(AccumSetupParamsKV, params, false);
@@ -333,7 +350,12 @@ pub fn verify_proof_of_validity_of_kb_uni_accum_membership_keyed_proof(
         false,
         "ProofOfValidityOfKBUniAccumMembershipKeyedProof"
     );
-    let keyed_proof = obj_from_uint8array!(KBUniMemKp<G1Affine>, keyed_proof, false, "KBUniMembershipKeyedProof");
+    let keyed_proof = obj_from_uint8array!(
+        KBUniMemKp<G1Affine>,
+        keyed_proof,
+        false,
+        "KBUniMembershipKeyedProof"
+    );
     let pk = obj_from_uint8array!(AccumPkKV, public_key, false, "VBAccumulatorPkG1");
     let params = obj_from_uint8array!(AccumSetupParamsKV, params, false);
     to_verify_response!(proof_of_validity.verify::<Blake2b512>(&keyed_proof, &pk, &params))
@@ -347,7 +369,12 @@ pub fn proof_of_invalidity_of_kb_uni_accum_membership_keyed_proof(
     params: Uint8Array,
 ) -> Result<Uint8Array, JsValue> {
     set_panic_hook();
-    let proof = obj_from_uint8array!(KBUniMemKp<G1Affine>, proof, false, "KBUniMembershipKeyedProof");
+    let proof = obj_from_uint8array!(
+        KBUniMemKp<G1Affine>,
+        proof,
+        false,
+        "KBUniMembershipKeyedProof"
+    );
     let sk = obj_from_uint8array!(AccumSk, secret_key, true, "VBAccumulatorSk");
     let pk = obj_from_uint8array!(AccumPkKV, public_key, false, "VBAccumulatorPkG1");
     let params = obj_from_uint8array!(AccumSetupParamsKV, params, false);
@@ -376,7 +403,12 @@ pub fn verify_proof_of_invalidity_of_kb_uni_accum_membership_keyed_proof(
         false,
         "ProofOfInvalidityOfKBUniAccumMembershipKeyedProof"
     );
-    let keyed_proof = obj_from_uint8array!(KBUniMemKp<G1Affine>, keyed_proof, false, "KBUniMembershipKeyedProof");
+    let keyed_proof = obj_from_uint8array!(
+        KBUniMemKp<G1Affine>,
+        keyed_proof,
+        false,
+        "KBUniMembershipKeyedProof"
+    );
     let pk = obj_from_uint8array!(AccumPkKV, public_key, false, "VBAccumulatorPkG1");
     let params = obj_from_uint8array!(AccumSetupParamsKV, params, false);
     to_verify_response!(proof_of_invalidity.verify::<Blake2b512>(&keyed_proof, &pk, &params))
@@ -406,7 +438,12 @@ pub fn proof_of_validity_of_kb_uni_accum_non_membership_keyed_proof(
     params: Uint8Array,
 ) -> Result<Uint8Array, JsValue> {
     set_panic_hook();
-    let proof = obj_from_uint8array!(KBUniNonMemKp<G1Affine>, proof, false, "KBUniNonMembershipKeyedProof");
+    let proof = obj_from_uint8array!(
+        KBUniNonMemKp<G1Affine>,
+        proof,
+        false,
+        "KBUniNonMembershipKeyedProof"
+    );
     let sk = obj_from_uint8array!(AccumSk, secret_key, true, "VBAccumulatorSk");
     let pk = obj_from_uint8array!(AccumPkKV, public_key, false, "VBAccumulatorPkG1");
     let params = obj_from_uint8array!(AccumSetupParamsKV, params, false);
@@ -433,7 +470,12 @@ pub fn verify_proof_of_validity_of_kb_uni_accum_non_membership_keyed_proof(
         false,
         "ProofOfValidityOfKBUniAccumNonMembershipKeyedProof"
     );
-    let keyed_proof = obj_from_uint8array!(KBUniNonMemKp<G1Affine>, keyed_proof, false, "KBUniNonMembershipKeyedProof");
+    let keyed_proof = obj_from_uint8array!(
+        KBUniNonMemKp<G1Affine>,
+        keyed_proof,
+        false,
+        "KBUniNonMembershipKeyedProof"
+    );
     let pk = obj_from_uint8array!(AccumPkKV, public_key, false, "VBAccumulatorPkG1");
     let params = obj_from_uint8array!(AccumSetupParamsKV, params, false);
     to_verify_response!(proof_of_validity.verify::<Blake2b512>(&keyed_proof, &pk, &params))
@@ -447,7 +489,12 @@ pub fn proof_of_invalidity_of_kb_uni_accum_non_membership_keyed_proof(
     params: Uint8Array,
 ) -> Result<Uint8Array, JsValue> {
     set_panic_hook();
-    let proof = obj_from_uint8array!(KBUniNonMemKp<G1Affine>, proof, false, "KBUniNonMembershipKeyedProof");
+    let proof = obj_from_uint8array!(
+        KBUniNonMemKp<G1Affine>,
+        proof,
+        false,
+        "KBUniNonMembershipKeyedProof"
+    );
     let sk = obj_from_uint8array!(AccumSk, secret_key, true, "VBAccumulatorSk");
     let pk = obj_from_uint8array!(AccumPkKV, public_key, false, "VBAccumulatorPkG1");
     let params = obj_from_uint8array!(AccumSetupParamsKV, params, false);
@@ -476,7 +523,12 @@ pub fn verify_proof_of_invalidity_of_kb_uni_accum_non_membership_keyed_proof(
         false,
         "ProofOfInvalidityOfKBUniAccumNonMembershipKeyedProof"
     );
-    let keyed_proof = obj_from_uint8array!(KBUniNonMemKp<G1Affine>, keyed_proof, false, "KBUniNonMembershipKeyedProof");
+    let keyed_proof = obj_from_uint8array!(
+        KBUniNonMemKp<G1Affine>,
+        keyed_proof,
+        false,
+        "KBUniNonMembershipKeyedProof"
+    );
     let pk = obj_from_uint8array!(AccumPkKV, public_key, false, "VBAccumulatorPkG1");
     let params = obj_from_uint8array!(AccumSetupParamsKV, params, false);
     to_verify_response!(proof_of_invalidity.verify::<Blake2b512>(&keyed_proof, &pk, &params))

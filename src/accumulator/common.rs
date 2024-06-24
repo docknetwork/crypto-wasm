@@ -1,4 +1,7 @@
-use crate::{utils::{fr_to_jsvalue, random_bytes, set_panic_hook}, Fr, G1Affine};
+use crate::{
+    utils::{fr_to_jsvalue, random_bytes, set_panic_hook},
+    Fr, G1Affine,
+};
 use ark_bls12_381::Bls12_381;
 use ark_serialize::CanonicalDeserialize;
 use blake2::Blake2b512;
@@ -27,7 +30,9 @@ pub fn generate_accumulator_params(label: Option<Vec<u8>>) -> Result<js_sys::Uin
 
 /// Generate accumulator parameters for keyed-verification. Pass the `label` argument to generate parameters deterministically.
 #[wasm_bindgen(js_name = generateAccumulatorParamsForKeyedVerification)]
-pub fn generate_accumulator_params_for_keyed_verification(label: Option<Vec<u8>>) -> Result<js_sys::Uint8Array, JsValue> {
+pub fn generate_accumulator_params_for_keyed_verification(
+    label: Option<Vec<u8>>,
+) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let label = label.unwrap_or_else(random_bytes);
     let params = AccumSetupParamsKV::new::<Blake2b512>(&label);

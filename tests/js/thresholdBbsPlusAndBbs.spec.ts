@@ -48,7 +48,10 @@ import {
     thresholdBbsPhase2ReceiveMessage1,
     thresholdBbsPhase2ReceiveMessage2,
     thresholdBbsPhase2Finish,
-    thresholdBbsCreateSignatureShare, thresholdBbsAggregateSignatureShares
+    thresholdBbsCreateSignatureShare,
+    thresholdBbsAggregateSignatureShares,
+    bbsPlusVerifyG1ConstantTime,
+    bbsVerifyConstantTime
 } from "../../lib";
 
 import {doFrostDKG, stringToBytes} from "./util";
@@ -257,11 +260,11 @@ describe("For threshold BBS+ and BBS", () => {
 
     it("create a threshold BBS+ signature", () => {
         const protocolId = stringToBytes("test BBS+");
-        checkThresholdSig(protocolId, paramsBbsPlus, thresholdPubkeyBbsPlus, secretKeysBbsPlus, thresholdBbsPlusStartPhase1, thresholdBbsPlusPhase1ProcessCommitments, thresholdBbsPlusPhase1GetSharesForOther, thresholdBbsPlusPhase1ProcessShares, thresholdBbsPlusPhase1Finish, thresholdBbsPlusPhase2Start, thresholdBbsPlusPhase2ReceiveMessage1, thresholdBbsPlusPhase2ReceiveMessage2, thresholdBbsPlusPhase2Finish, thresholdBbsPlusCreateSignatureShare, thresholdBbsPlusAggregateSignatureShares, bbsPlusVerifyG1)
+        checkThresholdSig(protocolId, paramsBbsPlus, thresholdPubkeyBbsPlus, secretKeysBbsPlus, thresholdBbsPlusStartPhase1, thresholdBbsPlusPhase1ProcessCommitments, thresholdBbsPlusPhase1GetSharesForOther, thresholdBbsPlusPhase1ProcessShares, thresholdBbsPlusPhase1Finish, thresholdBbsPlusPhase2Start, thresholdBbsPlusPhase2ReceiveMessage1, thresholdBbsPlusPhase2ReceiveMessage2, thresholdBbsPlusPhase2Finish, thresholdBbsPlusCreateSignatureShare, thresholdBbsPlusAggregateSignatureShares, bbsPlusVerifyG1ConstantTime)
     })
 
     it("create a threshold BBS signature", () => {
         const protocolId = stringToBytes("test BBS");
-        checkThresholdSig(protocolId, paramsBbs, thresholdPubkeyBbs, secretKeysBbs, thresholdBbsStartPhase1, thresholdBbsPhase1ProcessCommitments, thresholdBbsPhase1GetSharesForOther, thresholdBbsPhase1ProcessShares, thresholdBbsPhase1Finish, thresholdBbsPhase2Start, thresholdBbsPhase2ReceiveMessage1, thresholdBbsPhase2ReceiveMessage2, thresholdBbsPhase2Finish, thresholdBbsCreateSignatureShare, thresholdBbsAggregateSignatureShares, bbsVerify)
+        checkThresholdSig(protocolId, paramsBbs, thresholdPubkeyBbs, secretKeysBbs, thresholdBbsStartPhase1, thresholdBbsPhase1ProcessCommitments, thresholdBbsPhase1GetSharesForOther, thresholdBbsPhase1ProcessShares, thresholdBbsPhase1Finish, thresholdBbsPhase2Start, thresholdBbsPhase2ReceiveMessage1, thresholdBbsPhase2ReceiveMessage2, thresholdBbsPhase2Finish, thresholdBbsCreateSignatureShare, thresholdBbsAggregateSignatureShares, bbsVerifyConstantTime)
     })
 })
