@@ -1552,7 +1552,24 @@ describe("Reusing setup params of BBS, BBS+ and accumulator", () => {
     proverStatements.push(statement15);
     proverStatements.push(statement16);
 
-    const proverProofSpec = generateProofSpecG1(proverStatements, [], allSetupParams);
+    const metaStatements: Uint8Array[] = [];
+
+    metaStatements.push(generateWitnessEqualityMetaStatement(new Set<[number, number]>([[0, memberIndex], [4, 0]])));
+    metaStatements.push(generateWitnessEqualityMetaStatement(new Set<[number, number]>([[1, memberIndex], [5, 0]])));
+    metaStatements.push(generateWitnessEqualityMetaStatement(new Set<[number, number]>([[2, memberIndex], [6, 0]])));
+    metaStatements.push(generateWitnessEqualityMetaStatement(new Set<[number, number]>([[3, memberIndex], [7, 0]])));
+
+    metaStatements.push(generateWitnessEqualityMetaStatement(new Set<[number, number]>([[0, nonMemberIndex], [8, 0]])));
+    metaStatements.push(generateWitnessEqualityMetaStatement(new Set<[number, number]>([[1, nonMemberIndex], [9, 0]])));
+    metaStatements.push(generateWitnessEqualityMetaStatement(new Set<[number, number]>([[2, nonMemberIndex], [10, 0]])));
+    metaStatements.push(generateWitnessEqualityMetaStatement(new Set<[number, number]>([[3, nonMemberIndex], [11, 0]])));
+
+    metaStatements.push(generateWitnessEqualityMetaStatement(new Set<[number, number]>([[0, memberIndex], [12, 0]])));
+    metaStatements.push(generateWitnessEqualityMetaStatement(new Set<[number, number]>([[1, memberIndex], [13, 0]])));
+    metaStatements.push(generateWitnessEqualityMetaStatement(new Set<[number, number]>([[2, nonMemberIndex], [14, 0]])));
+    metaStatements.push(generateWitnessEqualityMetaStatement(new Set<[number, number]>([[3, nonMemberIndex], [15, 0]])));
+
+    const proverProofSpec = generateProofSpecG1(proverStatements, metaStatements, allSetupParams);
     expect(isProofSpecG1Valid(proverProofSpec)).toEqual(true);
 
     const witness1 = sigWitFunc(
@@ -1707,7 +1724,7 @@ describe("Reusing setup params of BBS, BBS+ and accumulator", () => {
     verifierStatements.push(statement19);
     verifierStatements.push(statement20);
 
-    const verifierProofSpec = generateProofSpecG1(verifierStatements, [], allSetupParams);
+    const verifierProofSpec = generateProofSpecG1(verifierStatements, metaStatements, allSetupParams);
     expect(isProofSpecG1Valid(verifierProofSpec)).toEqual(true);
 
     const res = verifyCompositeProofG1(proof, verifierProofSpec);
@@ -1732,7 +1749,7 @@ describe("Reusing setup params of BBS, BBS+ and accumulator", () => {
       statements.push(statement19);
       statements.push(statement20);
 
-      const proofSpec = generateProofSpecG1(statements, [], allSetupParams);
+      const proofSpec = generateProofSpecG1(statements, metaStatements, allSetupParams);
       const res = verifyCompositeProofG1(proof, proofSpec);
       expect(res.verified).toBe(true);
     }

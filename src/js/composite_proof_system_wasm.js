@@ -427,6 +427,10 @@ module.exports.verifyCompositeProofG1WithDeconstructedProofSpec = (proof, statem
     return wasm.verifyCompositeProofG1WithDeconstructedProofSpec(proof, statements, metaStatements, setupParams, context, nonce);
 };
 
+module.exports.verifyCompositeProofG1WithDeconstructedProofSpecOld = (proof, statements, metaStatements, setupParams, context, nonce) => {
+    requireWasmInitialized();
+    return wasm.verifyCompositeProofG1WithDeconstructedProofSpecOld(proof, statements, metaStatements, setupParams, context, nonce);
+};
 module.exports.saverGetCiphertextFromProof = (proof, statementIndex) => {
     requireWasmInitialized();
     return wasm.saverGetCiphertextFromProof(proof, statementIndex);

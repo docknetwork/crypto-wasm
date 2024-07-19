@@ -284,11 +284,33 @@ dependencies = [
  "ark-serialize",
  "ark-std",
  "digest",
- "dock_crypto_utils",
+ "dock_crypto_utils 0.19.0",
  "itertools 0.12.1",
- "oblivious_transfer_protocols",
- "schnorr_pok",
- "secret_sharing_and_dkg",
+ "oblivious_transfer_protocols 0.8.0",
+ "schnorr_pok 0.19.0",
+ "secret_sharing_and_dkg 0.12.0",
+ "serde",
+ "serde_with",
+ "sha3",
+ "zeroize",
+]
+
+[[package]]
+name = "bbs_plus"
+version = "0.22.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e9f40c9468765fad293468ddbcd2dc092bd42dfd76555def0b786aedbf4139d4"
+dependencies = [
+ "ark-ec",
+ "ark-ff",
+ "ark-serialize",
+ "ark-std",
+ "digest",
+ "dock_crypto_utils 0.20.0",
+ "itertools 0.12.1",
+ "oblivious_transfer_protocols 0.9.0",
+ "schnorr_pok 0.20.0",
+ "secret_sharing_and_dkg 0.13.0",
  "serde",
  "serde_with",
  "sha3",
@@ -343,7 +365,25 @@ dependencies = [
  "ark-serialize",
  "ark-std",
  "digest",
- "dock_crypto_utils",
+ "dock_crypto_utils 0.19.0",
+ "serde",
+ "serde_with",
+ "zeroize",
+]
+
+[[package]]
+name = "bulletproofs_plus_plus"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "72efdc2e468364bf7b9f86fdc5690c4cd4d6ef62534215fe30331337908e0c88"
+dependencies = [
+ "ark-ec",
+ "ark-ff",
+ "ark-poly",
+ "ark-serialize",
+ "ark-std",
+ "digest",
+ "dock_crypto_utils 0.20.0",
  "serde",
  "serde_with",
  "zeroize",
@@ -448,10 +488,31 @@ dependencies = [
  "ark-serialize",
  "ark-std",
  "digest",
- "dock_crypto_utils",
+ "dock_crypto_utils 0.19.0",
  "itertools 0.12.1",
- "schnorr_pok",
- "secret_sharing_and_dkg",
+ "schnorr_pok 0.19.0",
+ "secret_sharing_and_dkg 0.12.0",
+ "serde",
+ "serde_with",
+ "zeroize",
+]
+
+[[package]]
+name = "coconut-crypto"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3d5b98c93d9d14e68d50808ef36fc2751e5f71c5666f006d0fedd3c81d87b5c0"
+dependencies = [
+ "ark-ec",
+ "ark-ff",
+ "ark-poly",
+ "ark-serialize",
+ "ark-std",
+ "digest",
+ "dock_crypto_utils 0.20.0",
+ "itertools 0.12.1",
+ "schnorr_pok 0.20.0",
+ "secret_sharing_and_dkg 0.13.0",
  "serde",
  "serde_with",
  "zeroize",
@@ -638,8 +699,31 @@ dependencies = [
 ]
 
 [[package]]
-name = "dock_crypto_wasm"
+name = "dock_crypto_utils"
 version = "0.20.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bf4966d4f0a09dd065ef2885aa125b99a733842861cff6d787e5aebb517771d3"
+dependencies = [
+ "aead",
+ "ark-ec",
+ "ark-ff",
+ "ark-poly",
+ "ark-serialize",
+ "ark-std",
+ "digest",
+ "dock_merlin",
+ "hkdf",
+ "itertools 0.12.1",
+ "num",
+ "serde",
+ "serde_with",
+ "sha2",
+ "zeroize",
+]
+
+[[package]]
+name = "dock_crypto_wasm"
+version = "0.21.0"
 dependencies = [
  "ark-bls12-381",
  "ark-ec",
@@ -647,28 +731,29 @@ dependencies = [
  "ark-relations",
  "ark-serialize",
  "ark-std",
- "bbs_plus",
+ "bbs_plus 0.22.0",
  "blake2",
- "bulletproofs_plus_plus",
- "coconut-crypto",
+ "bulletproofs_plus_plus 0.6.0",
+ "coconut-crypto 0.11.0",
  "console_error_panic_hook",
  "dlmalloc",
- "dock_crypto_utils",
+ "dock_crypto_utils 0.20.0",
  "getrandom",
  "js-sys",
- "kvac",
- "legogroth16",
- "oblivious_transfer_protocols",
- "proof_system",
- "saver",
- "schnorr_pok",
- "secret_sharing_and_dkg",
+ "kvac 0.5.0",
+ "legogroth16 0.15.0",
+ "oblivious_transfer_protocols 0.9.0",
+ "proof_system 0.30.0",
+ "proof_system 0.31.0",
+ "saver 0.18.0",
+ "schnorr_pok 0.20.0",
+ "secret_sharing_and_dkg 0.13.0",
  "serde",
  "serde-wasm-bindgen 0.6.5",
  "serde_json",
  "serde_with",
- "smc_range_proof",
- "vb_accumulator",
+ "smc_range_proof 0.6.0",
+ "vb_accumulator 0.26.0",
  "wasm-bindgen",
  "wasm-bindgen-test",
  "web-sys",
@@ -917,9 +1002,28 @@ dependencies = [
  "ark-serialize",
  "ark-std",
  "digest",
- "dock_crypto_utils",
+ "dock_crypto_utils 0.19.0",
  "itertools 0.12.1",
- "schnorr_pok",
+ "schnorr_pok 0.19.0",
+ "serde",
+ "serde_with",
+ "zeroize",
+]
+
+[[package]]
+name = "kvac"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1e674e9ab3e6423f0387f7670238ff10885ec3e25c456cfe7904aed1283d404f"
+dependencies = [
+ "ark-ec",
+ "ark-ff",
+ "ark-serialize",
+ "ark-std",
+ "digest",
+ "dock_crypto_utils 0.20.0",
+ "itertools 0.12.1",
+ "schnorr_pok 0.20.0",
  "serde",
  "serde_with",
  "zeroize",
@@ -951,7 +1055,28 @@ dependencies = [
  "ark-serialize",
  "ark-snark",
  "ark-std",
- "dock_crypto_utils",
+ "dock_crypto_utils 0.19.0",
+ "fnv",
+ "log",
+ "num-bigint",
+ "wasmer",
+]
+
+[[package]]
+name = "legogroth16"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0d2de1a0a97357f35fcf344fa94d71dbc180bc6318ec8e89c462aa5d166e2a3f"
+dependencies = [
+ "ark-ec",
+ "ark-ff",
+ "ark-groth16",
+ "ark-poly",
+ "ark-relations",
+ "ark-serialize",
+ "ark-snark",
+ "ark-std",
+ "dock_crypto_utils 0.20.0",
  "fnv",
  "log",
  "num-bigint",
@@ -1134,9 +1259,33 @@ dependencies = [
  "cc",
  "cipher",
  "digest",
- "dock_crypto_utils",
+ "dock_crypto_utils 0.19.0",
  "itertools 0.12.1",
- "schnorr_pok",
+ "schnorr_pok 0.19.0",
+ "serde",
+ "serde_with",
+ "sha3",
+ "zeroize",
+]
+
+[[package]]
+name = "oblivious_transfer_protocols"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "330a05f454419f17296f011a136db6399d8900a6cf90a8191b0f208a66c00048"
+dependencies = [
+ "aes",
+ "ark-ec",
+ "ark-ff",
+ "ark-serialize",
+ "ark-std",
+ "byteorder",
+ "cc",
+ "cipher",
+ "digest",
+ "dock_crypto_utils 0.20.0",
+ "itertools 0.12.1",
+ "schnorr_pok 0.20.0",
  "serde",
  "serde_with",
  "sha3",
@@ -1250,23 +1399,57 @@ dependencies = [
  "ark-relations",
  "ark-serialize",
  "ark-std",
- "bbs_plus",
- "bulletproofs_plus_plus",
+ "bbs_plus 0.21.0",
+ "bulletproofs_plus_plus 0.5.0",
  "chacha20poly1305",
- "coconut-crypto",
+ "coconut-crypto 0.10.0",
  "digest",
- "dock_crypto_utils",
+ "dock_crypto_utils 0.19.0",
  "dock_merlin",
  "itertools 0.12.1",
- "kvac",
- "legogroth16",
- "saver",
- "schnorr_pok",
+ "kvac 0.4.0",
+ "legogroth16 0.14.0",
+ "saver 0.17.0",
+ "schnorr_pok 0.19.0",
  "serde",
  "serde_with",
- "short_group_sig",
- "smc_range_proof",
- "vb_accumulator",
+ "short_group_sig 0.3.0",
+ "smc_range_proof 0.5.0",
+ "vb_accumulator 0.25.0",
+ "zeroize",
+]
+
+[[package]]
+name = "proof_system"
+version = "0.31.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c2f8d0c8e7ddd54bbf16bd2f9d7b9219b10f7b673b20336119a881782e16cd7a"
+dependencies = [
+ "aead",
+ "ark-ec",
+ "ark-ff",
+ "ark-groth16",
+ "ark-r1cs-std",
+ "ark-relations",
+ "ark-serialize",
+ "ark-std",
+ "bbs_plus 0.22.0",
+ "bulletproofs_plus_plus 0.6.0",
+ "chacha20poly1305",
+ "coconut-crypto 0.11.0",
+ "digest",
+ "dock_crypto_utils 0.20.0",
+ "dock_merlin",
+ "itertools 0.12.1",
+ "kvac 0.5.0",
+ "legogroth16 0.15.0",
+ "saver 0.18.0",
+ "schnorr_pok 0.20.0",
+ "serde",
+ "serde_with",
+ "short_group_sig 0.4.0",
+ "smc_range_proof 0.6.0",
+ "vb_accumulator 0.26.0",
  "zeroize",
 ]
 
@@ -1426,9 +1609,31 @@ dependencies = [
  "ark-serialize",
  "ark-std",
  "digest",
- "dock_crypto_utils",
+ "dock_crypto_utils 0.19.0",
  "dock_merlin",
- "legogroth16",
+ "legogroth16 0.14.0",
+ "serde",
+ "serde_with",
+ "zeroize",
+]
+
+[[package]]
+name = "saver"
+version = "0.18.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "256ae60411b80d857ad5ff09aefb06003ab978fba47a2ba648a6a2c2889911e5"
+dependencies = [
+ "ark-ec",
+ "ark-ff",
+ "ark-groth16",
+ "ark-r1cs-std",
+ "ark-relations",
+ "ark-serialize",
+ "ark-std",
+ "digest",
+ "dock_crypto_utils 0.20.0",
+ "dock_merlin",
+ "legogroth16 0.15.0",
  "serde",
  "serde_with",
  "zeroize",
@@ -1445,7 +1650,24 @@ dependencies = [
  "ark-serialize",
  "ark-std",
  "digest",
- "dock_crypto_utils",
+ "dock_crypto_utils 0.19.0",
+ "serde",
+ "serde_with",
+ "zeroize",
+]
+
+[[package]]
+name = "schnorr_pok"
+version = "0.20.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a166f138517fe7359112179cb075ec04fb845267dfefb1c7f71258c5a817af49"
+dependencies = [
+ "ark-ec",
+ "ark-ff",
+ "ark-serialize",
+ "ark-std",
+ "digest",
+ "dock_crypto_utils 0.20.0",
  "serde",
  "serde_with",
  "zeroize",
@@ -1481,8 +1703,27 @@ dependencies = [
  "ark-serialize",
  "ark-std",
  "digest",
- "dock_crypto_utils",
- "schnorr_pok",
+ "dock_crypto_utils 0.19.0",
+ "schnorr_pok 0.19.0",
+ "serde",
+ "serde_with",
+ "zeroize",
+]
+
+[[package]]
+name = "secret_sharing_and_dkg"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b40ba413c8cbba3aa7dd76ffaef86af19d7bc4e93f9bccf5fc929c89b18b021d"
+dependencies = [
+ "ark-ec",
+ "ark-ff",
+ "ark-poly",
+ "ark-serialize",
+ "ark-std",
+ "digest",
+ "dock_crypto_utils 0.20.0",
+ "schnorr_pok 0.20.0",
  "serde",
  "serde_with",
  "zeroize",
@@ -1602,8 +1843,27 @@ dependencies = [
  "ark-serialize",
  "ark-std",
  "digest",
- "dock_crypto_utils",
- "schnorr_pok",
+ "dock_crypto_utils 0.19.0",
+ "schnorr_pok 0.19.0",
+ "serde",
+ "serde_with",
+ "zeroize",
+]
+
+[[package]]
+name = "short_group_sig"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "601e96ef28b48820f50155fe97639a68d5c6c6f0be71eaa0c8a7598e50a0bef2"
+dependencies = [
+ "ark-ec",
+ "ark-ff",
+ "ark-poly",
+ "ark-serialize",
+ "ark-std",
+ "digest",
+ "dock_crypto_utils 0.20.0",
+ "schnorr_pok 0.20.0",
  "serde",
  "serde_with",
  "zeroize",
@@ -1632,9 +1892,26 @@ dependencies = [
  "ark-serialize",
  "ark-std",
  "digest",
- "dock_crypto_utils",
- "schnorr_pok",
- "short_group_sig",
+ "dock_crypto_utils 0.19.0",
+ "schnorr_pok 0.19.0",
+ "short_group_sig 0.3.0",
+ "zeroize",
+]
+
+[[package]]
+name = "smc_range_proof"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2752d05d96e4bf44928d5819b3d2d6cca75bdd918bd0f9c8c1f9ecece7db38d9"
+dependencies = [
+ "ark-ec",
+ "ark-ff",
+ "ark-serialize",
+ "ark-std",
+ "digest",
+ "dock_crypto_utils 0.20.0",
+ "schnorr_pok 0.20.0",
+ "short_group_sig 0.4.0",
  "zeroize",
 ]
 
@@ -1813,14 +2090,37 @@ dependencies = [
  "ark-serialize",
  "ark-std",
  "digest",
- "dock_crypto_utils",
- "kvac",
- "oblivious_transfer_protocols",
- "schnorr_pok",
- "secret_sharing_and_dkg",
+ "dock_crypto_utils 0.19.0",
+ "kvac 0.4.0",
+ "oblivious_transfer_protocols 0.8.0",
+ "schnorr_pok 0.19.0",
+ "secret_sharing_and_dkg 0.12.0",
  "serde",
  "serde_with",
- "short_group_sig",
+ "short_group_sig 0.3.0",
+ "zeroize",
+]
+
+[[package]]
+name = "vb_accumulator"
+version = "0.26.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cb38526c42d26848760a47cd39af3228bd2c20d9ddb673895c43914caa521d48"
+dependencies = [
+ "ark-ec",
+ "ark-ff",
+ "ark-poly",
+ "ark-serialize",
+ "ark-std",
+ "digest",
+ "dock_crypto_utils 0.20.0",
+ "kvac 0.5.0",
+ "oblivious_transfer_protocols 0.9.0",
+ "schnorr_pok 0.20.0",
+ "secret_sharing_and_dkg 0.13.0",
+ "serde",
+ "serde_with",
+ "short_group_sig 0.4.0",
  "zeroize",
 ]
 

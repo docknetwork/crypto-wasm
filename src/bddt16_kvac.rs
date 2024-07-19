@@ -18,7 +18,7 @@ use dock_crypto_utils::{
     concat_slices, hashing_utils::affine_group_elem_from_try_and_incr,
     signature::MultiMessageSignatureParams,
 };
-use kvac::bddt_2016::{
+use kvac::bbdt_2016::{
     mac::{ProofOfValidityOfMAC, MAC},
     setup::{MACParams, PublicKey, SecretKey},
 };

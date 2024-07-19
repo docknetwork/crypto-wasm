@@ -9,7 +9,7 @@ use crate::{
 };
 use blake2::Blake2b512;
 use js_sys::Uint8Array;
-use kvac::bddt_2016::keyed_proof::{
+use kvac::bbdt_2016::keyed_proof::{
     KeyedProof as BDDT16Kp, ProofOfInvalidityOfKeyedProof as BDDT16Pivkp,
     ProofOfValidityOfKeyedProof as BDDT16Pvkp,
 };
@@ -38,7 +38,7 @@ pub fn get_all_keyed_subproofs_from_proof(proof: Uint8Array) -> Result<js_sys::M
     let r = js_sys::Map::new();
     for (i, s) in proof.statement_proofs.into_iter().enumerate() {
         match s {
-            StatementProof::PoKOfBDDT16MAC(p) => {
+            StatementProof::PoKOfBBDT16MAC(p) => {
                 let dp = p.to_keyed_proof();
                 let val = js_sys::Array::new();
                 val.push(&JsValue::from(0_u32));

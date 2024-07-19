@@ -25,8 +25,8 @@ pub(crate) type PoKBBSPlusSigProverStmt = prelude::bbs_plus::PoKBBSSignatureG1Pr
 pub(crate) type PoKBBSPlusSigVerifierStmt = prelude::bbs_plus::PoKBBSSignatureG1Verifier<Bls12_381>;
 pub(crate) type PoKPSSigStmt = prelude::ps_signature::PoKPSSignatureStatement<Bls12_381>;
 
-pub(crate) type PoKOfMACStmt = prelude::bddt16_kvac::PoKOfMAC<G1Affine>;
-pub(crate) type PoKOfMACFullVerifierStmt = prelude::bddt16_kvac::PoKOfMACFullVerifier<G1Affine>;
+pub(crate) type PoKOfMACStmt = prelude::bbdt16_kvac::PoKOfMAC<G1Affine>;
+pub(crate) type PoKOfMACFullVerifierStmt = prelude::bbdt16_kvac::PoKOfMACFullVerifier<G1Affine>;
 
 macro_rules! pok_prover {
     ($params: ident, $revealed_msgs: ident, $encode_messages: ident, $sig_params_type: ident, $stmt: path, $stmt_str: expr, $fn_name: ident) => {{

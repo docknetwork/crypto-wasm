@@ -395,6 +395,6 @@ pub fn generate_setup_param_for_bddt16_mac_params(
     set_panic_hook();
     let params: BDDT16MACParams = serde_wasm_bindgen::from_value(params)?;
     Ok(obj_to_uint8array_uncompressed!(
-        &SetupParams::<Bls12_381>::BDDT16MACParams(params)
+        &SetupParams::<Bls12_381>::BBDT16MACParams(params)
     ))
 }

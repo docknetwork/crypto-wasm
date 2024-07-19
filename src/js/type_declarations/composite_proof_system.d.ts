@@ -517,6 +517,15 @@ export function verifyCompositeProofG1WithDeconstructedProofSpec(
     nonce?: Uint8Array
 ): Required<VerifyResult>;
 
+export function verifyCompositeProofG1WithDeconstructedProofSpecOld(
+    proof: Uint8Array,
+    statements: Uint8Array[],
+    metaStatements: Uint8Array[],
+    setupParams: Uint8Array[],
+    context?: Uint8Array,
+    nonce?: Uint8Array
+): Required<VerifyResult>;
+
 export function saverGetCiphertextFromProof(
     proof: Uint8Array,
     statementIndex: number
