@@ -10,16 +10,12 @@ use wasm_bindgen::prelude::*;
 
 use ark_ff::One;
 use blake2::Blake2b512;
-use vb_accumulator::{
-    kb_universal_accumulator::witness::{
-        KBUniversalAccumulatorMembershipWitness, KBUniversalAccumulatorNonMembershipWitness,
-    },
-    prelude::{
-        Accumulator, MembershipProof, MembershipProofProtocol, MembershipProvingKey,
-        MembershipWitness, NonMembershipProof, NonMembershipProofProtocol, NonMembershipProvingKey,
-        NonMembershipWitness, Omega as Omega_, PositiveAccumulator, UniversalAccumulator,
-    },
+use vb_accumulator::prelude::{
+    Accumulator, MembershipProof, MembershipProofProtocol, MembershipProvingKey, MembershipWitness,
+    NonMembershipProof, NonMembershipProofProtocol, NonMembershipProvingKey, NonMembershipWitness,
+    Omega as Omega_, PositiveAccumulator, UniversalAccumulator,
 };
+
 use zeroize::Zeroize;
 
 use crate::{
@@ -27,14 +23,10 @@ use crate::{
     to_verify_response, Fr,
 };
 
-pub(crate) type PositiveAccum = PositiveAccumulator<Bls12_381>;
-pub(crate) type UniversalAccum = UniversalAccumulator<Bls12_381>;
+pub(crate) type PositiveAccum = PositiveAccumulator<<Bls12_381 as Pairing>::G1Affine>;
+pub(crate) type UniversalAccum = UniversalAccumulator<<Bls12_381 as Pairing>::G1Affine>;
 pub(crate) type MembershipWit = MembershipWitness<<Bls12_381 as Pairing>::G1Affine>;
 pub(crate) type NonMembershipWit = NonMembershipWitness<<Bls12_381 as Pairing>::G1Affine>;
-pub(crate) type KbUniMembershipWit =
-    KBUniversalAccumulatorMembershipWitness<<Bls12_381 as Pairing>::G1Affine>;
-pub(crate) type KbUniNonMembershipWit =
-    KBUniversalAccumulatorNonMembershipWitness<<Bls12_381 as Pairing>::G1Affine>;
 pub(crate) type Omega = Omega_<<Bls12_381 as Pairing>::G1Affine>;
 pub type MembershipPrk = MembershipProvingKey<<Bls12_381 as Pairing>::G1Affine>;
 pub type NonMembershipPrk = NonMembershipProvingKey<<Bls12_381 as Pairing>::G1Affine>;
