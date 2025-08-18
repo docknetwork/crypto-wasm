@@ -290,26 +290,6 @@ pub fn verify_composite_proof_g1_with_deconstructed_proof_spec(
     verify_proof_given_proof_spec_obj(proof_spec, proof, nonce)
 }
 
-#[wasm_bindgen(js_name = verifyCompositeProofG1WithDeconstructedProofSpecOld)]
-pub fn verify_composite_proof_g1_with_deconstructed_proof_spec_old(
-    proof: Uint8Array,
-    statements: js_sys::Array,
-    meta_statements: js_sys::Array,
-    setup_params: js_sys::Array,
-    context: Option<Vec<u8>>,
-    nonce: Option<Vec<u8>>,
-) -> Result<JsValue, JsValue> {
-    let (statements, meta_statements, setup_params) =
-        parse_statements_meta_statements_and_setup_params_old(
-            statements,
-            meta_statements,
-            setup_params,
-        )?;
-    type ProofSpec = proof_system_old::proof_spec::ProofSpec<Bls12_381>;
-    let proof_spec = ProofSpec::new(statements, meta_statements, setup_params, context);
-    verify_proof_given_proof_spec_obj_old(proof_spec, proof, nonce)
-}
-
 #[wasm_bindgen(js_name = generateSaverWitness)]
 pub fn generate_saver_witness(message: Uint8Array) -> Result<JsValue, JsValue> {
     set_panic_hook();
@@ -440,42 +420,6 @@ pub fn generate_pok_bddt16_mac_witness_constant_time(
     )
 }
 
-pub fn parse_statements_meta_statements_and_setup_params_old(
-    statements: js_sys::Array,
-    meta_statements: js_sys::Array,
-    setup_params: js_sys::Array,
-) -> Result<
-    (
-        proof_system_old::prelude::Statements<Bls12_381>,
-        proof_system_old::prelude::MetaStatements,
-        Vec<proof_system_old::prelude::SetupParams<Bls12_381>>,
-    ),
-    JsValue,
-> {
-    let mut meta_stmts = proof_system_old::prelude::MetaStatements::new();
-    for ms in meta_statements.values() {
-        let meta_stmt: proof_system_old::prelude::MetaStatement = serde_wasm_bindgen::from_value(ms.unwrap())?;
-        meta_stmts.add(meta_stmt);
-    }
-    type OldSt = proof_system_old::prelude::Statement<Bls12_381>;
-    type OldSp = proof_system_old::prelude::SetupParams<Bls12_381>;
-    let mut stmts = proof_system_old::prelude::Statements::<Bls12_381>::new();
-    for s in statements.values() {
-        let s = Uint8Array::new(&s.unwrap());
-        let stmt = obj_from_uint8array_uncompressed!(OldSt, &s, "Statement");
-        stmts.add(stmt);
-    }
-
-    let mut s_params = Vec::<proof_system_old::prelude::SetupParams<Bls12_381>>::new();
-    for s in setup_params.values() {
-        let s = Uint8Array::new(&s.unwrap());
-        let s = obj_from_uint8array_uncompressed!(OldSp, &s, "SetupParams");
-        s_params.push(s);
-    }
-
-    Ok((stmts, meta_stmts, s_params))
-}
-
 pub fn parse_statements_meta_statements_and_setup_params(
     statements: js_sys::Array,
     meta_statements: js_sys::Array,
@@ -564,22 +508,6 @@ fn verify_proof_given_proof_spec_obj(
     proof: Uint8Array,
     nonce: Option<Vec<u8>>,
 ) -> Result<JsValue, JsValue> {
-    let proof = obj_from_uint8array!(Proof, proof, false);
-    let mut rng = get_seeded_rng();
-    to_verify_response!(proof.verify::<_, Blake2b512>(
-        &mut rng,
-        proof_spec,
-        nonce,
-        Default::default()
-    ))
-}
-
-fn verify_proof_given_proof_spec_obj_old(
-    proof_spec: proof_system_old::prelude::ProofSpec<Bls12_381>,
-    proof: Uint8Array,
-    nonce: Option<Vec<u8>>,
-) -> Result<JsValue, JsValue> {
-    type Proof = proof_system_old::prelude::Proof<Bls12_381>;
     let proof = obj_from_uint8array!(Proof, proof, false);
     let mut rng = get_seeded_rng();
     to_verify_response!(proof.verify::<_, Blake2b512>(
