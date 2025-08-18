@@ -5,7 +5,7 @@ use crate::{
     },
     utils::{fr_from_uint8_array, js_array_to_fr_vec, set_panic_hook},
 };
-use ark_bls12_381::Bls12_381;
+use ark_bls12_381::{Bls12_381, G1Affine};
 use ark_ec::pairing::Pairing;
 use ark_serialize::CanonicalDeserialize;
 use js_sys::Uint8Array;
@@ -18,7 +18,7 @@ use vb_accumulator::kb_universal_accumulator::{
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 use zeroize::Zeroize;
 
-pub(crate) type KBUniversalAccum = KBUniversalAccumulator<Bls12_381>;
+pub(crate) type KBUniversalAccum = KBUniversalAccumulator<G1Affine>;
 pub(crate) type KBUniMembershipWit =
     KBUniversalAccumulatorMembershipWitness<<Bls12_381 as Pairing>::G1Affine>;
 pub(crate) type KBUniNonMembershipWit =
