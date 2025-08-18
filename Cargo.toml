@@ -38,8 +38,6 @@ bulletproofs_plus_plus = { version = "0.7.0", default-features = false}
 smc_range_proof = { version = "0.7.0", default-features = false}
 kvac = { version = "0.6.0", default-features = false}
 
-proof_system_old = { package = "proof_system", version = "0.30.0", default-features = false }
-
 ark-ec = { version = "^0.4.1", default-features = false }
 ark-ff = { version = "^0.4.1", default-features = false }
 ark-relations = { version = "^0.4.0", default-features = false }
