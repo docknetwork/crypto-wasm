@@ -21,15 +21,15 @@ fi
 if [ "$BUILD_MODE" = "RELEASE" ]; 
 then
     echo "Building WASM Output in RELEASE MODE"
-    rustup run stable wasm-pack build --release --out-dir lib --target web -- --features="console"
+    wasm-pack build --release --out-dir lib --target web -- --features="console"
 elif [ "$BUILD_MODE" = "PROFILING" ];
 then
     echo "Building WASM Output in PROFILING MODE"
-    rustup run stable wasm-pack build --profiling --out-dir lib --target web -- --features="console"
+    wasm-pack build --profiling --out-dir lib --target web -- --features="console"
 elif [ "$BUILD_MODE" = "DEBUG" ]; 
 then
     echo "Building WASM Output in DEBUG MODE"
-    rustup run stable wasm-pack build --dev --out-dir lib --target web -- --features="console"
+    wasm-pack build --dev --out-dir lib --target web -- --features="console"
 else
     echo "Unrecognized value for parameter BUILD_MODE value must be either RELEASE or DEBUG"
     exit 1
