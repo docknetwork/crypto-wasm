@@ -142,7 +142,7 @@ The following describes how to get started as a contributor to this project
 
 The following is a list of dependencies you must install to build and contribute to this project
 
-- [Yarn](https://yarnpkg.com/)
+- [Yarn](https://yarnpkg.com/) - make sure you're not using the legacy version.
 - [Rust](https://www.rust-lang.org/)
 
 For more details see our [contribution guidelines](./docs/CONTRIBUTING.md)
