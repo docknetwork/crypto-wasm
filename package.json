@@ -3,7 +3,6 @@
   "version": "0.33.0",
   "author": "Dock.io",
   "license": "Apache-2.0",
-  "private": false,
   "description": "An implementation of BBS, BBS+ signatures, PS signatures, bilinear map accumulators, verifiable encryption, range proof and composite proof using rust compiled to wasm. This project started as fork of @mattrglobal/bbs-signatures",
   "homepage": "https://github.com/docknetwork/crypto-wasm",
   "main": "lib/index.js",
@@ -56,5 +55,6 @@
   },
   "dependencies": {
     "buffer": "^6.0.3"
-  }
+  },
+  "packageManager": "yarn@4.9.3"
 }
