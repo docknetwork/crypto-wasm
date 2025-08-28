@@ -15,14 +15,15 @@ jobs:
         node-version: [18.x, 20.x]
         os: [ubuntu-latest, macos-latest]
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v4
       - uses: jetli/wasm-pack-action@v0.4.0
         with:
           # Optional version of wasm-pack to install(eg. 'v0.9.1', 'latest')
           version: 'latest'
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
+      - run: corepack enable  # Enable Corepack
       - run: yarn install --frozen-lockfile
       - run: yarn build:release
       - run: yarn test:wasm
