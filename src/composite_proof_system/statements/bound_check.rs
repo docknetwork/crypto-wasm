@@ -1,5 +1,5 @@
 use crate::{
-    bound_check::{BppSetupParams, SmcParams, SmcParamsAndSk},
+    bound_check::{BppSetupParams, SmcParams, SmcParamsKV, SmcParamsKVAndSk},
     legosnark::{LegoProvingKey, LegoVerifyingKey},
     utils::{is_positive_safe_integer, set_panic_hook},
     G1Affine,
@@ -275,16 +275,16 @@ pub fn generate_bound_check_smc_with_kv_verifier_statement(
     let (min, max) = get_valid_min_max(min, max)?;
     let params = if uncompressed_public_params {
         obj_from_uint8array_uncompressed!(
-            SmcParamsAndSk,
+            SmcParamsKVAndSk,
             params,
-            "SmcParamsAndCommitmentKeyAndSecretKey"
+            "SmcParamsKVAndCommitmentKeyAndSecretKey"
         )
     } else {
         obj_from_uint8array!(
-            SmcParamsAndSk,
+            SmcParamsKVAndSk,
             params,
             false,
-            "SmcParamsAndCommitmentKeyAndSecretKey"
+            "SmcParamsKVAndCommitmentKeyAndSecretKey"
         )
     };
     let statement = BoundCheckSmcVerifierStmt::new_statement_from_params(min, max, params)

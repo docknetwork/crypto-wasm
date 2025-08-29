@@ -35,7 +35,12 @@ module.exports.decompressSmcParams = (params) => {
     return wasm.decompressSmcParams(params);
 };
 
-module.exports.decompressSmcParamsAndSk = (params) => {
+module.exports.decompressSmcParamsKV = (params) => {
     requireWasmInitialized();
-    return wasm.decompressSmcParamsAndSk(params);
+    return wasm.decompressSmcParamsKV(params);
+};
+
+module.exports.decompressSmcParamsKVAndSk = (params) => {
+    requireWasmInitialized();
+    return wasm.decompressSmcParamsKVAndSk(params);
 };

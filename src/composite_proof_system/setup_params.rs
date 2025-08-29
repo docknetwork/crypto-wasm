@@ -12,7 +12,7 @@ use crate::{
     bbs::BBSSigParams,
     bbs_plus::{BBSPlusPublicKeyG2, BBSPlusSigParamsG1},
     bddt16_kvac::BDDT16MACParams,
-    bound_check::{BppSetupParams, SmcParams, SmcParamsAndSk},
+    bound_check::{BppSetupParams, SmcParams, SmcParamsKV, SmcParamsKVAndSk},
     legosnark::{LegoProvingKey, LegoVerifyingKey},
     ps::{PSPublicKey, PSSignatureParams},
     r1cs::gen_r1cs,
@@ -338,24 +338,40 @@ pub fn generate_setup_param_for_smc_params(
     ))
 }
 
-#[wasm_bindgen(js_name = generateSetupParamForSmcParamsAndSk)]
-pub fn generate_setup_param_for_smc_params_and_sk(
+#[wasm_bindgen(js_name = generateSetupParamForSmcParamsKV)]
+pub fn generate_setup_param_for_smc_params_kv(
+    params: js_sys::Uint8Array,
+    uncompressed: bool,
+) -> Result<js_sys::Uint8Array, JsValue> {
+    set_panic_hook();
+    let params = if uncompressed {
+        obj_from_uint8array_uncompressed!(SmcParamsKV, params, "SmcParamsKVAndCommitmentKey")
+    } else {
+        obj_from_uint8array!(SmcParamsKV, params, false, "SmcParamsKVAndCommitmentKey")
+    };
+    Ok(obj_to_uint8array_uncompressed!(
+        &SetupParams::<Bls12_381>::SmcParamsKVAndCommKey(params)
+    ))
+}
+
+#[wasm_bindgen(js_name = generateSetupParamForSmcParamsKVAndSk)]
+pub fn generate_setup_param_for_smc_params_kv_and_sk(
     params: js_sys::Uint8Array,
     uncompressed: bool,
 ) -> Result<js_sys::Uint8Array, JsValue> {
     set_panic_hook();
     let params = if uncompressed {
         obj_from_uint8array_uncompressed!(
-            SmcParamsAndSk,
+            SmcParamsKVAndSk,
             params,
-            "SmcParamsAndCommitmentKeyAndSecretKey"
+            "SmcParamsKVAndCommitmentKeyAndSecretKey"
         )
     } else {
         obj_from_uint8array!(
-            SmcParamsAndSk,
+            SmcParamsKVAndSk,
             params,
             false,
-            "SmcParamsAndCommitmentKeyAndSecretKey"
+            "SmcParamsKVAndCommitmentKeyAndSecretKey"
         )
     };
     Ok(obj_to_uint8array_uncompressed!(
