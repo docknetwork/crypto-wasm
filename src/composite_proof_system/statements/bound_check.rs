@@ -6,7 +6,7 @@ use crate::{
 };
 use ark_bls12_381::Bls12_381;
 use js_sys::Uint8Array;
-use proof_system::prelude;
+use proof_system::prelude::{self, Statement};
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 use zeroize::Zeroize;
 
@@ -19,9 +19,9 @@ pub(crate) type BoundCheckSmcStmt = prelude::bound_check_smc::BoundCheckSmc<Bls1
 
 // For bound check statements using set-membership check based range proof with keyed verification
 pub(crate) type BoundCheckSmcProverStmt =
-    prelude::bound_check_smc_with_kv::BoundCheckSmcWithKVProver<Bls12_381>;
+    prelude::bound_check_smc_with_kv::BoundCheckSmcWithKVProver<G1Affine>;
 pub(crate) type BoundCheckSmcVerifierStmt =
-    prelude::bound_check_smc_with_kv::BoundCheckSmcWithKVVerifier<Bls12_381>;
+    prelude::bound_check_smc_with_kv::BoundCheckSmcWithKVVerifier<G1Affine>;
 
 /// If `uncompressed` is true, expects the legosnark proving key to be in uncompressed form else
 /// it should be compressed.
@@ -226,11 +226,11 @@ pub fn generate_bound_check_smc_with_kv_prover_statement(
     set_panic_hook();
     let (min, max) = get_valid_min_max(min, max)?;
     let params = if uncompressed_public_params {
-        obj_from_uint8array_uncompressed!(SmcParams, params, "SmcParamsAndCommitmentKey")
+        obj_from_uint8array_uncompressed!(SmcParamsKV, params, "SmcParamsKVAndCommitmentKey")
     } else {
-        obj_from_uint8array!(SmcParams, params, false, "SmcParamsAndCommitmentKey")
+        obj_from_uint8array!(SmcParamsKV, params, false, "SmcParamsKVAndCommitmentKey")
     };
-    let statement =
+    let statement: Statement<Bls12_381> =
         BoundCheckSmcProverStmt::new_statement_from_params(min, max, params).map_err(|e| {
             JsValue::from(&format!(
                 "Creating statement for BoundCheckSmcProver returned error: {:?}",
@@ -251,8 +251,8 @@ pub fn generate_bound_check_smc_with_kv_prover_statement_from_param_refs(
 ) -> Result<Uint8Array, JsValue> {
     set_panic_hook();
     let (min, max) = get_valid_min_max(min, max)?;
-    let statement = BoundCheckSmcProverStmt::new_statement_from_params_ref(min, max, params)
-        .map_err(|e| {
+    let statement: Statement<Bls12_381> =
+        BoundCheckSmcProverStmt::new_statement_from_params_ref(min, max, params).map_err(|e| {
             JsValue::from(&format!(
                 "Creating statement for BoundCheckSmcProver returned error: {:?}",
                 e
@@ -287,8 +287,8 @@ pub fn generate_bound_check_smc_with_kv_verifier_statement(
             "SmcParamsKVAndCommitmentKeyAndSecretKey"
         )
     };
-    let statement = BoundCheckSmcVerifierStmt::new_statement_from_params(min, max, params)
-        .map_err(|e| {
+    let statement: Statement<Bls12_381> =
+        BoundCheckSmcVerifierStmt::new_statement_from_params(min, max, params).map_err(|e| {
             JsValue::from(&format!(
                 "Creating statement for BoundCheckSmcVerifier returned error: {:?}",
                 e
@@ -308,7 +308,7 @@ pub fn generate_bound_check_smc_with_kv_verifier_statement_from_param_refs(
 ) -> Result<Uint8Array, JsValue> {
     set_panic_hook();
     let (min, max) = get_valid_min_max(min, max)?;
-    let statement = BoundCheckSmcVerifierStmt::new_statement_from_params_ref(min, max, params)
+    let statement: Statement<Bls12_381> = BoundCheckSmcVerifierStmt::new_statement_from_params_ref(min, max, params)
         .map_err(|e| {
             JsValue::from(&format!(
                 "Creating statement for BoundCheckSmcVerifier returned error: {:?}",
