@@ -4,9 +4,8 @@ pub mod statements;
 use wasm_bindgen::prelude::*;
 
 use crate::{
-    accumulator::vb_accumulator::{
-        KbUniMembershipWit, KbUniNonMembershipWit, MembershipWit, NonMembershipWit,
-    },
+    accumulator::kb_accumulator::{KBUniMembershipWit, KBUniNonMembershipWit},
+    accumulator::vb_accumulator::{MembershipWit, NonMembershipWit},
     bbs::BBSSignature,
     bbs_plus::BBSPlusSigG1,
     bddt16_kvac::BDDT16MAC,
@@ -181,7 +180,7 @@ pub fn generate_kb_universal_accumulator_membership_witness(
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
     let element = fr_from_uint8_array(element, true)?;
-    let accum_witness: KbUniMembershipWit = serde_wasm_bindgen::from_value(accum_witness)?;
+    let accum_witness: KBUniMembershipWit = serde_wasm_bindgen::from_value(accum_witness)?;
     let witness: witness::Witness<Bls12_381> =
         KbUniAccumMemWit::new_as_witness(element, accum_witness);
     serde_wasm_bindgen::to_value(&witness).map_err(JsValue::from)
@@ -194,7 +193,7 @@ pub fn generate_kb_universal_accumulator_non_membership_witness(
 ) -> Result<JsValue, JsValue> {
     set_panic_hook();
     let element = fr_from_uint8_array(element, true)?;
-    let accum_witness: KbUniNonMembershipWit = serde_wasm_bindgen::from_value(accum_witness)?;
+    let accum_witness: KBUniNonMembershipWit = serde_wasm_bindgen::from_value(accum_witness)?;
     let witness: witness::Witness<Bls12_381> =
         KbUniAccumNonMemWit::new_as_witness(element, accum_witness);
     serde_wasm_bindgen::to_value(&witness).map_err(JsValue::from)
