@@ -200,7 +200,7 @@ pub fn decompress_pedersen_comm_key_g1(
     );
     Ok(obj_to_uint8array_uncompressed!(
         &comm_key,
-        "SmcParamsAndCommitmentKeyAndSecretKey"
+        "SmcParamsKVAndCommitmentKeyAndSecretKey"
     ))
 }
 

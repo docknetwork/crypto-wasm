@@ -21,7 +21,7 @@ use zeroize::Zeroize;
 pub(crate) type BppSetupParams = SetupParams<G1Affine>;
 pub(crate) type SmcParams = SmcParamsAndCommitmentKey<Bls12_381>;
 pub(crate) type SmcParamsKV = SmcParamsKVAndCommitmentKey<G1Affine>;
-pub(crate) type SmcParamsAndSk = SmcParamsKVAndCommitmentKeyAndSecretKey<G1Affine>;
+pub(crate) type SmcParamsKVAndSk = SmcParamsKVAndCommitmentKeyAndSecretKey<G1Affine>;
 
 /// Setup snark for proving bounds and generate compressed or uncompressed SNARK proving key
 #[wasm_bindgen(js_name = boundCheckSnarkSetup)]
@@ -99,7 +99,7 @@ pub fn bound_check_smc_with_kv_setup(
     } else {
         obj_to_uint8array!(&smc_setup_params, false, "SmcParamsAndCommitmentKey")
     };
-    let smc_setup_params_with_sk = SmcParamsAndSk {
+    let smc_setup_params_with_sk = SmcParamsKVAndSk {
         params_and_comm_key: smc_setup_params,
         sk,
     };
@@ -140,16 +140,25 @@ pub fn decompress_smc_params(params: Uint8Array) -> Result<Uint8Array, JsValue> 
     ))
 }
 
-#[wasm_bindgen(js_name = decompressSmcParamsAndSk)]
+#[wasm_bindgen(js_name = decompressSmcParamsKV)]
+pub fn decompress_smc_params_kv(params: Uint8Array) -> Result<Uint8Array, JsValue> {
+    let params = obj_from_uint8array!(SmcParamsKV, params, false, "SmcParamsKVAndCommitmentKey");
+    Ok(obj_to_uint8array_uncompressed!(
+        &params,
+        "SmcParamsKVAndCommitmentKey"
+    ))
+}
+
+#[wasm_bindgen(js_name = decompressSmcParamsKVAndSk)]
 pub fn decompress_smc_params_and_sk(params: Uint8Array) -> Result<Uint8Array, JsValue> {
     let params = obj_from_uint8array!(
-        SmcParamsAndSk,
+        SmcParamsKVAndSk,
         params,
         false,
-        "SmcParamsAndCommitmentKeyAndSecretKey"
+        "SmcParamsKVAndCommitmentKeyAndSecretKey"
     );
     Ok(obj_to_uint8array_uncompressed!(
         &params,
-        "SmcParamsAndCommitmentKeyAndSecretKey"
+        "SmcParamsKVAndCommitmentKeyAndSecretKey"
     ))
 }

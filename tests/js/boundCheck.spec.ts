@@ -35,14 +35,14 @@ import {
   generateSetupParamForSmcParams,
   generateBoundCheckSmcStatementFromParamRefs,
   boundCheckSmcWithKVSetup,
-  decompressSmcParamsAndSk,
   generateBoundCheckSmcWithKVProverStatement,
   generateBoundCheckSmcWithKVVerifierStatement,
   generateBoundCheckSmcWithKVProverStatementFromParamRefs, generateBoundCheckSmcWithKVVerifierStatementFromParamRefs,
-  generateBoundCheckSmcWithKVWitness, generateSetupParamForSmcParamsAndSk, generatePoKBBSPlusSignatureProverStatement
+  generateBoundCheckSmcWithKVWitness, generatePoKBBSPlusSignatureProverStatement,
+  decompressSmcParamsKV, decompressSmcParamsKVAndSk, generateSetupParamForSmcParamsKV, generateSetupParamForSmcParamsKVAndSk
 } from "../../lib";
 
-import {checkResult, getRevealedUnrevealed, stringToBytes} from "./util";
+import { checkResult, getRevealedUnrevealed, stringToBytes } from "./util";
 
 describe("Prove and verify bounds on signed messages", () => {
   const messageCount = 5;
@@ -69,21 +69,21 @@ describe("Prove and verify bounds on signed messages", () => {
     revealedIndices.add(4);
 
     const [revealedMsgs, unrevealedMsgs] = getRevealedUnrevealed(
-        messages,
-        revealedIndices
+      messages,
+      revealedIndices
     );
     const statement1 = generatePoKBBSPlusSignatureProverStatement(
-        sigParams,
-        revealedMsgs,
-        false
+      sigParams,
+      revealedMsgs,
+      false
     );
 
     console.time("bound check prover stmt");
     const statement2 = proverStmt(
-        min,
-        max,
-        proverParams,
-        true
+      min,
+      max,
+      proverParams,
+      true
     );
     console.timeEnd("bound check prover stmt");
 
@@ -108,41 +108,41 @@ describe("Prove and verify bounds on signed messages", () => {
 
     console.time("proof gen");
     proof = generateCompositeProofG1WithDeconstructedProofSpec(
-        proverStatements,
-        metaStatements,
-        [],
-        witnesses,
-        undefined,
-        nonce
+      proverStatements,
+      metaStatements,
+      [],
+      witnesses,
+      undefined,
+      nonce
     );
     console.timeEnd("proof gen");
 
     console.time("bound check verifier stmt");
     const statement3 = verifierStmt(
-        min,
-        max,
-        verifierParams,
-        true
+      min,
+      max,
+      verifierParams,
+      true
     );
     console.timeEnd("bound check verifier stmt");
 
     const verifierStatements: Uint8Array[] = [];
     verifierStatements.push(generatePoKBBSPlusSignatureVerifierStatement(
-        sigParams,
-        sigPk,
-        revealedMsgs,
-        false
+      sigParams,
+      sigPk,
+      revealedMsgs,
+      false
     ));
     verifierStatements.push(statement3);
 
     console.time("proof ver");
     const res = verifyCompositeProofG1WithDeconstructedProofSpec(
-        proof,
-        verifierStatements,
-        metaStatements,
-        [],
-        undefined,
-        nonce
+      proof,
+      verifierStatements,
+      metaStatements,
+      [],
+      undefined,
+      nonce
     );
     console.timeEnd("proof ver");
     checkResult(res);
@@ -150,36 +150,36 @@ describe("Prove and verify bounds on signed messages", () => {
 
   function checkOverMultipleMessages(setupParamProver, setupParamVerifier, proverStmt, verifierStmt, witnessGen, proverParams, verifierParams) {
     const [revealedMsgs, unrevealedMsgs] = getRevealedUnrevealed(
-        messages,
-        new Set<number>()
+      messages,
+      new Set<number>()
     );
     const statement1 = generatePoKBBSPlusSignatureProverStatement(
-        sigParams,
-        revealedMsgs,
-        false
+      sigParams,
+      revealedMsgs,
+      false
     );
 
     console.time("bound check prover setup param");
     const provingSetupParams: Uint8Array[] = [];
     provingSetupParams.push(
-        setupParamProver(proverParams, true)
+      setupParamProver(proverParams, true)
     );
     console.timeEnd("bound check prover setup param");
 
     const statement2 = proverStmt(
-        min,
-        max,
-        0
+      min,
+      max,
+      0
     );
     const statement3 = proverStmt(
-        min,
-        max,
-        0
+      min,
+      max,
+      0
     );
     const statement4 = proverStmt(
-        min,
-        max,
-        0
+      min,
+      max,
+      0
     );
 
     const proverStatements: Uint8Array[] = [];
@@ -220,44 +220,44 @@ describe("Prove and verify bounds on signed messages", () => {
 
     console.time("proof gen");
     proof = generateCompositeProofG1WithDeconstructedProofSpec(
-        proverStatements,
-        metaStatements,
-        provingSetupParams,
-        witnesses,
-        undefined,
-        nonce
+      proverStatements,
+      metaStatements,
+      provingSetupParams,
+      witnesses,
+      undefined,
+      nonce
     );
     console.timeEnd("proof gen");
 
     console.time("bound check verifier setup param");
     const verifierSetupParams: Uint8Array[] = [];
     verifierSetupParams.push(
-        setupParamVerifier(verifierParams, true)
+      setupParamVerifier(verifierParams, true)
     );
     console.timeEnd("bound check verifier setup param");
 
     const statement5 = verifierStmt(
-        min,
-        max,
-        0
+      min,
+      max,
+      0
     );
     const statement6 = verifierStmt(
-        min,
-        max,
-        0
+      min,
+      max,
+      0
     );
     const statement7 = verifierStmt(
-        min,
-        max,
-        0
+      min,
+      max,
+      0
     );
 
     const verifierStatements: Uint8Array[] = [];
     verifierStatements.push(generatePoKBBSPlusSignatureVerifierStatement(
-        sigParams,
-        sigPk,
-        revealedMsgs,
-        false
+      sigParams,
+      sigPk,
+      revealedMsgs,
+      false
     ));
     verifierStatements.push(statement5);
     verifierStatements.push(statement6);
@@ -265,12 +265,12 @@ describe("Prove and verify bounds on signed messages", () => {
 
     console.time("proof ver");
     const res = verifyCompositeProofG1WithDeconstructedProofSpec(
-        proof,
-        verifierStatements,
-        metaStatements,
-        verifierSetupParams,
-        undefined,
-        nonce
+      proof,
+      verifierStatements,
+      metaStatements,
+      verifierSetupParams,
+      undefined,
+      nonce
     );
     console.timeEnd("proof ver");
     expect(res.verified).toBe(true);
@@ -320,9 +320,9 @@ describe("Prove and verify bounds on signed messages", () => {
 
   it("decompress set-membership check with keyed verification params", () => {
     console.time("set-membership check params decompressed");
-    smcWithKVProverParams = decompressSmcParams(smcWithKVSetup[0]);
-    smcWithKVVerifierParams = decompressSmcParamsAndSk(smcWithKVSetup[1]);
-    console.timeEnd("set-membership check params decompressed");
+    smcWithKVSetup = boundCheckSmcWithKVSetup(stringToBytes("test"), base, false);
+    smcWithKVProverParams = decompressSmcParamsKV(smcWithKVSetup[0]);
+    smcWithKVVerifierParams = decompressSmcParamsKVAndSk(smcWithKVSetup[1]); console.timeEnd("set-membership check params decompressed");
   }, 50000);
 
   it("signature setup and sign messages", () => {
@@ -397,6 +397,6 @@ describe("Prove and verify bounds on signed messages", () => {
   }, 10000);
 
   it("create and verify a proof over multiple signed messages using set-membership check with keyed-verification", () => {
-    checkOverMultipleMessages(generateSetupParamForSmcParams, generateSetupParamForSmcParamsAndSk, generateBoundCheckSmcWithKVProverStatementFromParamRefs, generateBoundCheckSmcWithKVVerifierStatementFromParamRefs, generateBoundCheckSmcWithKVWitness, smcWithKVProverParams, smcWithKVVerifierParams)
+    checkOverMultipleMessages(generateSetupParamForSmcParamsKV, generateSetupParamForSmcParamsKVAndSk, generateBoundCheckSmcWithKVProverStatementFromParamRefs, generateBoundCheckSmcWithKVVerifierStatementFromParamRefs, generateBoundCheckSmcWithKVWitness, smcWithKVProverParams, smcWithKVVerifierParams)
   }, 10000);
 });

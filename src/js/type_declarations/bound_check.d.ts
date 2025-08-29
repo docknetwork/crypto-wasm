@@ -10,4 +10,6 @@ export function decompressBppParams(params: Uint8Array): Uint8Array;
 
 export function decompressSmcParams(params: Uint8Array): Uint8Array;
 
-export function decompressSmcParamsAndSk(params: Uint8Array): Uint8Array;
+export function decompressSmcParamsKV(params: Uint8Array): Uint8Array;
+
+export function decompressSmcParamsKVAndSk(params: Uint8Array): Uint8Array;

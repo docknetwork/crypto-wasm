@@ -117,9 +117,14 @@ module.exports.generateSetupParamForSmcParams = (params, uncompressed) => {
     return wasm.generateSetupParamForSmcParams(params, uncompressed);
 };
 
-module.exports.generateSetupParamForSmcParamsAndSk = (params, uncompressed) => {
+module.exports.generateSetupParamForSmcParamsKV = (params, uncompressed) => {
     requireWasmInitialized();
-    return wasm.generateSetupParamForSmcParamsAndSk(params, uncompressed);
+    return wasm.generateSetupParamForSmcParamsKV(params, uncompressed);
+};
+
+module.exports.generateSetupParamForSmcParamsKVAndSk = (params, uncompressed) => {
+    requireWasmInitialized();
+    return wasm.generateSetupParamForSmcParamsKVAndSk(params, uncompressed);
 };
 
 module.exports.generateSetupParamForCommitmentKey = (commKey, uncompressed) => {
