@@ -51,7 +51,7 @@ echo "Packing WASM into b64"
 node ./scripts/pack-wasm-base64.js
 
 # Convert how the WASM is loaded in the CJS version to use the base64 packed version
-sed -i -e 's/input = new URL(.*/input = require(\".\/dock_crypto_wasm_bs64.js\");/' $SRC_WASM_CJS
+sed -i -e 's/module_or_path = new URL(.*/module_or_path = require(\".\/dock_crypto_wasm_bs64.js\");/' $SRC_WASM_CJS
 
 # Delete the un-necessary files automatically created by wasm-pack
 rm lib/package.json lib/.gitignore lib/LICENSE lib/README.md
