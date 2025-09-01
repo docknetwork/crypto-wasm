@@ -16,10 +16,8 @@ jobs:
         os: [ubuntu-latest, macos-latest]
     steps:
       - uses: actions/checkout@v4
-      - uses: jetli/wasm-pack-action@v0.4.0
-        with:
-          # Optional version of wasm-pack to install(eg. 'v0.9.1', 'latest')
-          version: 'latest'
+      - name: Install WASM-Pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
