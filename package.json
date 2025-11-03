@@ -1,6 +1,6 @@
 {
   "name": "@docknetwork/crypto-wasm",
-  "version": "0.33.0",
+  "version": "0.34.0",
   "author": "Dock.io",
   "license": "Apache-2.0",
   "description": "An implementation of BBS, BBS+ signatures, PS signatures, bilinear map accumulators, verifiable encryption, range proof and composite proof using rust compiled to wasm. This project started as fork of @mattrglobal/bbs-signatures",
@@ -31,7 +31,7 @@
     "test:browser": "./scripts/test-browser.sh",
     "test:wasm": "yarn jest",
     "benchmark:wasm": "ts-node ./bench/index.ts",
-    "publish:release": "yarn build:release && yarn publish",
+    "publish:release": "yarn build:release && npm publish",
     "version": "conventional-changelog -p angular -i CHANGELOG.md -s && git add CHANGELOG.md",
     "version:release": "yarn version --minor --message \"chore(release): publish\""
   },
@@ -52,5 +52,5 @@
     "typescript": "^5.9.2",
     "webpack-dev-server": "^5.2.2"
   },
-  "packageManager": "yarn@4.9.3"
+  "packageManager": "yarn@4.10.3"
 }
