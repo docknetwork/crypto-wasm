@@ -20,9 +20,9 @@ js-sys = "0.3"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0"}
 serde-wasm-bindgen = "0.6.5"
-wasm-bindgen = "= 0.2.100"
+wasm-bindgen = "0.2.95"
 dlmalloc = { version = "0.2.6", features = ["global"], optional = true }
-serde_with = { version = "3.14.0", default-features = false, features = ["macros"] }
+serde_with = { version = "1.10.0", default-features = false, features = ["macros"] }
 
 bbs_plus = { version = "0.23.0", default-features = false }
 vb_accumulator = { version = "0.27.0", default-features = false }
