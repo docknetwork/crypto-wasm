@@ -5,7 +5,7 @@ edition = "2021"
 license = "Apache-2.0"
 name = "dock_crypto_wasm"
 repository = "https://github.com/docknetwork/crypto-wasm"
-version = "0.21.0"
+version = "0.22.0"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -16,27 +16,27 @@ default = ["dlmalloc"]
 
 [dependencies]
 console_error_panic_hook = { version = "0.1.7", optional = true }
-js-sys = "0.3"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = { version = "1.0"}
+js-sys = "0.3.69"
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = { version = "1.0.143"}
 serde-wasm-bindgen = "0.6.5"
 wasm-bindgen = "0.2.95"
-dlmalloc = { version = "0.2.6", features = ["global"], optional = true }
 serde_with = { version = "1.10.0", default-features = false, features = ["macros"] }
+dlmalloc = { version = "0.2.10", features = ["global"], optional = true }
 
-bbs_plus = { version = "0.23.0", default-features = false }
-vb_accumulator = { version = "0.27.0", default-features = false }
-schnorr_pok = { version = "0.21.0", default-features = false }
-proof_system = { version = "0.32.0", default-features = false }
-coconut-crypto = { version = "0.12.0", default-features = false }
-dock_crypto_utils = { version = "0.21.0", default-features = false }
-saver = { version = "0.19.0", default-features = false }
-legogroth16 = { version = "0.16.0", default-features = false, features = ["circom", "wasmer-js"] }
-secret_sharing_and_dkg = { version = "0.14.0", default-features = false }
-oblivious_transfer_protocols = { version = "0.10.0", default-features = false}
-bulletproofs_plus_plus = { version = "0.7.0", default-features = false}
-smc_range_proof = { version = "0.7.0", default-features = false}
-kvac = { version = "0.6.0", default-features = false}
+bbs_plus = { version = "0.25.0", default-features = false }
+vb_accumulator = { version = "0.29.0", default-features = false }
+schnorr_pok = { version = "0.23.0", default-features = false }
+proof_system = { version = "0.34.0", default-features = false }
+coconut-crypto = { version = "0.14.0", default-features = false }
+dock_crypto_utils = { version = "0.23.0", default-features = false }
+saver = { version = "0.21.0", default-features = false }
+legogroth16 = { version = "0.18.0", default-features = false, features = ["circom", "wasmer-js"] }
+secret_sharing_and_dkg = { version = "0.16.0", default-features = false }
+oblivious_transfer_protocols = { version = "0.12.0", default-features = false}
+bulletproofs_plus_plus = { version = "0.9.0", default-features = false}
+smc_range_proof = { version = "0.9.0", default-features = false}
+kvac = { version = "0.8.0", default-features = false}
 
 ark-ec = { version = "^0.4.1", default-features = false }
 ark-ff = { version = "^0.4.1", default-features = false }
@@ -44,9 +44,10 @@ ark-relations = { version = "^0.4.0", default-features = false }
 ark-bls12-381 = { version = "^0.4.0", default-features = false, features = [ "curve" ] }
 ark-serialize = { version = "^0.4.1", default-features = false, features = [ "derive" ] }
 blake2 = { version = "0.10.6", default-features = false }
-getrandom = { version = "0.2.12", features = ["js"] }
+getrandom = { version = "0.2.16", features = ["js"] }
 ark-std = { version = "^0.4.0", default-features = false }
 zeroize = { version = "1.7.0", features = ["derive"] }
+sha3 = "0.10.8"
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
