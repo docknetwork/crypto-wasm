@@ -8,6 +8,8 @@ use crate::{
     },
     Fr,
 };
+use blake2::Blake2b512;
+use sha3::Shake256;
 use ark_bls12_381::Bls12_381;
 use bbs_plus::threshold::{
     multiplication_phase::{Phase2, Phase2Output},
@@ -15,7 +17,6 @@ use bbs_plus::threshold::{
     threshold_bbs::{BBSSignatureShare, Phase1Output as BbsPhase1Output},
     threshold_bbs_plus::{BBSPlusSignatureShare, Phase1Output as BbsPlusPhase1Output},
 };
-use blake2::Blake2b512;
 use js_sys::{Array, Map, Set, Uint8Array};
 use oblivious_transfer_protocols::{
     cointoss::Commitments,
@@ -35,7 +36,7 @@ macro_rules! start_phase1 {
         set_panic_hook();
         let mut rng = get_seeded_rng();
         let others = js_set_to_btree_set(&$others);
-        let (phase1, comm, comm_zero) = Phase1::<Fr, SALT_SIZE>::$fn_name(
+        let (phase1, comm, comm_zero) = Phase1::<Fr, SALT_SIZE>::$fn_name::<_, Blake2b512>(
             &mut rng,
             $sig_batch_size,
             $participant_id,
@@ -81,7 +82,7 @@ macro_rules! start_phase2 {
     let gadget_vector = obj_from_uint8array!(GadgetVector<Fr, KAPPA, STATISTICAL_SECURITY_PARAMETER>, $gadget_vector, false, "GadgetVector");
     let ote_params = MultiplicationOTEParams::<KAPPA, STATISTICAL_SECURITY_PARAMETER> {};
 
-    let (phase2, msgs) = Phase2::init(
+    let (phase2, msgs) = Phase2::init::<_, Shake256>(
         &mut rng,
         $participant_id,
         phase1_output.masked_signing_key_shares,
@@ -488,7 +489,7 @@ fn process_shares(
     let shares = obj_from_uint8array!(Vec<(Fr, [u8; SALT_SIZE])>, shares, false);
     let zero_shares = obj_from_uint8array!(Vec<(Fr, [u8; SALT_SIZE])>, zero_shares, false);
     phase1
-        .receive_shares(sender_id, shares, zero_shares)
+        .receive_shares::<Blake2b512>(sender_id, shares, zero_shares)
         .map_err(|e| {
             JsValue::from(&format!(
                 "Processing shares in Phase1 returned error: {:?}",
@@ -511,7 +512,7 @@ fn receive_message_1(
     let message = obj_from_uint8array!(Message1<Fr>, message, false, "Phase2 Message1");
     let gadget_vector = obj_from_uint8array!(GadgetVector<Fr, KAPPA, STATISTICAL_SECURITY_PARAMETER>, gadget_vector, false);
     let m2 = phase2
-        .receive_message1::<Blake2b512>(sender_id, message, &gadget_vector)
+        .receive_message1::<Blake2b512, Shake256>(sender_id, message, &gadget_vector)
         .map_err(|e| {
             JsValue::from(&format!(
                 "Receiving Message1 in Phase2 returned error: {:?}",
