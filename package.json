@@ -18,7 +18,7 @@
     "lib": "lib"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=22.0.0"
   },
   "scripts": {
     "install:deps": "./scripts/install-dependencies.sh",
@@ -36,8 +36,8 @@
     "version:release": "yarn version --minor --message \"chore(release): publish\""
   },
   "devDependencies": {
-    "@commitlint/cli": "^19.8.1",
-    "@commitlint/config-conventional": "^19.8.1",
+    "@commitlint/cli": "^20.1",
+    "@commitlint/config-conventional": "^20.0",
     "@stablelib/benchmark": "^2.0.0",
     "@types/jest": "29",
     "@types/node": "^24.3.0",
