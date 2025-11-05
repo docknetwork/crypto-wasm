@@ -16,6 +16,7 @@ use oblivious_transfer_protocols::{
 use secret_sharing_and_dkg::common::PublicKeyBase;
 use wasm_bindgen::prelude::*;
 use zeroize::Zeroize;
+use sha3::Shake256;
 
 fn parse_pk_base(pk_base: Uint8Array) -> Result<G1Affine, JsValue> {
     let pk_base = obj_from_uint8array!(PublicKeyBase<G1Affine>, pk_base, false);
@@ -68,7 +69,7 @@ pub fn base_ot_phase_process_sender_pubkey(
     let mut base_ot = obj_from_uint8array!(Participant<G1Affine>, base_ot_phase, true);
     let pub_key_proof = obj_from_uint8array!(SenderPubKeyAndProof<G1Affine>, pub_key_proof, false);
     let recv_pk = base_ot
-        .receive_sender_pubkey::<_, Blake2b512, BASE_OT_KEY_SIZE>(
+        .receive_sender_pubkey::<_, Blake2b512, Shake256, BASE_OT_KEY_SIZE>(
             &mut rng,
             sender_id,
             pub_key_proof,
@@ -98,7 +99,7 @@ pub fn base_ot_phase_process_receiver_pubkey(
     let mut base_ot = obj_from_uint8array!(Participant<G1Affine>, base_ot_phase, true);
     let pk = obj_from_uint8array!(ReceiverPubKeys<G1Affine>, public_key, false);
     let challenges = base_ot
-        .receive_receiver_pubkey::<BASE_OT_KEY_SIZE>(receiver_id, pk)
+        .receive_receiver_pubkey::<Blake2b512, Shake256, BASE_OT_KEY_SIZE>(receiver_id, pk)
         .map_err(|e| {
             JsValue::from(&format!(
                 "Processing Base OT sender's public key returned error: {:?}",
@@ -123,7 +124,7 @@ pub fn base_ot_phase_process_receiver_challenges(
     let mut base_ot = obj_from_uint8array!(Participant<G1Affine>, base_ot_phase, true);
     let challenges = obj_from_uint8array!(Challenges, challenges, false);
     let resp = base_ot
-        .receive_challenges(sender_id, challenges)
+        .receive_challenges::<Blake2b512>(sender_id, challenges)
         .map_err(|e| {
             JsValue::from(&format!(
                 "Processing Base OT sender's challenges returned error: {:?}",
@@ -172,7 +173,7 @@ pub fn base_ot_phase_process_hashed_keys(
     set_panic_hook();
     let mut base_ot = obj_from_uint8array!(Participant<G1Affine>, base_ot_phase, true);
     let hk = obj_from_uint8array!(Vec<(HashedKey, HashedKey)>, hashed_keys, false);
-    base_ot.receive_hashed_keys(sender_id, hk).map_err(|e| {
+    base_ot.receive_hashed_keys::<Blake2b512>(sender_id, hk).map_err(|e| {
         JsValue::from(&format!(
             "Processing Base OT receiver's responses returned error: {:?}",
             e
