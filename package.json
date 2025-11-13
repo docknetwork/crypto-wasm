@@ -36,6 +36,7 @@
     "version:release": "yarn version --minor --message \"chore(release): publish\""
   },
   "devDependencies": {
+    "@changesets/cli": "2.29.7",
     "@commitlint/cli": "^20.1",
     "@commitlint/config-conventional": "^20.0",
     "@stablelib/benchmark": "^2.0.0",
