@@ -7,21 +7,42 @@ on:
   pull_request: {}
 
 jobs:
-  js_test:
-    name: Run JS tests in NodeJS environment
-    runs-on: ${{matrix.os}}
-    strategy:
-      matrix:
-        node-version: [22.x, 24.x, 25.x]
-        os: [ubuntu-latest, macos-latest]
+  build:
+    name: Build WASM
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - name: Install WASM-Pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
       - uses: actions/setup-node@v6
         with:
-          node-version: ${{ matrix.node-version }}
-      - run: corepack enable  # Enable Corepack
-      - run: yarn install --frozen-lockfile
+          node-version: "22.x"
+      - run: corepack enable
+      - run: yarn install --immutable
       - run: yarn build:release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wasm-build
+          path: lib/
+          retention-days: 1
+
+  js_test:
+    name: Test on Node ${{ matrix.node-version }} (${{ matrix.os }})
+    needs: build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        node-version: [22.x, 24.x, 25.x]
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: corepack enable
+      - run: yarn install --immutable
+      - uses: actions/download-artifact@v4
+        with:
+          name: wasm-build
+          path: lib/
       - run: yarn test:wasm
