@@ -16,8 +16,8 @@ jobs:
           node-version: "22.x"
           registry-url: https://registry.npmjs.org/
       - run: corepack enable  # Enable Corepack
-      - run: yarn install --frozen-lockfile
+      - run: yarn install --immutable
       - run: yarn build:release
-      - run: npx @changesets/cli publish
+      - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
