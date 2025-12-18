@@ -5,7 +5,6 @@
   "repository": "https://github.com/docknetwork/crypto-wasm",
   "author": "Mattr Limited & Dock.io",
   "license": "Apache-2.0",
-  "private": false,
   "scripts": {
     "demo": "ts-node ./src/index.ts"
   },
